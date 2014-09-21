@@ -1,5 +1,8 @@
 /**
  * Created by Devon Timaeus on 9/21/2014.
+ * This node.js code was pulled from: https://gist.github.com/rpflorence/701407
+ * It's just a static web page server. So this just serves a page requested by the URL.
+ * This is used to test the browserify functionality
  */
 
 var http = require("http"),

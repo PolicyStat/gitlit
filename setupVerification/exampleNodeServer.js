@@ -1,5 +1,9 @@
 /**
  * Created by Devon Timaeus on 9/21/2014.
+ * This is just a basic Hello World server for node.js, with node installed,
+ * just run something like:
+ * node exampleNodeServer.js
+ * and it should allow for viewing of a HTML page at: localhost:1337
  */
 
 var http = require('http');
