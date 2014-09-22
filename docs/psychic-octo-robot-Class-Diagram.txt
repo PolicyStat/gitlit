@@ -1,0 +1,96 @@
+@startuml
+title Psychic-Octo-Robot - Document Management
+
+class UI.FileInterfaceUI {
+    This UI would consist of a means for users to 
+    add files and commit them to the repository. This
+    would also allow users to view the current revision
+    of the file, branches, pull the new version. Users
+    can also compile the repo into the structured file.
+}
+
+class UI.PullRequestUI {
+    This UI allows users to view, comment, and 
+    approve pull requests for the document.
+}
+
+class UI.DiffUI {
+    This UI allows for users to view the 
+    differences between revisions of a document,
+    offering side-by-side diff viewing.
+}
+
+class UI.MergeUI {
+    This is very similar to the DiffUI, 
+    but allows for selection of the version 
+    in the diff that is to be used in the merge.
+}
+
+class Parsing.Parser {
+    Parses the structured document into a 
+    format that is usable by the 
+    RepoFabricator to create the file 
+    directory for the GitRepository.
+}
+
+class Parsing.HTMLParser {
+
+}
+class Generation.HTMLGenerator {
+
+}
+
+class Parsing.XMLParser {
+
+}
+class Generation.XMLGenerator {
+
+}
+
+class "Parsing.OtherParser" <<other format>> {
+
+}
+class "Generation.OtherGenerator" <<other format>>{
+
+}
+
+class Generation.Generator{
+    Generates the structured document from 
+    the file system that is in the repository.
+    It uses the structure that is made by 
+    RepoFabricator and builds the proper file format.
+}
+
+class RepoFabricator{
+    Creates the file structure for the Git 
+    repository and sets up the metadata files 
+    to allow for directories to be constructed 
+    into the document.
+}
+
+class GitEngine{
+    Back end worker for the interaction with 
+    Git repositories. Primarily uses js-git
+    to make commits, add changes, and pull 
+    remote changes.
+}
+
+Generation.Generator <-- UI.FileInterfaceUI
+UI.FileInterfaceUI --> Parsing.Parser
+RepoFabricator <-- Parsing.Parser
+UI.FileInterfaceUI --> GitEngine
+UI.PullRequestUI --> GitEngine
+UI.DiffUI --> GitEngine
+UI.MergeUI --> GitEngine
+
+Parsing.XMLParser   --|> Parsing.Parser
+Parsing.HTMLParser  --|> Parsing.Parser
+Parsing.OtherParser --|> Parsing.Parser
+
+Generation.XMLGenerator    --|> Generation.Generator
+Generation.HTMLGenerator   --|> Generation.Generator
+Generation.OtherGenerator  --|> Generation.Generator
+
+
+
+@enduml
