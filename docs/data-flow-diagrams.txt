@@ -1,0 +1,249 @@
+@startuml
+title User initializes document repository
+
+actor User
+participant InitializeRepoClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                 : requests page for initializing repository
+PsychicOctoRobotServer -> User                 : web page for InitializeRepoClient
+note right
+    The InitializeRepoClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+User -> InitializeRepoClient                   : selects document to create repository for
+InitializeRepoClient -> InitializeRepoClient   : creates repository on local system
+InitializeRepoClient -> User                   : displays message notifying user of success/failure
+
+@enduml
+
+@startuml
+title User Commits a new revision of a document
+
+actor User
+participant CommitDocumentClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                 : requests page for \n committing a \n new revision
+PsychicOctoRobotServer -> User                 : web page for \n CommitDocumentClient
+note right
+    The CommitDocumentClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+CommitDocumentClient -> CommitDocumentClient   : reads local "git" \n directory to check \n for repositories \n present 
+CommitDocumentClient -> User                   : Displays documents \n that are tracked \n in repositories and \n are committable
+User -> CommitDocumentClient                   : selects document \n and branch to commit \n a new revision
+CommitDocumentClient -> User                   : Displays option to \n select a document \n to upload as a \n new revision
+User -> CommitDocumentClient                   : Selects document \n for new revision
+CommitDocumentClient -> CommitDocumentClient   : Processes document to \n find differences between \n old and new revisions
+CommitDocumentClient -> User                   : Displays revision Diff
+User -> CommitDocumentClient                   : Selects to accept revision
+CommitDocumentClient -> CommitDocumentClient   : Saves new revision to repository
+CommitDocumentClient -> User                   : Displays message notifying user of success/failure
+
+@enduml
+
+@startuml
+title User Creates Branch of existing document
+
+actor User
+participant CreateBranchClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                 : requests page for \n creating a \n new branch
+PsychicOctoRobotServer -> User                 : web page for \n CreateBranchClient
+note right
+    The CreateBranchClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+CreateBranchClient -> CreateBranchClient     : reads local "git" \n directory to check \n for repositories \n present 
+CreateBranchClient -> User                   : Displays documents \n that are tracked \n in repositories and \n are branchable
+User -> CreateBranchClient                   : selects document \n repository to create \n a new branch
+CreateBranchClient -> User                   : Displays prompt for \n new branch name \n and parent branch
+User -> CreateBranchClient                   : Selects parent branch & names new branch
+CreateBranchClient -> CreateBranchClient     : Creates the branch defined by the user
+CreateBranchClient -> User                   : Displays message notifying user of success/failure
+
+@enduml
+
+@startuml
+title User Merges Branch
+
+actor User
+participant MergeClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                 : requests page for \n merging a \n branch
+PsychicOctoRobotServer -> User                 : web page for \n MergeClient
+note right
+    The MergeClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+MergeClient -> MergeClient            : reads local "git" \n directory to check \n for repositories \n present 
+MergeClient -> User                   : Displays documents \n that are tracked \n in repositories and \n are merge-able
+User -> MergeClient                   : selects document \n repository to merge
+MergeClient -> User                   : Displays prompt for \n branch to merge \n and destination branch
+User -> MergeClient                   : Selects merge branches
+MergeClient -> MergeClient            : Calculates diffs
+MergeClient -> User                   : Displays diffs
+User -> MergeClient                   : Accepts changes
+MergeClient -> MergeClient            : Begins merging
+MergeClient -> User                   : Displays any merge conflicts
+User -> MergeClient                   : Selects revisions to use for each conflict
+MergeClient -> MergeClient            : Completes merge and commits locally
+MergeClient -> User                   : Displays message notifying user of success/failure
+
+@enduml
+
+
+@startuml
+title User Pulls newest changes of documents
+
+actor User
+participant PullClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+participant GitServer
+
+User -> PsychicOctoRobotServer                       : requests page for \n pulling new revisions
+PsychicOctoRobotServer -> User                       : web page for \n PullClient
+note right
+    The PullClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+PullClient -> PullClient                             : reads local "git" \n directory to check \n for repositories \n present 
+PullClient -> User                                   : Displays documents \n that are tracked \n in repositories locally
+User -> PullClient                                   : selects document \n repository to pull
+alt Contact GitServer Directly
+    PullClient -> GitServer                          : Requests new revisions for repository
+    GitServer -> PullClient                          : New revisions for repository
+else get updates through PsychicOctoRobotServer
+    PullClient -> PsychicOctoRobotServer             : Sends request new revisions of repo
+    PsychicOctoRobotServer -> GitServer              : Requests new revisions for repository
+    GitServer -> PsychicOctoRobotServer              : New revisions for repository
+    PsychicOctoRobotServer -> PullClient             : New revisions for repository
+end
+PullClient -> User                                   : Displays message notifying user of success/failure
+
+@enduml
+
+@startuml
+title User Pushes newest local changes of documents
+
+actor User
+participant PushClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                       : requests page for \n Pushing a \n new revision
+PsychicOctoRobotServer -> User                       : web page for \n PushClient
+note right
+    The PushClient is a 
+    Javascript client made of js-git
+    and our code bundled with browserify
+end note
+PushClient -> PushClient                             : reads local "git" \n directory to check \n for repositories \n present 
+PushClient -> User                                   : Displays documents \n that are tracked \n in repositories and \n are push-able
+User -> PushClient                                   : selects document \n repository to push
+PushClient -> User                                   : Displays prompt for \n branch to push
+User -> PushClient                                   : Selects branch
+PushClient -> User                                   : Prompts for confirmation
+User -> PushClient                                   : Accepts
+alt Contact GitServer Directly         
+    PushClient -> GitServer                          : Sends new revisions for repository
+    GitServer -> PushClient                          : Confirmation
+else Push through PsychicOctoRobotServer
+    PushClient -> PsychicOctoRobotServer             : Sends new revisions of repo
+    PsychicOctoRobotServer -> GitServer              : New revisions for repository
+    GitServer -> PsychicOctoRobotServer              : Confirmation
+    PsychicOctoRobotServer -> PushClient             : Confirmation
+end
+PushClient -> User                                   : Displays message notifying user of success/failure
+
+@enduml
+
+@startuml
+title User Submits a Pull Request
+
+actor User
+participant PullRequestClient
+participant PsychicOctoRobotServer
+note right of PsychicOctoRobotServer
+    Node.js server which serves the
+    webpages requested by the user.
+end note
+
+User -> PsychicOctoRobotServer                              : requests page for \n submitting a \n pull request
+PsychicOctoRobotServer -> User                              : web page for \n PullRequestClient
+note right              
+    The PullRequestClient is a              
+    Javascript client made of js-git                
+    and our code bundled with browserify                
+end note                
+                
+alt Contact GitServer Directly              
+    PullRequestClient -> GitServer                          : Requests index of \n all branches in \n repos accessible by \n the user
+    GitServer -> PullRequestClient                          : Index info
+else Get Repo Index through PsychicOctoRobotServer
+    PullRequestClient -> PsychicOctoRobotServer             : Requests index of \n all branches in \n repos accessible by \n the user
+    PsychicOctoRobotServer -> GitServer                     : Requests index of \n all branches in \n repos accessible by \n the user
+    GitServer -> PsychicOctoRobotServer                     : Index info
+    PsychicOctoRobotServer -> PullRequestClient             : Index info
+end
+PullRequestClient -> User                                   : Displays branch index \n of remote repos \n user has access to
+User -> PullRequestClient                                   : selects branch to \n do a pull request for
+PullRequestClient -> User                                   : Displays prompt for \n parent branch for diff
+User -> PullRequestClient                                   : Selects parent branch
+loop for each branch
+    alt Contact GitServer Directly
+        PullRequestClient -> GitServer                      : Requests latest repo version
+        GitServer -> PullRequestClient                      : Repo
+    else Get Repo Index through PsychicOctoRobotServer
+        PullRequestClient -> PsychicOctoRobotServer         : Requests latest repo version
+        PsychicOctoRobotServer -> GitServer                 : Requests latest repo version
+        GitServer -> PsychicOctoRobotServer                 : Repo
+        PsychicOctoRobotServer -> PullRequestClient         : Repo
+    end
+end
+PullRequestClient -> PullRequestClient                      : Calculates diffs
+PullRequestClient -> User                                   : Displays diffs
+User -> PullRequestClient                                   : Accepts changes and makes a comment/message
+alt Contact GitServer Directly
+    PullRequestClient -> GitServer                          : Submit pull request
+    GitServer -> PullRequestClient                          : Confirmation
+else Get Repo Index through PsychicOctoRobotServer
+    PullRequestClient -> PsychicOctoRobotServer             : Submit pull request
+    PsychicOctoRobotServer -> GitServer                     : Submit pull request
+    GitServer -> PsychicOctoRobotServer                     : Confirmation
+    PsychicOctoRobotServer -> PullRequestClient             : Confirmation
+end
+PullRequestClient -> User                                   : Displays message notifying user of success/failure
+
+@enduml
