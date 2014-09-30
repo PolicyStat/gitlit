@@ -13,6 +13,17 @@ and reduces the chances of merge conflicts.
     Almost all of these
     would make great test cases.
 
+************************
+Unresolved Design Issues
+************************
+
+* How do we represent text nodes?
+* How do we represent ordering
+  of text nodes mixed with other nodes?
+* How do we store node type?
+* How do we store node attributes
+  (``src``, ``href``, etc)?
+
 *************************
 Simple Paragraph Addition
 *************************
@@ -37,8 +48,8 @@ Assume they're there.
 
 .. code-block:: html
 
-    <p data-por-gui="GUID1">p1</p>
-    <p data-por-gui="GUID2">p2</p>
+    <p data-por-guid="GUID1">p1</p>
+    <p data-por-guid="GUID2">p2</p>
 
 Lexicographical Representation
 ------------------------------
