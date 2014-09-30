@@ -3,7 +3,8 @@ HTML to File Serialization
 ##########################
 
 In order to store meaningful changes in git,
-PSO serialized HTML to a folder/file structure.
+PSO serializes HTML
+to a folder/file structure.
 This makes change and move detection
 behave similar to how git expects
 and reduces the chances of merge conflicts.
