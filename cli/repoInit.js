@@ -3,7 +3,7 @@
  */
 fs = require('fs');
 path = require('path');
-
+parser = require('./htmlParser');
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -28,9 +28,13 @@ function getFileContents(file) {
     }
 }
 
-function initializeRepository(file) {
+function initializeRepository(file, outputPath, repoName) {
     try {
+        if (!fs.existsSync(outputPath)) {
+            throw new URIError("Output Path does not exist");
+        }
         var fileContents = getFileContents(file);
+        parser.printOutFiles(fileContents, outputPath, repoName);
     } catch (err) {
         if (err instanceof TypeError) {
             console.error(err.message);

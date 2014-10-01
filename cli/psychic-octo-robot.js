@@ -12,10 +12,10 @@ program
     .option('-l, --libraries', 'Print out the versions of the libraries used');
 
 program
-    .command('init <file>')
+    .command('init <file> <outputPath> <repoName>')
     .description('Initialize a Repository for the given file')
-    .action(function(file) {
-        init.initializeRepository(file);
+    .action(function(file, outputPath, repoName) {
+        init.initializeRepository(file, outputPath, repoName);
     });
 
 if (process.argv.length == 2){
