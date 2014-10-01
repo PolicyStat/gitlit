@@ -12,6 +12,7 @@ li {display: inline;}
 </style>
 </head>
 <body>
+
 <div class="pure-menu pure-menu-open pure-menu-horizontal">
 	<ul>
 	  <li><a href="init.html">Initialization</a></li>
@@ -22,18 +23,19 @@ li {display: inline;}
 	</ul>
 </div>
 
-<p><h1>Commit</h1></p>
-<p>Upload a file with a commit message to update the repository.</p>
-
-<p><b> Upload your file here </b></p>
-<a class="pure-button pure-button-disabled">Upload a file</a>
-No file selected.<br>
-
-<p><b> Comments for file commit </b></p>
-<textarea rows="4 cols="200" name="comment" form="submit">
-Comment
-</textarea>
+<p><h1>Branch Merge</h1></p>
+<p>Select two branches to merge them together.</p>
+<select>
+	<option value="previously" form="pre">previously</option>
+	<option value="created" form="pre">created</option>
+	<option value="branches" form="pre">branches</option>
+</select>
 <br>
-<input class="pure-button" type="submit" name="submit" value="Submit" id="submit">
-
+<select>
+	<option value="previously" form="pre">previously</option>
+	<option value="created" form="pre">created</option>
+	<option value="branches" form="pre">branches</option>
+</select>
+<br>
+<input class="pure-button" type="submit" name="pre" value="Merge the Differences!" id="pre">
 </body>
