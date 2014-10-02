@@ -13,8 +13,14 @@ function printOutFiles(fileContents, path, repoName) {
          and then go through and add the files to it.
          */
         var dirName = path + generateDirectoryName(repoName, 0) + "/";
-        //TODO: Make directory
-        console.log("Created the directory: \"%s\"", dirName)
+
+		fs.mkdir(dirName, 0777, true, function(err){
+			if (err) {
+				console.log(err);
+			} else {
+				console.log("Created the directory: \"%s\"", dirName);
+			}
+		});
 
         dispatchChildrenProcessing(dom, dirName);
 
@@ -51,10 +57,14 @@ function generateDirectoryName(tagID, counter) {
 }
 
 function writeToFile(path, contents) {
-    console.log("Wrote the following to file \"%s\"", path)
-    console.log(contents);
-    //TODO: Create file
-    //TODO: Write file contents
+	fs.writeFile(path, contents, function(err){
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Wrote the following to file \"%s\"", path);
+    		console.log(contents);
+		}
+	});
 }
 
 function processTaglessChild(dom, path, childNumber) {
@@ -101,9 +111,15 @@ function processTaggedChild(dom, path, childNumber) {
     }
 
     var dirName = path + generateDirectoryName(id, childNumber) + "/";
-    //TODO: Make directory
-    console.log("Created the directory: \"%s\"", dirName);
-    console.log("tag was:" + tag);
+
+	fs.mkdir(dirName, 0777, true, function(err){
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Created the directory: \"%s\"", dirName);
+    		console.log("tag was:" + tag);
+		}
+	});
 
     dispatchChildrenProcessing(dom, dirName);
     // After processing children, we need to write our metadata file and return
