@@ -20,6 +20,10 @@ RUN npm install -g browserify
 #install js-git
 RUN npm install -g js-git
 
+#install unit.js & mocha to run tests
+RUN npm install -g unit.js
+RUN npm install -g mocha
+
 
 #stuff for later maybe
 #RUN mkdir /var/www
