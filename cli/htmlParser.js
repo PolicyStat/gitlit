@@ -1,9 +1,17 @@
 /**
  * Created by Devon Timaeus on 10/1/2014.
+ *
+ * Updated by John Kulczak on 10/2/2014.
  */
 
 var Parser = require('parse5').Parser;
 var parser = new Parser();
+
+var modes = require('js-git/lib/modes');
+var repo = {};
+var treeHash = {};
+require('js-git/mixins/mem-db')(repo);
+require('js-git/mixins/create-tree')(repo);
 
 function printOutFiles(fileContents, path, repoName) {
     var dom = parser.parse(fileContents);
@@ -14,10 +22,15 @@ function printOutFiles(fileContents, path, repoName) {
          */
         var dirName = path + generateDirectoryName(repoName, 0) + "/";
 
-		fs.mkdir(dirName, 0777, true, function(err){
+		fs.mkdir(dirName, function(err){
 			if (err) {
 				console.log(err);
 			} else {
+				// Initialize the repo
+				treeHash = repo.createTree({
+					dirName: {
+						mode: modes.tree}});
+				
 				console.log("Created the directory: \"%s\"", dirName);
 			}
 		});
@@ -26,6 +39,16 @@ function printOutFiles(fileContents, path, repoName) {
 
         // After processing children, we need to write our metadata file and return
         //TODO: Write Metadata file
+
+		// Create a test commit
+		var commitHash = repo.saveAs("commit", {
+    		author: {
+      		name: "John Kulczak",
+      		email: "j_kulczak@hotmail.com"
+   	 	},
+    		tree: treeHash,
+    		message: "Test commit\n"
+  		});
     } else {
         // There was some problem parsing, as the top-level should be the #document
         throw new TypeError("Error in parsing file: top-level #document not created");
@@ -61,6 +84,16 @@ function writeToFile(path, contents) {
 		if (err) {
 			console.log(err);
 		} else {
+			// Create a new blob for this file and add it to the repo tree
+			var changes = [
+				{
+					path: path,
+					mode: modes.file,
+					content: contents }];
+
+			changes.base = treeHash;
+			treeHash = repo.createTree(changes);
+
 			console.log("Wrote the following to file \"%s\"", path);
     		console.log(contents);
 		}
@@ -112,10 +145,19 @@ function processTaggedChild(dom, path, childNumber) {
 
     var dirName = path + generateDirectoryName(id, childNumber) + "/";
 
-	fs.mkdir(dirName, 0777, true, function(err){
+	fs.mkdir(dirName, function(err){
 		if (err) {
 			console.log(err);
 		} else {
+			// Add this directory to the repo tree
+			var changes = [
+				{
+					path: path,
+					mode: modes.tree }];
+
+			changes.base = treeHash;
+			treeHash = repo.createTree(changes);
+
 			console.log("Created the directory: \"%s\"", dirName);
     		console.log("tag was:" + tag);
 		}
