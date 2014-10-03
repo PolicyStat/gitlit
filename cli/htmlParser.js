@@ -126,6 +126,7 @@ function processTaglessChild(dom, path, childNumber) {
     if (contents != null) {
         writeToFile(fileDirName, contents);
     }
+    return fileDirName
 }
 
 function processTaggedChild(dom, path, childNumber) {
@@ -163,19 +164,36 @@ function processTaggedChild(dom, path, childNumber) {
 		}
 	});
 
-    dispatchChildrenProcessing(dom, dirName);
+    var children = dispatchChildrenProcessing(dom, dirName);
     // After processing children, we need to write our metadata file and return
     //TODO: Write Metadata file
+    var fs = require("fs");
+    var metaFileJson = {
+    	tag: tag,
+    	attributes: attributes,
+    	constructionOrder: children
+    }
+    fs.writeFile("metadata.json", JSON.stringify(metaFileJson), "utf8", function(err){
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("Wrote the following to file \"%s\"", path);
+    		console.log(contents);
+		}
+	});
+    return dirName
 }
 
 function dispatchChildrenProcessing(dom, path) {
+	var children = [];
     for (var child in dom.childNodes) {
         if (typeof dom.childNodes[child].tagName == 'undefined') {
-            processTaglessChild(dom.childNodes[child], path, child);
+            children.push(processTaglessChild(dom.childNodes[child], path, child));
         } else {
-            processTaggedChild(dom.childNodes[child], path, child);
+            children.push(processTaggedChild(dom.childNodes[child], path, child));
         }
     }
+    return children
 }
 
 module.exports = {
