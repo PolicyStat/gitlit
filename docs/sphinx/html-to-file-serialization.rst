@@ -14,16 +14,102 @@ and reduces the chances of merge conflicts.
     Almost all of these
     would make great test cases.
 
-************************
-Unresolved Design Issues
-************************
+*************
+Design Issues
+*************
 
-* How do we represent text nodes?
-* How do we represent ordering
-  of text nodes mixed with other nodes?
-* How do we store node type?
-* How do we store node attributes
-  (``src``, ``href``, etc)?
+
+How do we represent text nodes?
+===============================
+
+For representing text nodes, just having a
+text file for the information would
+adequately store what was necessary, and
+then filenames can be generated arbitrarily,
+likely using any ``id`` attributes that already
+exist.
+
+So, if we had:
+
+.. code-block:: html
+
+    <p GUID=1>hello <span GUID=2>stuff</span> goodbye </p>
+
+
+This would become something organized like this:
+
+.. code-block:: html
+
+    * GUID1
+        * metadata.json
+        * 1.txt
+        * GUID2 (this is a dir)
+            * 1.txt
+        * 2.txt
+
+There is the issue of:
+    * What if "goodbye" was moved to
+        be before the span?
+
+But there isn't much that can be done here;
+it is likely that the parser used for parsing
+the HTML will result in one file for each of
+"goodbye" and "hello" so long as the span
+separates them.
+
+Without the span, the text would be treated as
+one file, thus, if it was moved, then it would
+result in a removed file and another file being
+modified.
+
+To solve this, there would need to be a
+decision of where to stop in parsing the HTML,
+so that a file doesn't get removed, but this
+would require quite a bit of extra information.
+
+This isn't insurmountable, as the old version
+could just be read, read the file, and keep
+track of where it "ends" and then just parse
+to that, or the first child node, and split
+the files accordingly.
+
+That being said, this could result in some file
+directories that look very strange, but would
+likely work better in diffs.
+
+How do we represent ordering of text nodes mixed with other nodes?
+==================================================================
+
+This could just be done with naming in lexicographic
+-based construction, and the table in the table
+-based construction. Basically, just have the
+names of directories and the files that hold
+content be what we use to determine what is
+what. That is, if a table says:
+
+* GUID1
+* GUID2
+* GUID3
+
+Regardless if any of those are directories,
+just recursively build that directory into
+a node, and then paste it in during construction.
+
+For name based, same idea, but with names.
+
+
+How do we store node type?
+==========================
+
+This could be done in the metadata file,
+since there will be one one either way.
+
+How do we store node attributes (``src``, ``href``, etc)?
+=========================================================
+
+Same as node type, metadata file would
+work well for this.
+
 
 *************************
 Simple Paragraph Addition
@@ -55,7 +141,7 @@ Assume they're there.
 Lexicographical Representation
 ------------------------------
 
-.. code-block::
+.. code-block:: markdown
 
     * 1000-GUID1
       * content.txt
@@ -67,7 +153,7 @@ Lexicographical Representation
 Table Representation
 --------------------
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -97,7 +183,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * 1000-GUID1
       * content.txt
@@ -114,7 +200,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -151,7 +237,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * 1000-GUID1
       * content.txt
@@ -168,7 +254,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -206,7 +292,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * 1000-GUID1
       * content.txt
@@ -226,7 +312,7 @@ Table Representation
 
 Conflicts: Yes. In ``metadata.json``.
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -279,7 +365,7 @@ Initial Content
 Lexicographical Representation
 ------------------------------
 
-.. code-block::
+.. code-block:: markdown
 
     * 1000-GUID1
       * content.txt
@@ -297,7 +383,7 @@ Lexicographical Representation
 Table Representation
 --------------------
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -336,7 +422,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * 0500-GUID4
       * content.txt
@@ -356,7 +442,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -395,7 +481,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * 0500-GUID4
       * content.txt
@@ -415,7 +501,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -458,7 +544,7 @@ Lexicographical Representation
 Conflicts: No. Not if content and move
 are separate commits.
 
-.. code-block::
+.. code-block:: markdown
 
     * 0500-GUID4
       * content.txt
@@ -478,7 +564,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block::
+.. code-block:: markdown
 
     * GUID1
       * content.txt
@@ -501,3 +587,17 @@ Conflicts: No
                 'GUID3'
             ],
         }
+
+
+***************
+Design Decision
+***************
+
+Psychic-Octo-Robot keeps track of the
+order that the nodes should be constructed
+via the table-method. This has the simplest
+base case, and stays simple even when
+complexity is added through commits.
+
+For any in-depth discussion of why, see
+`this git issue <https://github.com/PolicyStat/psychic-octo-robot/issues/18>`_
