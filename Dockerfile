@@ -18,7 +18,7 @@ RUN npm install -g browserify
 #RUN "Browserify install successful"
 
 #install commander
-RUN npm install -y commander
+RUN npm install -y -g commander
 
 #install js-git
 RUN npm install -g js-git
