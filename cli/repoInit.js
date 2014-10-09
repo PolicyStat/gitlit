@@ -1,9 +1,10 @@
 /**
  * Created by Devon Timaeus on 9/30/2014.
  */
-fs = require('fs');
-path = require('path');
-parser = require('./htmlParser');
+var fs = require('fs');
+var path = require('path');
+var parser = require('./htmlParser');
+var fileWriter = require('./htmlRepoWriter');
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -34,7 +35,8 @@ function initializeRepository(file, outputPath, repoName) {
             throw new URIError("Output Path does not exist");
         }
         var fileContents = getFileContents(file);
-        parser.printOutFiles(fileContents, outputPath, repoName);
+        var porObject = parser.parseHTML(fileContents, repoName);
+        fileWriter.writeRepoToDirectory(porObject, outputPath);
     } catch (err) {
         if (err instanceof TypeError) {
             console.error(err.message);
