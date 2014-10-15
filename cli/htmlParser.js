@@ -100,15 +100,20 @@ function processTaggedChild(dom) {
     if (typeof dom.attrs != 'undefined') {
         attributes = dom.attrs;
     }
+
+    var idIndex = null;
     for (var attributeIndex = 0; attributeIndex < attributes.length; ++attributeIndex) {
         if (attributes[attributeIndex].name == 'por-id'){
-            id = attributes[attributeIndex].value;
+            idIndex = attributeIndex;
             break;
         }
         if (attributes[attributeIndex].name == 'id'){
-            id = attributes[attributeIndex].value;
-            break;
+            idIndex = attributeIndex;
         }
+    }
+
+    if (idIndex != null) {
+        id = attributes[idIndex].value;
     }
 
     if (id == null) {

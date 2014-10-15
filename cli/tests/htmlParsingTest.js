@@ -9,6 +9,16 @@ var assert = require('assert');
 
 describe('Check POR-ids and id attributes', function() {
 
+    /*
+        TODO: Test cases still needing to be covered:
+                Test that metadata objects have the children in the correct order
+                    All generated ids
+                    Mixed
+                    all set ids
+                Test whitespace text nodes removed
+                    There may need to be more tests about pre tags
+     */
+
     it('Throw error on duplicate id attribute', function() {
         var faultyHTML = fs.readFileSync('./cli/tests/resources/duplicateIDs.html', 'utf8');
         var faultyDom = parse5.parse(faultyHTML);
@@ -17,6 +27,49 @@ describe('Check POR-ids and id attributes', function() {
             parser.checkPORIds(faultyDom);
         }, ReferenceError);
     });
+
+    it('recognize and read id that was already present in tag', function() {
+        var htmlSnippet = "<span id=\"basicID\">test</span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+        // This is necessary because doing the parse5.parse will generate html, head, and body tags
+        // Which is awesome, but makes a bit harder to test. We might want to make it so that it
+        // uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+    });
+
+    it('recognize and read por-id that was already present in tag', function() {
+        var htmlSnippet = "<span por-id=\"basicID\">test</span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+        // This is necessary because doing the parse5.parse will generate html, head, and body tags
+        // Which is awesome, but makes a bit harder to test. We might want to make it so that it
+        // uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+    });
+
+    it('recognize and read mixed por-id and id present in tags', function() {
+        var htmlSnippet = "<span por-id=\"porID\">test</span><div id=\"realID\"></div>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+        // This is necessary because doing the parse5.parse will generate html, head, and body tags
+        // Which is awesome, but makes a bit harder to test. We might want to make it so that it
+        // uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
+        var porSnippet = output.children[0].children[1].children[0];
+        var idSnippet = output.children[0].children[1].children[1];
+        assert.equal(porSnippet.porID, 'porID');
+        assert.equal(idSnippet.porID, 'realID');
+    });
+
+    it('prefer por-ids over html ids if both are present', function() {
+        var htmlSnippet = "<span id='htmlID' por-id=\"porID\">test</span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+        // This is necessary because doing the parse5.parse will generate html, head, and body tags
+        // Which is awesome, but makes a bit harder to test. We might want to make it so that it
+        // uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'porID');
+    });
+
 });
 
 describe('Create repo info correctly', function(){
@@ -27,13 +80,13 @@ describe('Create repo info correctly', function(){
 		var output2 = parser.parseHTML(validHTML, 'repo with spaces');
 		var output3 = parser.parseHTML(validHTML, 'repo with bang!');
 		var output4 = parser.parseHTML(validHTML, 'query repo?');
-		var output5 = parser.parseHTML(validHTML, '"quotes"');
+		var output5 = parser.parseHTML(validHTML, '\"quotes\"');
 		
 		assert.equal(output1.repoName, "reposGalore");
 		assert.equal(output2.repoName, "repo with spaces");
 		assert.equal(output3.repoName, "repo with bang!");
 		assert.equal(output4.repoName, "query repo?");
-		assert.equal(output5.repoName, '"quotes"');
+		assert.equal(output5.repoName, '\"quotes\"');
 	});
 	
 });
