@@ -259,3 +259,23 @@ describe('parseHTML over inline text file', function(){
 	});
 	
 });
+
+describe('Fail to parse broken HTML files', function(){
+
+	it('Does not parse on an unclosed tag -text', function(){
+		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
+
+		test.error(function(){
+			parser.parseHTML(invalidHTML, 'repoName');
+		});
+	});
+
+	it('Does not parse on mismatched tags -text', function(){
+		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
+		
+		test.error(function(){
+			parser.parseHTML(invalidHTML, 'repoName');
+		});
+	});
+
+});

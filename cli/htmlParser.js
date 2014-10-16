@@ -153,6 +153,11 @@ function processTaglessChild(dom) {
          */
         contents = dom.value;
         id = generateNewPORID();
+
+        if (/[\"\&\<\>]/.test(contents)){
+            throw new Error("Reserved character detected, could be do to an unclosed tag.");
+        }
+
     } else if (dom.nodeName == '#documentType') {
         /*
          This means that we've found the opening DOCTYPE tag
@@ -173,6 +178,7 @@ function processTaglessChild(dom) {
         // If all of the contents are whitespace, we don't want to keep track of that
         contents = null;
     }
+
     return [contents, id];
 }
 
