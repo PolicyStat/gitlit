@@ -1,29 +1,37 @@
 <html>
-<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
-<link rel="stylesheet" type="text/css" href="style.css">
-
+<head>
+	<title>p-o-r initialization</title>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="init.js"></script>
+</head>
 <body>
 
-<div class="pure-menu pure-menu-open pure-menu-horizontal">
-	<ul>
-	  <li><a href="init.html">Initialization</a></li>
-	  <li><a href="commit.html">Commit</a></li>
-	  <li><a href="branch.html">Branch</a></li>
-	  <li><a href="diff.html">Difference Viewer</a></li>
-	  <li><a href="merge.html">Merge</a></li>
-	</ul>
-</div>
+	<div class="pure-menu pure-menu-open pure-menu-horizontal">
+		<ul>
+		  <li><a href="init.html">Initialization</a></li>
+		  <li><a href="commit.html">Commit</a></li>
+		  <li><a href="branch.html">Branch</a></li>
+		  <li><a href="merge.html">Merge</a></li>
+		  <li><a href="pull.html">Pull</a></li>
+		  <li><a href="push.html">Push</a></li>
+		  <li><a href="pullrequest.html">Pull Request</a></li>
+		</ul>
+	</div>
 
-<p><h1>Initialization</h1></p>
-<p>Upload a file and name to create a brand new file repository.</p>
+	<p><h1>Initialization</h1></p>
 
-<p><b> Upload your file here </b></p>
-<p>
-<a class="pure-button pure-button-disabled">Upload a file</a>
-No file selected.<br>
-</p>
+	<form class="pure-form pure-form-stacked" action="" id="fileUpload">
+	    <fieldset>
+	        <legend>Upload a file and name to create a brand new file repository.</legend>
 
-<p><b>Name for new repository </b></p>
-<input type="text" name="RepoName" form="submit"><br>
-<input class="pure-button" type="submit" name="submit" value="Submit" id="submit">
+	        <label for="document">Upload a file</label>
+	        <input id="document" type="file">
+
+	        <label for="repoName">Name for new repository</label>
+	        <input id="repoName" type="text" placeholder="Repository name">
+	        <button type="submit" class="pure-button pure-button-primary">Submit</button>
+	    </fieldset>
+	</form>
 </body>
+</html>

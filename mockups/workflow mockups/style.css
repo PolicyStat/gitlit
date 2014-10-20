@@ -3,10 +3,26 @@ body {
 	font-family: "Lucida Console", "Courier New", monospace;
     /*background-color: #79E024;*/
 }
-p, h1{
+p, h1, form{
 	margin-left: 100px;
 }
-textarea, input, select{
+textarea, select, img{
 	margin-left: 100px;
 	margin-bottom: 10px;
 }
+
+input, label{
+	margin-bottom: 10px;
+}
+
+button {
+	margin-top: 10px;
+}
+
+.button-success {
+            background: rgb(28, 184, 65); /* this is a green */
+        }
+.button-error {
+			margin-left: 100px;
+            background: rgb(202, 60, 60); /* this is a maroon */
+        }
