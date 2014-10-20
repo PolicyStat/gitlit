@@ -4,6 +4,10 @@
 var fs = require("fs");
 
 function initializeFile(directory, outputFile) {
+	if (!fs.existsSync(directory)) {
+        throw new URIError(file + ' is not a directory');
+    }
+
 	var fileNames = getFileNames(directory);
 
 	var htmlString = convertToString(fileNames);
@@ -12,7 +16,7 @@ function initializeFile(directory, outputFile) {
 }
 
 /**
- * Returns a list of filenames in the constructed order.
+ * Returns a list of file names in the constructed order.
  */
 function getFileNames(currentDir) {
 	var files = fs.readdirSync(currentDir);
@@ -34,6 +38,11 @@ function getFileNames(currentDir) {
 		}
 	}
 
+	// Adds the closing tag
+	if (metadata.tag) {
+		fileNames.push("</" + metadata.tag + ">\n");
+	}
+
 	return fileNames;
 }
 
@@ -44,6 +53,7 @@ function convertToString(fileNames) {
 	var htmlString = "";
 
 	for (var i = 1; i < fileNames.length; i++) {
+		// If it's a metadata file, include the tag's attributes in it's construction.
 		if (fileNames[i].slice(-5) == ".json") {
 			var metadata = JSON.parse(fs.readFileSync(fileNames[i]));
 			htmlString += "<" + metadata.tag;
@@ -51,9 +61,11 @@ function convertToString(fileNames) {
 			metadata.attributes.forEach(function(a) {
 				htmlString += ' ' + a.name + '="' + a.value + '"';
 			});
-			htmlString += ">\n";
-		} else {
+			htmlString += ">";
+		} else if (fileNames[i].slice(-4) == ".txt") {
 			htmlString += fs.readFileSync(fileNames[i]);
+		} else {
+			htmlString += fileNames[i];
 		}
 	}
 
