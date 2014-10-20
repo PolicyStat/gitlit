@@ -2,6 +2,7 @@
  * Created by Devon Timaeus on 9/24/2014.
  */
 var init = require("./repoInit");
+var writer = require("./htmlWriter");
 var program = require("commander");
 
 program._name = 'psychic-octo-robot';
@@ -16,6 +17,13 @@ program
     .description('Initialize a Repository for the given file')
     .action(function(file, outputPath, repoName) {
         init.initializeRepository(file, outputPath, repoName);
+    });
+
+program
+    .command('write <directory> <outputFile>')
+    .description('Convert a Repository into an HTML file')
+    .action(function(directory, outputFile) {
+        writer.initializeFile(directory, outputFile);
     });
 
 if (process.argv.length == 2){
