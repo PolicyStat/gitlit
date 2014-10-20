@@ -100,15 +100,20 @@ function processTaggedChild(dom) {
     if (typeof dom.attrs != 'undefined') {
         attributes = dom.attrs;
     }
+
+    var idIndex = null;
     for (var attributeIndex = 0; attributeIndex < attributes.length; ++attributeIndex) {
         if (attributes[attributeIndex].name == 'por-id'){
-            id = attributes[attributeIndex].value;
+            idIndex = attributeIndex;
             break;
         }
         if (attributes[attributeIndex].name == 'id'){
-            id = attributes[attributeIndex].value;
-            break;
+            idIndex = attributeIndex;
         }
+    }
+
+    if (idIndex != null) {
+        id = attributes[idIndex].value;
     }
 
     if (id == null) {
@@ -148,6 +153,11 @@ function processTaglessChild(dom) {
          */
         contents = dom.value;
         id = generateNewPORID();
+
+        if (/[\"\&\<\>]/.test(contents)){
+            throw new Error("Reserved character detected, could be do to an unclosed tag.");
+        }
+
     } else if (dom.nodeName == '#documentType') {
         /*
          This means that we've found the opening DOCTYPE tag
@@ -168,6 +178,7 @@ function processTaglessChild(dom) {
         // If all of the contents are whitespace, we don't want to keep track of that
         contents = null;
     }
+
     return [contents, id];
 }
 
