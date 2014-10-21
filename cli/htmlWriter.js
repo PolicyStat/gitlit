@@ -63,7 +63,17 @@ function convertToString(fileNames) {
 			});
 			htmlString += ">";
 		} else if (fileNames[i].slice(-4) == ".txt") {
-			htmlString += fs.readFileSync(fileNames[i]);
+			
+			file_text = fs.readFileSync(fileNames[i]);
+			if (file_text.slice(0, 10) == "<!DOCTYPE "){
+				htmlString += file_text;
+			}else{
+				var por_id = fileNames[i].replace(/^.*[\\\/]/, '').slice(0, -4);
+				htmlString += "<por-text por-id=" + por_id + ">";
+				htmlString += file_text;
+				htmlString += "</por-text>";
+			}
+			
 		} else {
 			htmlString += fileNames[i];
 		}
