@@ -6,7 +6,7 @@ body {
 p, h1, form{
 	margin-left: 100px;
 }
-textarea, select, img{
+select, img{
 	margin-left: 100px;
 	margin-bottom: 10px;
 }
