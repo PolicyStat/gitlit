@@ -2,7 +2,7 @@ window.onload = function () {
 
 document.forms["pullRepo"].onsubmit = function(){
 	var repoName = document.getElementById("repoName").value;
-    alert("Successfully pulled from \'" + repoName + "\'.");
+    alert("Successfully pulled \'" + repoName + "\'.");
 }
 
 };
