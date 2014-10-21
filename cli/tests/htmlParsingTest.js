@@ -6,6 +6,7 @@ var fs = require('fs');
 var Parser = require('parse5').Parser;
 var parse5 = new Parser();
 var assert = require('assert');
+var test = require('unit.js');
 
 /*
  TODO: Test cases still needing to be covered:
