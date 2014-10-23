@@ -39,7 +39,7 @@ function getFileLocations(currentDir) {
 		}
 	}
 
-	// Adds the closing tag
+	// Adds the closing tag 
 	if (metadata.tag) {
 		fileLocations.push("</" + metadata.tag + ">\n");
 	}
@@ -56,26 +56,13 @@ function convertToString(fileLocations) {
 	for (var i = 1; i < fileLocations.length; i++) {
 		// If it's a metadata file, include the tag's attributes in it's construction.
 		var fileName = fileLocations[i].replace(/^.*[\\\/]/, '');
-		if (fileName== "metadata.json") {
-			var metadata = JSON.parse(fs.readFileSync(fileLocations[i]));
-			htmlString += "<" + metadata.tag;
+		if (fileName == "metadata.json") {
 
-			metadata.attributes.forEach(function(a) {
-				htmlString += ' ' + a.name + '="' + a.value + '"';
-			});
-
-			htmlString += ">";
+			htmlString += convertMeta(fileLocations[i]);
 
 		} else if (fileName.slice(-4) == ".txt") {
 			
-			file_text = fs.readFileSync(fileLocations[i]);
-			if (file_text.slice(0, 10) == "<!DOCTYPE "){
-				htmlString += file_text;
-			}else{
-				htmlString += "<por-text por-id=" + fileName.slice(0, -4) + ">";
-				htmlString += file_text;
-				htmlString += "</por-text>";
-			}
+			htmlString += convertText(fileLocations[i], fileName);
 			
 		} else {
 			htmlString += fileLocations[i];
@@ -85,47 +72,30 @@ function convertToString(fileLocations) {
 	return htmlString;
 }
 
-// function convertToStringRec(fileLocations){
+function convertMeta(file){
+	var metadata = JSON.parse(fs.readFileSync(file));
+	htmlString = "<" + metadata.tag;
 
-// 	if (fileLocations.length == 0){
-// 		return "";
-// 	}
+	metadata.attributes.forEach(function(a) {
+		htmlString += ' ' + a.name + '="' + a.value + '"';
+	});
 
-// 	var htmlString = "";
+	htmlString += ">\n";
+	return htmlString;
+}
 
-// 	var file = fileLocations.shift();
-// 	// console.log(file);
-// 	var fileName = file.replace(/^.*[\\\/]/, '');
-// 	if (fileName == "metadata.json") {
-// 		var metadata = JSON.parse(fs.readFileSync(file));
-// 		htmlString += "<" + metadata.tag;
+function convertText(file, fileName){
+	fileText = fs.readFileSync(file);
+	if (fileText.slice(0, 10) == "<!DOCTYPE "){
+		return fileText;
+	}else{
+		htmlString = "<por-text por-id=" + fileName.slice(0, -4) + ">";
+		htmlString += fileText;
+		htmlString += "</por-text>\n";
+		return htmlString;
+	}
+}
 
-// 		if (metadata.attributes){
-// 			metadata.attributes.forEach(function(a) {
-// 				htmlString += ' ' + a.name + '="' + a.value + '"';
-// 			});
-// 		}
-// 		htmlString += ">";
-
-// 		htmlString += convertToStringRec(fileLocations);
-// 		htmlString += "<" + metadata.tag + ">\n";
-
-// 	} else if (fileName.slice(-4) == ".txt") {
-		
-// 		file_text = fs.readFileSync(file);
-// 		if (file_text.slice(0, 10) == "<!DOCTYPE "){
-// 			htmlString += file_text;
-// 		}else{
-// 			htmlString += "<por-text por-id=" + fileName.slice(0, -4) + ">";
-// 			htmlString += file_text;
-// 			htmlString += "</por-text>";
-// 		}
-		
-// 		htmlString += convertToStringRec(fileLocations);
-// 	}
-
-// 	return htmlString;
-// }
 
 module.exports = {
 	initializeFile: initializeFile
