@@ -8,9 +8,9 @@ function initializeFile(directory, outputFile) {
         throw new URIError(file + ' is not a directory');
     }
 
-	var fileNames = getFileNames(directory);
+	var fileLocations = getFileLocations(directory);
 
-	var htmlString = convertToString(fileNames);
+	var htmlString = convertToString(fileLocations);
 
 	fs.writeFileSync(outputFile, htmlString);
 }
@@ -18,69 +18,114 @@ function initializeFile(directory, outputFile) {
 /**
  * Returns a list of file names in the constructed order.
  */
-function getFileNames(currentDir) {
-	var files = fs.readdirSync(currentDir);
-	var fileNames = [];
+function getFileLocations(currentDir) {
+
+	var fileLocations = [];
 	// Push the metadata file onto the array of file names first
-	fileNames.push(currentDir + "/" + files[files.length - 1]);
+	var metadataLocation = currentDir + "/metadata.json";
+	fileLocations.push(metadataLocation);
 	
-	var metadata = JSON.parse(fs.readFileSync(currentDir + "/" + files[files.length - 1]));
+	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
 
 	for (var i = 0; i < metadata.constructionOrder.length; i++) {
-		var currentFile = currentDir + "/" + metadata.constructionOrder[i];
+		var currentObject = currentDir + "/" + metadata.constructionOrder[i];
 		// Recurse if it is a directory, otherwise push it onto the array as a .txt file
-		if (fs.existsSync(currentFile)) {
-			if (fs.lstatSync(currentFile).isDirectory()) {
-				fileNames = fileNames.concat(getFileNames(currentFile));
+		if (fs.existsSync(currentObject)) {
+			if (fs.lstatSync(currentObject).isDirectory()) {
+				fileLocations = fileLocations.concat(getFileLocations(currentObject));
 			}
 		} else {
-			fileNames.push(currentFile + ".txt");
+			fileLocations.push(currentObject + ".txt");
 		}
 	}
 
 	// Adds the closing tag
 	if (metadata.tag) {
-		fileNames.push("</" + metadata.tag + ">\n");
+		fileLocations.push("</" + metadata.tag + ">\n");
 	}
 
-	return fileNames;
+	return fileLocations;
 }
 
 /**
  * Reads the list of file names and writes everything to one long string.
  */
-function convertToString(fileNames) {
+function convertToString(fileLocations) {
 	var htmlString = "";
 
-	for (var i = 1; i < fileNames.length; i++) {
+	for (var i = 1; i < fileLocations.length; i++) {
 		// If it's a metadata file, include the tag's attributes in it's construction.
-		if (fileNames[i].slice(-5) == ".json") {
-			var metadata = JSON.parse(fs.readFileSync(fileNames[i]));
+		var fileName = fileLocations[i].replace(/^.*[\\\/]/, '');
+		if (fileName== "metadata.json") {
+			var metadata = JSON.parse(fs.readFileSync(fileLocations[i]));
 			htmlString += "<" + metadata.tag;
 
 			metadata.attributes.forEach(function(a) {
 				htmlString += ' ' + a.name + '="' + a.value + '"';
 			});
+
 			htmlString += ">";
-		} else if (fileNames[i].slice(-4) == ".txt") {
+
+		} else if (fileName.slice(-4) == ".txt") {
 			
-			file_text = fs.readFileSync(fileNames[i]);
+			file_text = fs.readFileSync(fileLocations[i]);
 			if (file_text.slice(0, 10) == "<!DOCTYPE "){
 				htmlString += file_text;
 			}else{
-				var por_id = fileNames[i].replace(/^.*[\\\/]/, '').slice(0, -4);
-				htmlString += "<por-text por-id=" + por_id + ">";
+				htmlString += "<por-text por-id=" + fileName.slice(0, -4) + ">";
 				htmlString += file_text;
 				htmlString += "</por-text>";
 			}
 			
 		} else {
-			htmlString += fileNames[i];
+			htmlString += fileLocations[i];
 		}
 	}
 
 	return htmlString;
 }
+
+// function convertToStringRec(fileLocations){
+
+// 	if (fileLocations.length == 0){
+// 		return "";
+// 	}
+
+// 	var htmlString = "";
+
+// 	var file = fileLocations.shift();
+// 	// console.log(file);
+// 	var fileName = file.replace(/^.*[\\\/]/, '');
+// 	if (fileName == "metadata.json") {
+// 		var metadata = JSON.parse(fs.readFileSync(file));
+// 		htmlString += "<" + metadata.tag;
+
+// 		if (metadata.attributes){
+// 			metadata.attributes.forEach(function(a) {
+// 				htmlString += ' ' + a.name + '="' + a.value + '"';
+// 			});
+// 		}
+// 		htmlString += ">";
+
+// 		htmlString += convertToStringRec(fileLocations);
+// 		htmlString += "<" + metadata.tag + ">\n";
+
+// 	} else if (fileName.slice(-4) == ".txt") {
+		
+// 		file_text = fs.readFileSync(file);
+// 		if (file_text.slice(0, 10) == "<!DOCTYPE "){
+// 			htmlString += file_text;
+// 		}else{
+// 			htmlString += "<por-text por-id=" + fileName.slice(0, -4) + ">";
+// 			htmlString += file_text;
+// 			htmlString += "</por-text>";
+// 		}
+		
+// 		htmlString += convertToStringRec(fileLocations);
+// 	}
+
+// 	return htmlString;
+// }
 
 module.exports = {
 	initializeFile: initializeFile
