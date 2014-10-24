@@ -743,7 +743,7 @@ to be after the first div.
 
 .. note::
 
-    Again if this was moved to be part
+    Again, if this was moved to be part
     of another pre-existing text node,
     it would just be noted as a change
     to the destination node and a deletion
@@ -834,6 +834,220 @@ are possibly more things to move, and the users would need to
 move them to the proper place, which is harder to make clear
 for the user.
 
+**********************************
+Case 5: Moving an Edited Text Node
+**********************************
+Consider the case of moving a text node that
+has also been edited. The document before 
+the edit might look like this:
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351">
+        First Text
+        <div por-id="76F7BEE8A2001AC7144D">
+            div Text
+        </div>
+        <div por-id="placeholder">
+        </div>
+        Second Text
+    </span>
+
+After the edit, the document might look like
+this:
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351">
+        <div por-id="76F7BEE8A2001AC7144D">
+            div Text
+        </div>
+        This is my new First Text
+        <div por-id="placeholder">
+        </div>
+        Second Text
+    </span>
+
+Here, the text was both moved and edited. Because
+the extent of edits can be quite large (meaning
+that edits can change as little as one character,
+or as much as all of the text), attempting to track
+whether a section was moved would be entirely based
+on either:
+
+* The section being tagged in some way as being
+a section that already existed, thus making *any*
+amount of change trackable as a move
+* A heuristic-based text comparison, where we 
+base the decision of if the edit was a move or
+an insertion based on the quantity of text changed.
+
+In the first case, we would need one of our tracking
+methods, and would require the user to use the method
+properly, which might not happen. However, if we chose
+to do that, the actual process for checking for a move
+would be quite easy.
+
+In the second case, there would be quite a bit that
+needs to be decided, such as, how much of the text
+needs to be the same to count as a move. The process
+would also take more work, but, if we did it this way,
+the user just wouldn't need tracking to identify both
+the move and then change.
+
+Custom Tags
+-----------
+Before the edit
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351">
+        <por por-id="39E1D62AADCF588B873C ">First Text</por>
+        <div por-id="76F7BEE8A2001AC7144D">
+            <por por-id="56ADFDCAACEB1FDBCEA1">div Text</por>
+        </div>
+        <div por-id="placeholder">
+        </div>
+        <por por-id="3CED92A56695A78653ED">Second Text</por>
+    </span>
+
+
+After the edit, the document might look like
+this:
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351">
+        <div por-id="76F7BEE8A2001AC7144D">
+            <por por-id="56ADFDCAACEB1FDBCEA1">div Text</por>
+        </div>
+        <por por-id="39E1D62AADCF588B873C ">This is my new First Text</por>
+        <div por-id="placeholder">
+        </div>
+        <por por-id="3CED92A56695A78653ED">Second Text</por>
+    </span>
+
+Custom tags track this just fine, but the entire basis
+of tracking this type of change is that the user *actually*
+properly moves and keeps the custom tags. If they do that,
+tracking moves & changes would be straightforward, as we can
+just look at the section itself and the order of the metadata.
+
+XML text-tail
+-------------
+Document before change
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351" text="39E1D62AADCF588B873C">
+        First Text
+        <div por-id="76F7BEE8A2001AC7144D" text="56ADFDCAACEB1FDBCEA1">
+            div Text
+        </div>
+        <div por-id="placeholder" tail="3CED92A56695A78653ED">
+        </div>
+        Second Text
+    </span>
+
+
+After the edit, the document might look like
+this:
+
+.. code-block:: html
+
+    <span por-id="40E36DB5C0AD13957351" >
+        <div por-id="76F7BEE8A2001AC7144D" text="56ADFDCAACEB1FDBCEA1" tail="39E1D62AADCF588B873C">
+            div Text
+        </div>
+        This is my new First Text
+        <div por-id="placeholder" tail="3CED92A56695A78653ED">
+        </div>
+        Second Text
+    </span>
+
+Again, text-tail keeps track of this change reasonably,
+so long as the user moves the tracking information as
+well. If they don't, then there is no "free" way for 
+us to track this, as we dont' necessarily know what
+was in each text node without comparing all of the
+text nodes in the document against each other text node.
+
+********************************
+A Note about Diff implementation
+********************************
+The only reason why we care about tracking text nodes & what
+they are named is so that we can reasonably identify moved
+text nodes across the document whenever we look at doing a
+diff.
+
+If we didn't care about noting which sections moved, then
+we could just state that each time there was a missing
+section, regardless of the content, it was deleted, if there
+was a new section, it was an addition, and if the sections
+line up, but are different text-wise, it was a modification.
+This would still give visibility of the change, it just wouldn't
+explicitly state it was move.
+
+Because of this, and the fact that we will likely need to
+do at least *some* text comparison while doing our diff
+(whether it be git diff, us, or some other library doing
+it), the tagging information might seem superfluous. In
+addition to this, it might be smarter to just do a 
+heuristic-based regardless since that is a manner that
+makes sense, after all: If almost all of the text was
+changed, and only ~20% of the text is the same, couldn't
+it just possibly be coincidence?
+
+
 ***************
 Design Decision
 ***************
+
+As of right now, both Custom tags **and** XML-style text-tail
+would properly track all the changes, considering that they
+were used properly.
+
+The real issue comes with that last statement: "considering 
+they were used properly". The thing is, we don't have any
+guarantees that our users *will*.
+
+The best we can hope for is explain *what* the tracking method
+does, what it's used for, and how to make use of the tracking 
+method so they don't accidentally break the text-node tracking.
+However, there is still the chance for user error, or misunderstanding.
+
+In the case of custom tags, every time the user wants to move
+a text node, they would need to also move the surrounding
+custom tag, which could be a pain to do. However, with text-tail,
+they would not only have to move the text, but also:
+
+* The text attribute for the parent node
+    * Also *know* which node the attribute needs to move to
+* The tail attribute if it follows the 
+    * Also *when* to add it to a node
+    
+Thus, text-tail tends to be a bit cleaner from a user *view*point,
+but it is much messier to work with, and has a larger chance
+for user-failure.
+
+Custom tags do have another downside though: they could *possible*
+break other applications (browsers included) that use HTML, since 
+the tags we add aren't part of the standard. However, there *is* a
+very simple way to get around this. We just add some sort of "release"
+feature for the document, where we create the HTML doc, but *don't*
+add the custom tags for tracking, that way any things that **we use
+for tracking purposes** (this includes por-ids), would be removed,
+and thus guaranteeing that the HTML does not contain any unknown
+elements.
+
+Because of this, its higher visibility, and easier understandability
+for users, for now, we recommend and are going to go with custom tags.
+
+.. note::
+
+    Again, note that we only *really* need tracking for text nodes
+    if we want to do easy, non-text-comparison-based move detection.
+    If we decided that text-comparison-based move detection is what
+    we should do, or that move detection is not important, we would
+    likely not do any sort of tagging to ensure that there is no
+    possible problems injected into the HTML.
