@@ -8,93 +8,99 @@ function initializeFile(directory, outputFile) {
         throw new URIError(file + ' is not a directory');
     }
 
-	var fileLocations = getFileLocations(directory);
+    var porRepo = getPORRepo(directory);
 
-	var htmlString = convertToString(fileLocations);
+    var fileString = convertPORToString(porRepo);
 
-	fs.writeFileSync(outputFile, htmlString);
+	fs.writeFileSync(outputFile, fileString);
 }
 
 /**
- * Returns a list of file names in the constructed order.
- */
-function getFileLocations(currentDir) {
+* Returns a POR object of the repo.
+*/
+function getPORRepo(currentDir){
 
-	var fileLocations = [];
-	// Push the metadata file onto the array of file names first
 	var metadataLocation = currentDir + "/metadata.json";
-	fileLocations.push(metadataLocation);
-	
 	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
 
-	for (var i = 0; i < metadata.constructionOrder.length; i++) {
-		var currentObject = currentDir + "/" + metadata.constructionOrder[i];
-		// Recurse if it is a directory, otherwise push it onto the array as a .txt file
-		if (fs.existsSync(currentObject)) {
-			if (fs.lstatSync(currentObject).isDirectory()) {
-				fileLocations = fileLocations.concat(getFileLocations(currentObject));
-			}
-		} else {
-			fileLocations.push(currentObject + ".txt");
-		}
+	var porObject = {
+		porID: currentDir.replace(/^.*[\\\/]/, ''),
+		metadata: metadata,
+		children: []
 	}
 
-	// Adds the closing tag 
-	if (metadata.tag) {
-		fileLocations.push("</" + metadata.tag + ">\n");
-	}
+	// Recursively builds the por object from the construction order.
+	metadata.constructionOrder.forEach(function(id) {
+    	var path = currentDir + "/" + id;
+    	if (fs.existsSync(path)) {
+    		// For directories.
+	    	if (fs.lstatSync(path).isDirectory()){
+	    		porObject.children.push(getPORRepo(path));
+	    	}
+    	} else {
+    		// For files, currently only text are used.
+    		var fileLoc = path + ".txt"
+    		if (fs.lstatSync(fileLoc).isFile()){
+    			var textValue = {
+    				value: fs.readFileSync(fileLoc, "utf-8"),
+    				porID: currentDir.replace(/^.*[\\\/]/, '')
+    			}
+    			porObject.children.push(textValue);
+    		}
+    	}
+	});
 
-	return fileLocations;
+	return porObject;
+
 }
 
 /**
- * Reads the list of file names and writes everything to one long string.
- */
-function convertToString(fileLocations) {
-	var htmlString = "";
+* Returns a string built from the POR object.
+*/
+function convertPORToString(porObject){
 
-	for (var i = 1; i < fileLocations.length; i++) {
-		// If it's a metadata file, include the tag's attributes in it's construction.
-		var fileName = fileLocations[i].replace(/^.*[\\\/]/, '');
-		if (fileName == "metadata.json") {
+	var fileString = "";
 
-			htmlString += convertMeta(fileLocations[i]);
+	if ("children" in porObject){
+		// if the node is not a leaf (folder)
+		if ("tag" in porObject.metadata){
+			// Setting up tag
+			fileString += "<" + porObject.metadata.tag;
+			porObject.metadata.attributes.forEach(function(attribute) {
+				// This is wrong and temporary, we need to revise the initial parsing so that we don't make everything strings.
+				fileString += ' ' + attribute.name + '="' + attribute.value + '"';
+			});
+			fileString += ">\n";
 
-		} else if (fileName.slice(-4) == ".txt") {
-			
-			htmlString += convertText(fileLocations[i], fileName);
-			
+			// Recurse
+			porObject.children.forEach(function(child){
+				fileString += convertPORToString(child);
+			});
+
+			// End tag
+			fileString += "</" + porObject.metadata.tag + ">\n";
+		}else{
+			porObject.children.forEach(function(child){
+				fileString += convertPORToString(child);
+			});
+		}
+	} else {
+		// if the node is a leaf (text file)
+		var porID = porObject.porID;
+		if (porID){
+			fileString += "<por-text por-id=" + porID + ">";
+			fileString += porObject.value;
+			fileString += "</por-text>\n"
 		} else {
-			htmlString += fileLocations[i];
+			// Text of node
+			fileString += porObject.value;
 		}
 	}
 
-	return htmlString;
+	return fileString;
+
 }
 
-function convertMeta(file){
-	var metadata = JSON.parse(fs.readFileSync(file));
-	htmlString = "<" + metadata.tag;
-
-	metadata.attributes.forEach(function(a) {
-		htmlString += ' ' + a.name + '="' + a.value + '"';
-	});
-
-	htmlString += ">\n";
-	return htmlString;
-}
-
-function convertText(file, fileName){
-	fileText = fs.readFileSync(file);
-	if (fileText.slice(0, 10) == "<!DOCTYPE "){
-		return fileText;
-	}else{
-		htmlString = "<por-text por-id=" + fileName.slice(0, -4) + ">";
-		htmlString += fileText;
-		htmlString += "</por-text>\n";
-		return htmlString;
-	}
-}
 
 
 module.exports = {
