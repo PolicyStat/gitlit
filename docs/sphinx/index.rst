@@ -15,6 +15,8 @@ Contents:
    ProblemStatement
    FeatureList
    developmentSetup
+   html-to-file-serialization
+   xml-text-tailVScustom-tags
 
 
 Indices and tables
