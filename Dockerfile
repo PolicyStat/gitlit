@@ -17,8 +17,15 @@ RUN npm install -g browserify
 #RUN node setupVerification/browserifyExample.js
 #RUN "Browserify install successful"
 
+#install commander
+RUN npm install -y -g commander
+
 #install js-git
 RUN npm install -g js-git
+
+#install unit.js & mocha to run tests
+RUN npm install -g unit.js
+RUN npm install -g mocha
 
 
 #stuff for later maybe
