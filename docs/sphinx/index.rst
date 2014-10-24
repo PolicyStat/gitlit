@@ -16,7 +16,7 @@ Contents:
    FeatureList
    developmentSetup
    html-to-file-serialization
-   xml-test-tailVScustom-tags
+   xml-text-tailVScustom-tags
 
 
 Indices and tables
