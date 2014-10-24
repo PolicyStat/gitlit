@@ -129,9 +129,8 @@ function convertText(objNode){
 
 module.exports = {
 	initializeFile: initializeFile,
-	getFileLocations : getFileLocations,
-	convertMeta : convertMeta,
-	convertText : convertText
 	convertToString : convertToString,
-	convertJson: convertJson
+	convertMeta : convertMeta,
+	convertText : convertText,
+	convertJSON: convertJson
 };
