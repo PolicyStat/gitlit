@@ -98,5 +98,10 @@ function convertText(file, fileName){
 
 
 module.exports = {
-	initializeFile: initializeFile
+	initializeFile: initializeFile,
+	getFileLocations : getFileLocations,
+	convertToString : convertToString,
+	convertMeta : convertMeta,
+	convertText : convertText
+
 };
