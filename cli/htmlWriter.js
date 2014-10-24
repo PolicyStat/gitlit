@@ -132,6 +132,6 @@ module.exports = {
 	getFileLocations : getFileLocations,
 	convertMeta : convertMeta,
 	convertText : convertText
-	convertToString: convertToString,
+	convertToString : convertToString,
 	convertJson: convertJson
 };
