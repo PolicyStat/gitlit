@@ -13,6 +13,7 @@ function initializeFile(directory, outputFile) {
 	var htmlString = convertToString(fileObject);
 
 	fs.writeFileSync(outputFile, htmlString);
+	return htmlString;
 }
 
 /**
