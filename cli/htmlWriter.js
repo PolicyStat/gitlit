@@ -8,9 +8,9 @@ function initializeFile(directory, outputFile) {
         throw new URIError(file + ' is not a directory');
     }
 
-	var fileLocations = getFileLocations(directory);
+	var fileObject = getFileObject(directory, outputFile);
 
-	var htmlString = convertToString(fileLocations);
+	var htmlString = convertToString(fileObject);
 
 	fs.writeFileSync(outputFile, htmlString);
 }
@@ -18,65 +18,92 @@ function initializeFile(directory, outputFile) {
 /**
  * Returns a list of file names in the constructed order.
  */
-function getFileLocations(currentDir) {
-
-	var fileLocations = [];
-	// Push the metadata file onto the array of file names first
-	var metadataLocation = currentDir + "/metadata.json";
-	fileLocations.push(metadataLocation);
-	
+function getFileObject(filePath, fileName) {
+	var metadataLocation = filePath + "/metadata.json";
 	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
+	metadata.name = fileName;
+	metadata.childNodes = [];
 
 	for (var i = 0; i < metadata.constructionOrder.length; i++) {
-		var currentObject = currentDir + "/" + metadata.constructionOrder[i];
-		// Recurse if it is a directory, otherwise push it onto the array as a .txt file
-		if (fs.existsSync(currentObject)) {
-			if (fs.lstatSync(currentObject).isDirectory()) {
-				fileLocations = fileLocations.concat(getFileLocations(currentObject));
+		var currentFile = filePath + "/" + metadata.constructionOrder[i];
+
+		// Recurse if it is a directory, otherwise push it onto object's child nodes.
+
+		if (fs.existsSync(currentFile)) {
+
+			if (fs.lstatSync(currentFile).isDirectory()) {
+
+				metadata.childNodes.push(getFileObject(currentFile, metadata.constructionOrder[i]));
+			} else {
+
+				metadata.childNodes.push(currentFile);
 			}
+		} else if (fs.existsSync(currentFile + ".txt")) {
+
+			// Create the text node JSON object and push it.
+
+			var textNode = '{"name":"' + metadata.constructionOrder[i] + '"}';
+			textNode = JSON.parse(textNode);
+			textNode.text = fs.readFileSync(currentFile + ".txt");
+
+			metadata.childNodes.push(textNode);
+
 		} else {
-			fileLocations.push(currentObject + ".txt");
+			throw new URIError('Error writing file ' + currentFile + ' from repository.');
 		}
 	}
 
-	// Adds the closing tag 
-	if (metadata.tag) {
-		fileLocations.push("</" + metadata.tag + ">\n");
-	}
-
-	return fileLocations;
+	return metadata;
 }
 
 /**
  * Reads the list of file names and writes everything to one long string.
  */
-function convertToString(fileLocations) {
+function convertToString(jsonObject) {
 	var htmlString = "";
+	htmlString += convertJson(jsonObject);
 
-	for (var i = 1; i < fileLocations.length; i++) {
-		// If it's a metadata file, include the tag's attributes in it's construction.
-		var fileName = fileLocations[i].replace(/^.*[\\\/]/, '');
-		if (fileName == "metadata.json") {
-
-			htmlString += convertMeta(fileLocations[i]);
-
-		} else if (fileName.slice(-4) == ".txt") {
-			
-			htmlString += convertText(fileLocations[i], fileName);
-			
-		} else {
-			htmlString += fileLocations[i];
+	if (jsonObject.childNodes) {
+		for (var i = 0; i < jsonObject.childNodes.length; i++) {
+			htmlString += convertToString(jsonObject.childNodes[i]);
 		}
+
+		// Throw the closing tags on after the children, unless this node doesn't have a tag.
+		if (jsonObject.tag) {
+			htmlString += "</" + jsonObject.tag + ">\n";
+		}
+	} else if (jsonObject.text) {
+		return htmlString;
+	} else {
+		throw new URIError('Error writing file. Unknown JSON object referenced.');
 	}
 
 	return htmlString;
 }
 
-function convertMeta(file){
-	var metadata = JSON.parse(fs.readFileSync(file));
-	htmlString = "<" + metadata.tag;
+/**
+ * Determine whether the JSON object is a text node or a metadata node,
+ *  and delegate to the appropriate converter function.
+ */
+function convertJson(objNode){
+	if (objNode.text) {
+		return convertText(objNode);
 
-	metadata.attributes.forEach(function(a) {
+	} else if (objNode.tag) {
+		return convertMeta(objNode);
+
+	} else {
+		return "";
+	}
+}
+
+/**
+ * Converts JSON metadata node into a string.
+ */
+function convertMeta(objNode){
+	htmlString = "<" + objNode.tag;
+
+	objNode.attributes.forEach(function(a) {
 		htmlString += ' ' + a.name + '="' + a.value + '"';
 	});
 
@@ -84,14 +111,16 @@ function convertMeta(file){
 	return htmlString;
 }
 
-function convertText(file, fileName){
-	fileText = fs.readFileSync(file);
-	if (fileText.slice(0, 10) == "<!DOCTYPE "){
-		return fileText;
-	}else{
-		htmlString = "<por-text por-id=" + fileName.slice(0, -4) + ">";
-		htmlString += fileText;
-		htmlString += "</por-text>\n";
+/**
+ * Converts JSON text node into a string
+ */
+function convertText(objNode){
+	if (objNode.text.slice(0, 10) == "<!DOCTYPE "){
+		return objNode.text;
+	} else {
+		htmlString = "<por-text por-id=" + objNode.name + ">";
+		htmlString += objNode.text;
+		htmlString += "</por-text>";
 		return htmlString;
 	}
 }
