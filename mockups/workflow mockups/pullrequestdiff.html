@@ -1,0 +1,35 @@
+<html>
+<head>
+	<title>p-o-r pull request diff</title>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="pullrequestdiff.js"></script>
+</head>
+<body>
+
+	<div class="pure-menu pure-menu-open pure-menu-horizontal">
+		<ul>
+		  <li><a href="init.html">Initialization</a></li>
+		  <li><a href="commit.html">Commit</a></li>
+		  <li><a href="branch.html">Branch</a></li>
+		  <li><a href="merge.html">Merge</a></li>
+		  <li><a href="pull.html">Pull</a></li>
+		  <li><a href="push.html">Push</a></li>
+		  <li><a href="pullrequest.html">Pull Request</a></li>
+		</ul>
+	</div>
+
+	<p><h1>Difference Viewer</h1></p>
+	<img src="git-diff.png">
+	<form class="pure-form" id="diffAccept" action="pullrequest.html">
+    	<fieldset>
+    		<label for="comments">Comments for pull request</label><br>
+	        <textarea id="repoName" cols="50" rows="2" placeholder="Comment"></textarea>
+
+    		<button type="submit" id="accept" class="pure-button button-success">Accept changes</button>
+
+    	</fieldset>
+	</form>
+	<button onclick="alert('Pull request not accepted.'); window.location='pullrequest.html'" id="cancel" class="pure-button button-error">Cancel</button>
+</body>
+</html>

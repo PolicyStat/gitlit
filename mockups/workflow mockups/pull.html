@@ -1,0 +1,39 @@
+<html>
+<head>
+	<title>p-o-r pull</title>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="pull.js"></script>
+</head>
+<body>
+
+	<div class="pure-menu pure-menu-open pure-menu-horizontal">
+		<ul>
+		  <li><a href="init.html">Initialization</a></li>
+		  <li><a href="commit.html">Commit</a></li>
+		  <li><a href="branch.html">Branch</a></li>
+		  <li><a href="merge.html">Merge</a></li>
+		  <li><a href="pull.html">Pull</a></li>
+		  <li><a href="push.html">Push</a></li>
+		  <li><a href="pullrequest.html">Pull Request</a></li>
+		</ul>
+	</div>
+
+	<p><h1>Pull</h1></p>
+
+	<form class="pure-form pure-form-stacked" action="" id="pullRepo">
+	    <fieldset>
+	        <legend>Pull a document</legend>
+
+	        <label for="repoName">Select document</label>
+        	<select id="repoName" class="pure-input-1-2">
+                <option>Document 1</option>
+                <option>Document 2</option>
+                <option>Document 3</option>
+        	</select>
+
+	        <button type="submit" class="pure-button pure-button-primary">Pull</button>
+	    </fieldset>
+	</form>
+</body>
+</html>

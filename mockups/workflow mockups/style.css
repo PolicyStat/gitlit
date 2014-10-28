@@ -1,0 +1,41 @@
+
+body {
+	font-family: "Lucida Console", "Courier New", monospace;
+    /*background-color: #79E024;*/
+}
+p, h1, form{
+	margin-left: 100px;
+}
+select, img{
+	margin-left: 100px;
+	margin-bottom: 10px;
+}
+
+input, label{
+	margin-bottom: 10px;
+}
+
+button {
+	margin-top: 10px;
+}
+
+.button-success {
+            background: rgb(100, 200, 100); /* this is a green */
+        }
+.button-error {
+			margin-left: 100px;
+            background: rgb(202, 60, 60); /* this is a maroon */
+        }
+
+.button-alert {
+	margin-left: 100px;
+	width: 300px;
+	height: 50px;
+	background: rgb(28, 184, 65); /* this is a green */
+}
+
+#alert-div {
+	left-margin:250px; 
+	position: relative;
+	margin-bottom: 20px;
+}
