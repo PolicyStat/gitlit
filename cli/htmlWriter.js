@@ -8,70 +8,129 @@ function initializeFile(directory, outputFile) {
         throw new URIError(file + ' is not a directory');
     }
 
-	var fileNames = getFileNames(directory);
+	var fileObject = getFileObject(directory, outputFile);
 
-	var htmlString = convertToString(fileNames);
+	var htmlString = convertToString(fileObject);
 
 	fs.writeFileSync(outputFile, htmlString);
+	return htmlString;
 }
 
 /**
  * Returns a list of file names in the constructed order.
  */
-function getFileNames(currentDir) {
-	var files = fs.readdirSync(currentDir);
-	var fileNames = [];
-	// Push the metadata file onto the array of file names first
-	fileNames.push(currentDir + "/" + files[files.length - 1]);
-	
-	var metadata = JSON.parse(fs.readFileSync(currentDir + "/" + files[files.length - 1]));
+function getFileObject(filePath, fileName) {
+	var metadataLocation = filePath + "/metadata.json";
+	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
+	metadata.name = fileName;
+	metadata.childNodes = [];
 
 	for (var i = 0; i < metadata.constructionOrder.length; i++) {
-		var currentFile = currentDir + "/" + metadata.constructionOrder[i];
-		// Recurse if it is a directory, otherwise push it onto the array as a .txt file
+		var currentFile = filePath + "/" + metadata.constructionOrder[i];
+
+		// Recurse if it is a directory, otherwise push it onto object's child nodes.
+
 		if (fs.existsSync(currentFile)) {
+
 			if (fs.lstatSync(currentFile).isDirectory()) {
-				fileNames = fileNames.concat(getFileNames(currentFile));
+
+				metadata.childNodes.push(getFileObject(currentFile, metadata.constructionOrder[i]));
+			} else {
+
+				metadata.childNodes.push(currentFile);
 			}
+		} else if (fs.existsSync(currentFile + ".txt")) {
+
+			// Create the text node JSON object and push it.
+
+			var textNode = '{"name":"' + metadata.constructionOrder[i] + '"}';
+			textNode = JSON.parse(textNode);
+			textNode.text = fs.readFileSync(currentFile + ".txt");
+
+			metadata.childNodes.push(textNode);
+
 		} else {
-			fileNames.push(currentFile + ".txt");
+			throw new URIError('Error writing file ' + currentFile + ' from repository.');
 		}
 	}
 
-	// Adds the closing tag
-	if (metadata.tag) {
-		fileNames.push("</" + metadata.tag + ">\n");
-	}
-
-	return fileNames;
+	return metadata;
 }
 
 /**
  * Reads the list of file names and writes everything to one long string.
  */
-function convertToString(fileNames) {
+function convertToString(jsonObject) {
 	var htmlString = "";
+	htmlString += convertJson(jsonObject);
 
-	for (var i = 1; i < fileNames.length; i++) {
-		// If it's a metadata file, include the tag's attributes in it's construction.
-		if (fileNames[i].slice(-5) == ".json") {
-			var metadata = JSON.parse(fs.readFileSync(fileNames[i]));
-			htmlString += "<" + metadata.tag;
-
-			metadata.attributes.forEach(function(a) {
-				htmlString += ' ' + a.name + '="' + a.value + '"';
-			});
-			htmlString += ">";
-		} else if (fileNames[i].slice(-4) == ".txt") {
-			htmlString += fs.readFileSync(fileNames[i]);
-		} else {
-			htmlString += fileNames[i];
+	if (jsonObject.childNodes) {
+		for (var i = 0; i < jsonObject.childNodes.length; i++) {
+			htmlString += convertToString(jsonObject.childNodes[i]);
 		}
+
+		// Throw the closing tags on after the children, unless this node doesn't have a tag.
+		if (jsonObject.tag) {
+			htmlString += "</" + jsonObject.tag + ">\n";
+		}
+	} else if (jsonObject.text) {
+		return htmlString;
+	} else {
+		throw new URIError('Error writing file. Unknown JSON object referenced.');
 	}
 
 	return htmlString;
 }
 
+/**
+ * Determine whether the JSON object is a text node or a metadata node,
+ *  and delegate to the appropriate converter function.
+ */
+function convertJson(objNode){
+	if (objNode.text) {
+		return convertText(objNode);
+
+	} else if (objNode.tag) {
+		return convertMeta(objNode);
+
+	} else {
+		return "";
+	}
+}
+
+/**
+ * Converts JSON metadata node into a string.
+ */
+function convertMeta(objNode){
+	htmlString = "<" + objNode.tag;
+
+	objNode.attributes.forEach(function(a) {
+		htmlString += ' ' + a.name + '="' + a.value + '"';
+	});
+
+	htmlString += ">\n";
+	return htmlString;
+}
+
+/**
+ * Converts JSON text node into a string
+ */
+function convertText(objNode){
+	if (objNode.text.slice(0, 10) == "<!DOCTYPE "){
+		return objNode.text;
+	} else {
+		htmlString = "<por-text por-id=" + objNode.name + ">";
+		htmlString += objNode.text;
+		htmlString += "</por-text>";
+		return htmlString;
+	}
+}
+
+
 module.exports = {
-	initializeFile: initializeFile
+	initializeFile: initializeFile,
+	convertToString : convertToString,
+	convertMeta : convertMeta,
+	convertText : convertText,
+	convertJSON: convertJson
 };
