@@ -7,130 +7,116 @@ function initializeFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
         throw new URIError(file + ' is not a directory');
     }
+    var porRepo = getPORObjectFromRepo(directory);
 
-	var fileObject = getFileObject(directory, outputFile);
+    var fileString = convertPORObjectToHTMLString(porRepo);
 
-	var htmlString = convertToString(fileObject);
-
-	fs.writeFileSync(outputFile, htmlString);
-	return htmlString;
+	fs.writeFileSync(outputFile, fileString);
+    //TODO: Might not be needed, let's see
+    return fileString;
 }
 
 /**
- * Returns a list of file names in the constructed order.
- */
-function getFileObject(filePath, fileName) {
-	var metadataLocation = filePath + "/metadata.json";
+* Returns a POR object of the repo.
+*/
+function getPORObjectFromRepo(currentDir){
+
+	var metadataLocation = currentDir + "/metadata.json";
 	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
-	metadata.name = fileName;
-	metadata.childNodes = [];
 
-	for (var i = 0; i < metadata.constructionOrder.length; i++) {
-		var currentFile = filePath + "/" + metadata.constructionOrder[i];
+    var porObject = {
+        porID: currentDir.replace(/^.*[\\\/]/, ''),
+        metadata: metadata,
+        children: []
+    };
 
-		// Recurse if it is a directory, otherwise push it onto object's child nodes.
+    // Recursively builds the por object from the construction order.
+    metadata.constructionOrder.forEach(function(id) {
+        var path = currentDir + "/" + id;
+        if (fs.existsSync(path)) {
+            // For directories.
+            if (fs.lstatSync(path).isDirectory()){
+                porObject.children.push(getPORObjectFromRepo(path));
+            }
+        } else {
+            // For files, currently only text are used.
+            var fileLoc = path + ".txt";
+            if (fs.lstatSync(fileLoc).isFile() && fs.existsSync(fileLoc)){
+                var textValue = {
+                    value: fs.readFileSync(fileLoc, "utf-8"),
+                    porID: currentDir.replace(/^.*[\\\/]/, '')
+                };
+                porObject.children.push(textValue);
+            }
+        }
+    });
 
-		if (fs.existsSync(currentFile)) {
+    return porObject;
+}
 
-			if (fs.lstatSync(currentFile).isDirectory()) {
+/**
+* Returns a string built from the POR object.
+*/
+function convertPORObjectToHTMLString(porObject){
 
-				metadata.childNodes.push(getFileObject(currentFile, metadata.constructionOrder[i]));
-			} else {
+	var fileString = "";
 
-				metadata.childNodes.push(currentFile);
-			}
-		} else if (fs.existsSync(currentFile + ".txt")) {
-
-			// Create the text node JSON object and push it.
-
-			var textNode = '{"name":"' + metadata.constructionOrder[i] + '"}';
-			textNode = JSON.parse(textNode);
-			textNode.text = fs.readFileSync(currentFile + ".txt");
-
-			metadata.childNodes.push(textNode);
-
-		} else {
-			throw new URIError('Error writing file ' + currentFile + ' from repository.');
+	if ("children" in porObject){
+		// if the node is not a leaf (folder)
+		if ("tag" in porObject.metadata){
+			// Setting up tag
+            fileString += convertTagNodeToHTMLString(porObject);
+		}else{
+			porObject.children.forEach(function(child){
+				fileString += convertPORObjectToHTMLString(child);
+			});
 		}
-	}
-
-	return metadata;
-}
-
-/**
- * Reads the list of file names and writes everything to one long string.
- */
-function convertToString(jsonObject) {
-	var htmlString = "";
-	htmlString += convertJson(jsonObject);
-
-	if (jsonObject.childNodes) {
-		for (var i = 0; i < jsonObject.childNodes.length; i++) {
-			htmlString += convertToString(jsonObject.childNodes[i]);
-		}
-
-		// Throw the closing tags on after the children, unless this node doesn't have a tag.
-		if (jsonObject.tag) {
-			htmlString += "</" + jsonObject.tag + ">\n";
-		}
-	} else if (jsonObject.text) {
-		return htmlString;
 	} else {
-		throw new URIError('Error writing file. Unknown JSON object referenced.');
-	}
+        fileString += convertTextNodeToHTMLString(porObject);
+    }
+	return fileString;
 
-	return htmlString;
 }
 
-/**
- * Determine whether the JSON object is a text node or a metadata node,
- *  and delegate to the appropriate converter function.
- */
-function convertJson(objNode){
-	if (objNode.text) {
-		return convertText(objNode);
+function convertTextNodeToHTMLString(porObject) {
+    // if the node is a leaf (text file)
+    var objectString = "";
+    var porID = porObject.porID;
+    if (porID) {
+        //TODO: Decide if we want to tag text nodes
+        objectString += "<por-text por-id=" + porID + ">";
+        objectString += porObject.value;
+        objectString += "</por-text>\n"
+    } else {
+        // Text of node
+        objectString += porObject.value;
+    }
 
-	} else if (objNode.tag) {
-		return convertMeta(objNode);
-
-	} else {
-		return "";
-	}
+    return objectString;
 }
 
-/**
- * Converts JSON metadata node into a string.
- */
-function convertMeta(objNode){
-	htmlString = "<" + objNode.tag;
+function convertTagNodeToHTMLString(porObject) {
+    var objectString = "";
+    objectString += "<" + porObject.metadata.tag;
+    porObject.metadata.attributes.forEach(function(attribute) {
+        // This is wrong and temporary, we need to revise the initial parsing so that we don't make everything strings.
+        // TODO: Change repository creation to keep data types
+        objectString += ' ' + attribute.name + '="' + attribute.value + '"';
+    });
+    objectString += ">";
 
-	objNode.attributes.forEach(function(a) {
-		htmlString += ' ' + a.name + '="' + a.value + '"';
-	});
+    // Recursively add children to this string
+    porObject.children.forEach(function(child){
+        objectString += convertPORObjectToHTMLString(child);
+    });
 
-	htmlString += ">\n";
-	return htmlString;
+    // End tag
+    objectString += "</" + porObject.metadata.tag + ">";
+    return objectString;
 }
 
-/**
- * Converts JSON text node into a string
- */
-function convertText(objNode){
-	if (objNode.text.slice(0, 10) == "<!DOCTYPE "){
-		return objNode.text;
-	} else {
-		htmlString = "<por-text por-id=" + objNode.name + ">";
-		htmlString += objNode.text;
-		htmlString += "</por-text>";
-		return htmlString;
-	}
-}
 
 
 module.exports = {
-	initializeFile: initializeFile,
-	convertToString : convertToString,
-	convertMeta : convertMeta,
-	convertText : convertText,
-	convertJSON: convertJson
+	initializeFile: initializeFile
 };
