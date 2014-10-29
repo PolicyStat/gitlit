@@ -40,14 +40,32 @@ function writePORObjectToRepo(porObject, path) {
 }
 
 function gitRepoCreation(repoPath){
-    var exec = require('child_process').exec;
-    var gitInit;
     var cdShell = 'cd ' + repoPath;
     var initShell = 'git init '
     var addAllShell = 'git add *';
     var commitShell = 'git commit -m \" repo initialized \"';
 
-    gitInit = exec(cdShell + ' && ' + initShell + ' && ' + addAllShell + ' && ' + commitShell,
+    var command = cdShell + ' && ' + initShell + ' && ' + addAllShell + ' && ' + commitShell;
+
+    shellOut(command);
+}
+
+function gitCommit(repoPath, commitMessage){
+    var cdShell = 'cd ' + repoPath;
+    var addAllShell = 'git add *';
+    var commitMessage = commitMessage || 'repo initialized';
+    var commitShell = 'git commit -m \"' + commitMessage + ' \"';
+
+    var command = cdShell + ' && ' + addAllShell + ' && ' + commitShell
+
+    shellOut(command);
+}
+
+function shellOut(command){
+    var exec = require('child_process').exec;
+    var child;
+
+    child = exec(command,
         function (error, stdout, stderr) {
             console.log('stdout: ' + stdout);
             if (error !== null) {
@@ -55,10 +73,9 @@ function gitRepoCreation(repoPath){
             }
         }
     );
-    gitInit();
-
-
+    child();
 }
+
 
 function recursivelyBuildRepoDirectory(porObject, outputPath) {
     var changes;
