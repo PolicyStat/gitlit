@@ -65,6 +65,7 @@ function convertPORObjectToHTMLString(porObject){
 		// if the node is not a leaf (folder)
 		if ("tag" in porObject.metadata){
 			// Setting up tag
+            console.log(porObject);
             fileString += convertTagNodeToHTMLString(porObject);
 		}else{
 			porObject.children.forEach(function(child){
@@ -86,7 +87,7 @@ function convertTextNodeToHTMLString(porObject) {
         //TODO: Decide if we want to tag text nodes
         objectString += "<por-text por-id=" + porID + ">";
         objectString += porObject.value;
-        objectString += "</por-text>\n"
+        objectString += "</por-text>"
     } else {
         // Text of node
         objectString += porObject.value;
@@ -97,13 +98,7 @@ function convertTextNodeToHTMLString(porObject) {
 
 function convertTagNodeToHTMLString(porObject) {
     var objectString = "";
-    objectString += "<" + porObject.metadata.tag;
-    porObject.metadata.attributes.forEach(function(attribute) {
-        // This is wrong and temporary, we need to revise the initial parsing so that we don't make everything strings.
-        // TODO: Change repository creation to keep data types
-        objectString += ' ' + attribute.name + '="' + attribute.value + '"';
-    });
-    objectString += ">";
+    objectString += extractOpeningTag(porObject);
 
     // Recursively add children to this string
     porObject.children.forEach(function(child){
@@ -115,8 +110,22 @@ function convertTagNodeToHTMLString(porObject) {
     return objectString;
 }
 
+function extractOpeningTag(porObject) {
+    var objectString = "<" + porObject.metadata.tag;
+    porObject.metadata.attributes.forEach(function(attribute) {
+        // This is wrong and temporary, we need to revise the initial parsing so that we don't make everything strings.
+        // TODO: Change repository creation to keep data types
+        objectString += ' ' + attribute.name + '="' + attribute.value + '"';
+    });
+    objectString += ">";
+    return objectString;
+}
+
 
 
 module.exports = {
-	initializeFile: initializeFile
+	initializeFile: initializeFile,
+    convertTagNodeToHTMLString: convertTagNodeToHTMLString,
+    convertTextNodeToHTMLString: convertTextNodeToHTMLString,
+    extractOpeningTag: extractOpeningTag
 };
