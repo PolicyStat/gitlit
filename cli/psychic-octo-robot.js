@@ -4,6 +4,14 @@
 var init = require("./repoInit");
 var program = require("commander");
 
+function printExtraHelp(){
+    console.log('IMPORTANT NOTE:');
+    console.log('psychic-octo-robot uses the parse5 HTML parsing library,\n' + '' +
+        'as such, there is undefined behavior if there are missing\n' +
+        'opening or closing tags. If undesired behavior occurs,\n' +
+        'check your document for missing opening or closing tags.');
+}
+
 program._name = 'psychic-octo-robot';
 
 program
@@ -16,6 +24,7 @@ program
     .description('Initialize a Repository for the given file')
     .action(function(file, outputPath, repoName) {
         init.initializeRepository(file, outputPath, repoName);
+        printExtraHelp();
     });
 
 if (process.argv.length == 2){
@@ -24,8 +33,14 @@ if (process.argv.length == 2){
     // The fact there were only 2 args mean that there was nothing other than this in the
     // command, so we should print out the help
     console.log("No arguments provided");
-    program.help();
+    program.outputHelp();
+    printExtraHelp();
 }
+
+
+program.on('--help', function(){
+    printExtraHelp();
+});
 
 program.parse(process.argv);
 if (program.versionFull) {

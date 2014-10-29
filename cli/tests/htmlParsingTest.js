@@ -9,36 +9,36 @@ var assert = require('assert');
 
 /*
  TODO: Test cases still needing to be covered:
- Test whitespace text nodes removed
+ Test whitespace text nodes removed - see comment below in tests
  There may need to be more tests about pre tags
-*/
+ */
 
 
-describe('Check POR-ids and id attributes', function() {
+describe('Check POR-ids and id attributes', function () {
 
-    it('Throw error on duplicate id attribute', function() {
+    it('Throw error on duplicate id attribute', function () {
         var faultyHTML = fs.readFileSync('./cli/tests/resources/duplicateIDs.html', 'utf8');
         var faultyDom = parse5.parse(faultyHTML);
 
-        assert.throws(function (){
+        assert.throws(function () {
             parser.checkPORIds(faultyDom);
         }, ReferenceError);
     });
 
-    it('recognize and read id that was already present in tag', function() {
+    it('recognize and read id that was already present in tag', function () {
         var htmlSnippet = "<span id=\"basicID\">test</span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
         /*
-            This is necessary because doing the parse5.parse will generate html, head, and body tags
-            Which is awesome, but makes a bit harder to test. We might want to make it so that it
-            uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
-            TODO: Find a way to prevent parse5 from autogenerating, or find a nicer way to access
-        */
+         This is necessary because doing the parse5.parse will generate html, head, and body tags
+         Which is awesome, but makes a bit harder to test. We might want to make it so that it
+         uses parse5.parseFragment instead, depending on how we want to treat incomplete HTML.
+         TODO: Find a way to prevent parse5 from autogenerating, or find a nicer way to access
+         */
         var porSnippet = output.children[0].children[1].children[0];
         assert.equal(porSnippet.porID, 'basicID');
     });
 
-    it('recognize and read por-id that was already present in tag', function() {
+    it('recognize and read por-id that was already present in tag', function () {
         var htmlSnippet = "<span por-id=\"basicID\">test</span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -46,7 +46,7 @@ describe('Check POR-ids and id attributes', function() {
         assert.equal(porSnippet.porID, 'basicID');
     });
 
-    it('recognize and read mixed por-id and id present in tags', function() {
+    it('recognize and read mixed por-id and id present in tags', function () {
         var htmlSnippet = "<span por-id=\"porID\">test</span><div id=\"realID\"></div>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -56,7 +56,7 @@ describe('Check POR-ids and id attributes', function() {
         assert.equal(idSnippet.porID, 'realID');
     });
 
-    it('prefer por-ids over html ids if both are present', function() {
+    it('prefer por-ids over html ids if both are present', function () {
         var htmlSnippet = "<span id='htmlID' por-id=\"porID\">test</span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -66,9 +66,9 @@ describe('Check POR-ids and id attributes', function() {
 
 });
 
-describe('Element ordering & storage in metadata objects', function() {
+describe('Element ordering & storage in metadata objects', function () {
 
-    it('correct order of elements given all html ids', function() {
+    it('correct order of elements given all html ids', function () {
         var htmlSnippet = "<span id=\"basicID\">test</span><span id=\"mediumID\"></span><span id=\"lastID\"></span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -77,9 +77,9 @@ describe('Element ordering & storage in metadata objects', function() {
         var last = output.children[0].children[1].children[2];
 
         /*
-            Even though the metadata file ends up storing the ordering information for the sections, for the
-            POR object, the children are already in the proper order, so we just need to check that the children
-            are in the correct order.
+         Even though the metadata file ends up storing the ordering information for the sections, for the
+         POR object, the children are already in the proper order, so we just need to check that the children
+         are in the correct order.
          */
 
         assert.equal(basic.porID, 'basicID');
@@ -87,7 +87,7 @@ describe('Element ordering & storage in metadata objects', function() {
         assert.equal(last.porID, 'lastID');
     });
 
-    it('correct order of the elements given all por-ids', function() {
+    it('correct order of the elements given all por-ids', function () {
         var htmlSnippet = "<span por-id=\"basicID\">test</span><span por-id=\"mediumID\"></span><span por-id=\"lastID\"></span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -100,7 +100,7 @@ describe('Element ordering & storage in metadata objects', function() {
         assert.equal(last.porID, 'lastID');
     });
 
-    it('correct order for mixed por & html ids', function() {
+    it('correct order for mixed por & html ids', function () {
         var htmlSnippet = "<span id=\"basicID\">test</span><span por-id=\"mediumID\"></span><span id=\"lastID\"></span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -124,7 +124,7 @@ describe('Element ordering & storage in metadata objects', function() {
         assert.equal(last.porID, 'lastID');
     });
 
-    it('correct order when generating ids', function() {
+    it('correct order when generating ids', function () {
         var htmlSnippet = "<span class=1>test</span><span class=2></span><span class=3></span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -137,145 +137,243 @@ describe('Element ordering & storage in metadata objects', function() {
         assert.ok(last.name == 'class' && last.value == 3);
     });
 
-    it('correct order for mixed generated & set ids' , function() {
+    it('correct order for mixed generated & set ids', function () {
         var htmlSnippet = "<span class=1 por-id=\"what\">test</span><span class=2 id=\"hello\"></span><span class=3></span>" +
-                          "<span class=4>test</span><span class=5 por-id=\"por\"></span><span class=6></span>";
+            "<span class=4>test</span><span class=5 por-id=\"por\"></span><span class=6></span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
-        var first   = output.children[0].children[1].children[0].metadata.attributes[0];
-        var second  = output.children[0].children[1].children[1].metadata.attributes[0];
-        var third   = output.children[0].children[1].children[2].metadata.attributes[0];
-        var fourth  = output.children[0].children[1].children[3].metadata.attributes[0];
-        var fifth   = output.children[0].children[1].children[4].metadata.attributes[0];
-        var sixth   = output.children[0].children[1].children[5].metadata.attributes[0];
+        var first = output.children[0].children[1].children[0].metadata.attributes[0];
+        var second = output.children[0].children[1].children[1].metadata.attributes[0];
+        var third = output.children[0].children[1].children[2].metadata.attributes[0];
+        var fourth = output.children[0].children[1].children[3].metadata.attributes[0];
+        var fifth = output.children[0].children[1].children[4].metadata.attributes[0];
+        var sixth = output.children[0].children[1].children[5].metadata.attributes[0];
 
-        assert.ok(first.name    == 'class' && first.value == 1);
-        assert.ok(second.name   == 'class' && second.value == 2);
-        assert.ok(third.name    == 'class' && third.value == 3);
-        assert.ok(fourth.name   == 'class' && fourth.value == 4);
-        assert.ok(fifth.name    == 'class' && fifth.value == 5);
-        assert.ok(sixth.name    == 'class' && sixth.value == 6);
+        assert.ok(first.name == 'class' && first.value == 1);
+        assert.ok(second.name == 'class' && second.value == 2);
+        assert.ok(third.name == 'class' && third.value == 3);
+        assert.ok(fourth.name == 'class' && fourth.value == 4);
+        assert.ok(fifth.name == 'class' && fifth.value == 5);
+        assert.ok(sixth.name == 'class' && sixth.value == 6);
     });
 
 });
 
-describe('Create repo info correctly', function(){
-	
-	it('Stores the correct repo name', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLJustDocType.html', 'utf8');
-		var output1 = parser.parseHTML(validHTML, 'reposGalore');
-		var output2 = parser.parseHTML(validHTML, 'repo with spaces');
-		var output3 = parser.parseHTML(validHTML, 'repo with bang!');
-		var output4 = parser.parseHTML(validHTML, 'query repo?');
-		var output5 = parser.parseHTML(validHTML, '\"quotes\"');
-		
-		assert.equal(output1.repoName, "reposGalore");
-		assert.equal(output2.repoName, "repo with spaces");
-		assert.equal(output3.repoName, "repo with bang!");
-		assert.equal(output4.repoName, "query repo?");
-		assert.equal(output5.repoName, '\"quotes\"');
-	});
-	
+/*
+    TODO: Decide if we actually want to do this
+    Since <pre> tags exist, removing whitespace text nodes might be
+    very dangerous and bad for our users. Thus, it might be better
+    if we just deal with the fact that there are whitespaces and create
+    the files, but we need to think about this more.
+ */
+/*
+describe('Test whitespace text nodes removed', function () {
+    it('Just whitespace node', function () {
+        var htmlSnippet = "<span por-id=\"basicID\">        </span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+        assert.equal(porSnippet.metadata.tag, "span");
+        assert.equal(porSnippet.children.length, 0);
+    });
+
+    it('Keep surrounding whitespace in text node with other text', function(){
+        var htmlSnippet = "<span por-id=\"basicID\">    other text    </span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+        assert.equal(porSnippet.metadata.tag, "span");
+        assert.equal(porSnippet.children.length, 1);
+        assert.equal(porSnippet.children[0].value, "    other text    ");
+    });
+});
+*/
+
+describe('Keeping formatting in Pre tag/node', function () {
+    it('Keep surrounding whitespace in text node with other text', function(){
+        var htmlSnippet = "<pre por-id=\"basicID\">    other text    </pre>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+        assert.equal(porSnippet.metadata.tag, "pre");
+        assert.equal(porSnippet.children.length, 1);
+        assert.equal(porSnippet.children[0].value, "    other text    ");
+    });
+
+    /*
+        TODO: Currently these tests fail, but, if we want to support <pre> tags
+        properly, we should make sure they pass. We need to talk to Wes & Kyle about
+        whether we want to support <pre> properly or not.
+    it('Just whitespace text node in pre', function () {
+        var htmlSnippet = "<pre por-id=\"basicID\">        </pre>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+        assert.equal(porSnippet.metadata.tag, "pre");
+        assert.equal(porSnippet.children.length, 1);
+        assert.equal(porSnippet.children[0].value, "        ");
+    });
+
+    it('Keep surrounding whitespace in children nodes', function(){
+        var htmlSnippet = "<pre por-id=\"basicID\">    other text    \n<div>\n\n</div></pre>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        var innerDiv = porSnippet.children[1];
+        assert.equal(innerDiv.children.length, 1);
+        assert.equal(innerDiv.children[0].value, "\n\n");
+    });
+    */
 });
 
-describe('parseHTML over basic test file', function(){
-	
-	it('Parses correct tags from formatted HTML document', function() {
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[1].children[0].children[0].porID, "id1");
-		assert.equal(output.children[1].children[1].children[0].porID, "id2");
-		assert.equal(output.children[1].children[1].children[0].children[1].porID, "id3");
-	});
-	
-	it('Parses text nodes correctly from formatted HTML document', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[1].children[0].children[0].children[0].value, "\n\t\t\tSuper basic formatted html\n\t\t");
-		assert.equal(output.children[1].children[1].children[0].children[0].value, "\n\t\t\tpreSpan\n\t\t\t");
-		assert.equal(output.children[1].children[1].children[0].children[1].children[0].value, "\n\t\t\t\tinSpan\n\t\t\t");
-		assert.equal(output.children[1].children[1].children[0].children[2].value, "\n\t\t\tpostSpan\n\t\t");
-	});
-	
-	it('Creates the correct tree structure from formatted HTML document', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[0].children, null); //doctype
-		assert.equal(output.children[1].children.length, 2); //html
-		assert.equal(output.children[1].children[0].children.length, 1); //head
-		assert.equal(output.children[1].children[0].children[0].children.length, 1); //title
-		assert.equal(output.children[1].children[0].children[0].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children.length, 1); //body
-		assert.equal(output.children[1].children[1].children[0].children.length, 3); //h1
-		assert.equal(output.children[1].children[1].children[0].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children[0].children[1].children.length, 1); //span
-		assert.equal(output.children[1].children[1].children[0].children[1].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children[0].children[2].children, null); //text
-	});
-	
+describe('Recognize & parse custom por-id tags', function () {
+
+    it('Parse custom tag & get content', function () {
+        var htmlSnippet = "<por-text por-id=\"basicID\">text</por-text>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        var porSnippet = output.children[0].children[1].children[0];
+        assert.equal(porSnippet.porID, 'basicID');
+        assert.equal(porSnippet.value, "text");
+    });
+
+    it('Error if something other than text in por-text node with other text', function () {
+        var htmlSnippet = "<por-text por-id=\"basicID\">text <span></span></por-text>";
+        assert.throws(function () {
+            parser.parseHTML(htmlSnippet, 'repoName');
+        }, SyntaxError);
+    });
+
+    it('Error if something other than text in por-text node alone', function () {
+        var htmlSnippet = "<por-text por-id=\"basicID\"><span></span></por-text>";
+        assert.throws(function () {
+            parser.parseHTML(htmlSnippet, 'repoName');
+        }, SyntaxError);
+    });
+
 });
 
-describe('parseHTML over inline text file', function(){
-	
-		it('Parses correct tags from inline HTML document', function() {
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[1].children[0].children[0].porID, "id1");
-		assert.equal(output.children[1].children[1].children[0].porID, "id2");
-		assert.equal(output.children[1].children[1].children[0].children[1].porID, "id3");
-	});
-	
-	it('Parses text nodes correctly from inline HTML document', function(){
-		
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[1].children[0].children[0].children[0].value, "Super basic formatted html");
-		assert.equal(output.children[1].children[1].children[0].children[0].value, "preSpan");
-		assert.equal(output.children[1].children[1].children[0].children[1].children[0].value, "inSpan");
-		assert.equal(output.children[1].children[1].children[0].children[2].value, "postSpan");
-	});
-	
-	it('Creates the correct tree structure from inline HTML document', function(){
-			
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
-		var output = parser.parseHTML(validHTML, 'repoName');
-		
-		assert.equal(output.children[0].children, null); //doctype
-		assert.equal(output.children[1].children.length, 2); //html
-		assert.equal(output.children[1].children[0].children.length, 1); //head
-		assert.equal(output.children[1].children[0].children[0].children.length, 1); //title
-		assert.equal(output.children[1].children[0].children[0].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children.length, 1); //body
-		assert.equal(output.children[1].children[1].children[0].children.length, 3); //h1
-		assert.equal(output.children[1].children[1].children[0].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children[0].children[1].children.length, 1); //span
-		assert.equal(output.children[1].children[1].children[0].children[1].children[0].children, null); //text
-		assert.equal(output.children[1].children[1].children[0].children[2].children, null); //text
-	});
-	
+describe('Create repo info correctly', function () {
+
+    it('Stores the correct repo name', function () {
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLJustDocType.html', 'utf8');
+        var output1 = parser.parseHTML(validHTML, 'reposGalore');
+        var output2 = parser.parseHTML(validHTML, 'repo with spaces');
+        var output3 = parser.parseHTML(validHTML, 'repo with bang!');
+        var output4 = parser.parseHTML(validHTML, 'query repo?');
+        var output5 = parser.parseHTML(validHTML, '\"quotes\"');
+
+        assert.equal(output1.repoName, "reposGalore");
+        assert.equal(output2.repoName, "repo with spaces");
+        assert.equal(output3.repoName, "repo with bang!");
+        assert.equal(output4.repoName, "query repo?");
+        assert.equal(output5.repoName, '\"quotes\"');
+    });
+
 });
 
-describe('Fail to parse broken HTML files', function(){
+describe('parseHTML over basic test file', function () {
 
-	it('Does not parse on an unclosed tag -text', function(){
-		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
+    it('Parses correct tags from formatted HTML document', function () {
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
 
-		test.error(function(){
-			parser.parseHTML(invalidHTML, 'repoName');
-		});
-	});
+        assert.equal(output.children[1].children[0].children[0].porID, "id1");
+        assert.equal(output.children[1].children[1].children[0].porID, "id2");
+        assert.equal(output.children[1].children[1].children[0].children[1].porID, "id3");
+    });
 
-	it('Does not parse on mismatched tags -text', function(){
-		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
-		
-		test.error(function(){
-			parser.parseHTML(invalidHTML, 'repoName');
-		});
-	});
+    it('Parses text nodes correctly from formatted HTML document', function () {
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
+
+        assert.equal(output.children[1].children[0].children[0].children[0].value, "\n\t\t\tSuper basic formatted html\n\t\t");
+        assert.equal(output.children[1].children[1].children[0].children[0].value, "\n\t\t\tpreSpan\n\t\t\t");
+        assert.equal(output.children[1].children[1].children[0].children[1].children[0].value, "\n\t\t\t\tinSpan\n\t\t\t");
+        assert.equal(output.children[1].children[1].children[0].children[2].value, "\n\t\t\tpostSpan\n\t\t");
+    });
+
+    it('Creates the correct tree structure from formatted HTML document', function () {
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
+
+        assert.equal(output.children[0].children, null); //doctype
+        assert.equal(output.children[1].children.length, 2); //html
+        assert.equal(output.children[1].children[0].children.length, 1); //head
+        assert.equal(output.children[1].children[0].children[0].children.length, 1); //title
+        assert.equal(output.children[1].children[0].children[0].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children.length, 1); //body
+        assert.equal(output.children[1].children[1].children[0].children.length, 3); //h1
+        assert.equal(output.children[1].children[1].children[0].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children[0].children[1].children.length, 1); //span
+        assert.equal(output.children[1].children[1].children[0].children[1].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children[0].children[2].children, null); //text
+    });
+
+});
+
+describe('parseHTML over inline text file', function () {
+
+    it('Parses correct tags from inline HTML document', function () {
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
+
+        assert.equal(output.children[1].children[0].children[0].porID, "id1");
+        assert.equal(output.children[1].children[1].children[0].porID, "id2");
+        assert.equal(output.children[1].children[1].children[0].children[1].porID, "id3");
+    });
+
+    it('Parses text nodes correctly from inline HTML document', function () {
+
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
+
+        assert.equal(output.children[1].children[0].children[0].children[0].value, "Super basic formatted html");
+        assert.equal(output.children[1].children[1].children[0].children[0].value, "preSpan");
+        assert.equal(output.children[1].children[1].children[0].children[1].children[0].value, "inSpan");
+        assert.equal(output.children[1].children[1].children[0].children[2].value, "postSpan");
+    });
+
+    it('Creates the correct tree structure from inline HTML document', function () {
+
+        var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+        var output = parser.parseHTML(validHTML, 'repoName');
+
+        assert.equal(output.children[0].children, null); //doctype
+        assert.equal(output.children[1].children.length, 2); //html
+        assert.equal(output.children[1].children[0].children.length, 1); //head
+        assert.equal(output.children[1].children[0].children[0].children.length, 1); //title
+        assert.equal(output.children[1].children[0].children[0].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children.length, 1); //body
+        assert.equal(output.children[1].children[1].children[0].children.length, 3); //h1
+        assert.equal(output.children[1].children[1].children[0].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children[0].children[1].children.length, 1); //span
+        assert.equal(output.children[1].children[1].children[0].children[1].children[0].children, null); //text
+        assert.equal(output.children[1].children[1].children[0].children[2].children, null); //text
+    });
+
+});
+
+describe('Fail to parse broken HTML files', function () {
+
+    it('Does not parse on an unclosed tag -text', function () {
+        var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
+
+        test.error(function () {
+            parser.parseHTML(invalidHTML, 'repoName');
+        });
+    });
+
+    it('Does not parse on mismatched tags -text', function () {
+        var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
+
+        test.error(function () {
+            parser.parseHTML(invalidHTML, 'repoName');
+        });
+    });
 
 });
