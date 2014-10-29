@@ -35,7 +35,53 @@ function writePORObjectToRepo(porObject, path) {
             tree: treeHash,
             message: "Test commit\n"
         });
+        // writeRepoToFile(path, porObject['repoName']);
+        console.log(path + porObject['repoName']);
+        gitRepoCreation(path + porObject['repoName']);
     }
+}
+
+function writeRepoToFile(path, name){
+    // Turns out that jsgit repos are unstringifyable meaning that we can't store them.
+    console.log(repo);
+    jsonFile = JSON.stringify(repo);
+    console.log(jsonFile);
+    fs.writeFileSync(path + "/" + name + ".json", jsonFile,  "utf8");
+}
+
+function gitRepoCreation(repoPath){
+    var exec = require('child_process').exec, gitInit, gitAdd, gitCommit;
+
+    gitInit = exec('git init ' + repoPath,
+        function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            if (error !== null) {
+                 console.log('exec error: ' + error);
+            }
+        }
+    );
+    gitInit();
+
+    gitAdd = exec('git add ' + repoPath + '*',
+        function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            if (error !== null) {
+                 console.log('exec error: ' + error);
+            }
+        }
+    );
+    gitAdd();
+
+    gitCommit = exec('git commit -m \" repo initialized \"',
+        function (error, stdout, stderr) {
+            console.log('stdout: ' + stdout);
+            if (error !== null) {
+                 console.log('exec error: ' + error);
+            }
+        }
+    );
+    gitCommit();
+
 }
 
 function recursivelyBuildRepoDirectory(porObject, outputPath) {
