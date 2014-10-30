@@ -127,5 +127,7 @@ module.exports = {
 	initializeFile: initializeFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
+    convertPORObjectToHTMLString : convertPORObjectToHTMLString,
+    getPORObjectFromRepo : getPORObjectFromRepo,
     extractOpeningTag: extractOpeningTag
 };
