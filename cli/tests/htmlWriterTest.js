@@ -6,7 +6,7 @@ var htmlWriter = require('../htmlWriter');
 var assert = require('assert');
 var fs = require("fs");
 
-describe('Get string representation of JSON objects properly', function() {
+describe('Get opening tag data from JSON objects properly', function() {
 
     it('Metadata conversion no attributes', function() {
         var metadata = {
@@ -36,7 +36,23 @@ describe('Get string representation of JSON objects properly', function() {
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<head id="test1" class="test2">');
     });
 
-    it('Text conversion', function() {
+    it('Metadata conversion with special tags', function() {
+        var metadata = {
+            tag: "br",
+            attributes: []
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: []
+        };
+
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<br>');
+    });
+});
+
+describe('Get text conversion of JSON objects', function() {
+
+    it('Text conversion with porID', function() {
         var textObject = {
             value: "This is a test",
             porID: 1111
@@ -44,9 +60,37 @@ describe('Get string representation of JSON objects properly', function() {
         assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), '<por-text por-id=1111>This is a test</por-text>');
     });
 
+    it('Text conversion with no POR ID', function() {
+        var textObject = {
+            value: "Psychic Octo Robot."
+        };
+        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'Psychic Octo Robot.');
+    });
+
 });
 
 describe('Test converting JSON object into a string', function() {
+
+    it('Create html string from tree with only tags', function() {
+        var metadata = {
+            tag: "html",
+            attributes: []
+        };
+        var metadata2 = {
+            tag: "br",
+            attributes: []
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: []
+        }
+        var tagObject = {
+            metadata: metadata,
+            children: [secondTagObject]
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<html><br></br></html>');
+    });
 
     it('Create html string from simple tree', function() {
         var metadata = {
@@ -64,6 +108,36 @@ describe('Test converting JSON object into a string', function() {
         };
 
         assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Hello!</por-text></head>');
+    });
+
+    it('Create html string from tree with two tags', function() {
+        var metadata = {
+            tag: "head",
+            attributes: []
+        };
+        var textChild = {
+            value: "Foo ",
+            porID: 1234
+        };
+        var metadata2 = {
+            tag: "span",
+            attributes: [{name: "id", value: "newSpan"}]
+        };
+        var textChild2 = {
+            value: "Inner span text ",
+            porID: 1345
+        };
+        var tagObjectChild = {
+            metadata: metadata2,
+            children: [textChild2]
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild, tagObjectChild],
+            porID: ""
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Foo </por-text><span id="newSpan"><por-text por-id=1345>Inner span text </por-text></span></head>');
     });
 
 });
