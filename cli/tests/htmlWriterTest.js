@@ -107,7 +107,21 @@ describe('Test creation of por object from repo', function() {
     })
 });
 
+describe('Test conversion from por object to HTML string', function() {
+
+    it('Convert por object of a complex tree', function() {
+
+        var porObj = htmlWriter.getPORObjectFromRepo('./generationTest/testRepo/test');
+        var porObjHTML = '<por-text por-id=test><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"></por-text><html><head lang="en"><meta charset="UTF-8"></meta><title><por-text por-id=5376f5329b6e80a8d7934c62>titletext</por-text></title></head><body><h1 id="derp" class="herp" name="headerOne"><por-text por-id=derp>Header </por-text><span></span><por-text por-id=derp> afterSpan</por-text></h1></body></html>';
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
+
+    });
+
+})
+
 describe('Test initialization of local file', function() {
+
     it('Create html from a complex tree', function() {
         htmlWriter.initializeFile('./generationTest/testRepo/test', './resources/htmlInitOutput.html');
         assert.doesNotThrow( function() {
