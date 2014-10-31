@@ -14,7 +14,7 @@ require('js-git/mixins/create-tree')(repo);
  TODO: Change to using async file and directory creation, but for now, this makes the logic easier to track
  */
 
-function writePORObjectToRepo(porObject, path) {
+function writeRepoToDirectory(porObject, path) {
     var repoOutputPath = path + "/" + porObject['repoName'];
 
     try {
@@ -27,16 +27,52 @@ function writePORObjectToRepo(porObject, path) {
 
         recursivelyBuildRepoDirectory(porObject, repoOutputPath, 0);
         // Create a test commit
-        repo.saveAs("commit", {
-            author: {
-                name: "John Kulczak",
-                email: "j_kulczak@hotmail.com"
-            },
-            tree: treeHash,
-            message: "Test commit\n"
-        });
+        // repo.saveAs("commit", {
+        //     author: {
+        //         name: "John Kulczak",
+        //         email: "j_kulczak@hotmail.com"
+        //     },
+        //     tree: treeHash,
+        //     message: "Test commit\n"
+        // });
         gitRepoCreation(path + porObject['repoName']);
     }
+}
+
+function writeCommitToDirectory(porObject, path, commitMessage){
+    var repoOutputPath = path + "/" + porObject['repoName'];
+
+    try {
+        fs.mkdirSync(repoOutputPath);
+    } finally {
+        // Initialize the repo
+        treeHash = repo.createTree({
+            dirName: {
+                mode: modes.tree}
+            });
+        console.log('point 1');
+        prepareRepo(path, porObject['repoName']);
+        console.log('point 2');
+        recursivelyBuildRepoDirectory(porObject, repoOutputPath, 0);
+        console.log('point 3');
+        shellOut('mv ./.git ' + repoName);
+        console.log('point 4');
+        gitCommit(path + porObject['repoName']);
+        console.log('point 5');
+    }
+}
+
+function prepareRepo(path, repoName){
+    // I know these function are gross right now, they can be cleaned up /after/ everything works += .
+    var cdShell = 'cd ' + path;
+    var moveShell = 'mv ' + repoName + '/.git ./';
+    var removeShell = 'rm -rf ' + repoName + '/*';
+    var replaceShell = 'mv ./.git ./' + repoName; 
+    var removeGitShell = 'rm -rf ./.git';
+
+    var command = cdShell + ' && ' + moveShell + ' && ' + removeShell + ' && ' + replaceShell + ' && ' + removeGitShell;
+
+    shellOut(command);
 }
 
 function gitRepoCreation(repoPath){
@@ -62,6 +98,7 @@ function gitCommit(repoPath, commitMessage){
 }
 
 function shellOut(command){
+    // Still looking for a replacement of exec that allows us to keep running after calling.
     var exec = require('child_process').exec;
     var child;
 
@@ -144,5 +181,6 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
 }
 
 module.exports = {
-    writeRepoToDirectory: writePORObjectToRepo
+    writeRepoToDirectory: writeRepoToDirectory,
+    writeCommitToDirectory: writeCommitToDirectory
 };
