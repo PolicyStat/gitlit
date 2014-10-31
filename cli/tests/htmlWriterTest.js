@@ -4,6 +4,7 @@
 
 var htmlWriter = require('../htmlWriter');
 var assert = require('assert');
+var fs = require("fs");
 
 describe('Get string representation of JSON objects properly', function() {
 
@@ -66,3 +67,19 @@ describe('Test converting JSON object into a string', function() {
     });
 
 });
+
+describe('Test initialization of local file', function() {
+    it('Creat html from a complex tree', function() {
+        htmlWriter.initializeFile('./generationTest/testRepo/test', './resources/htmlInitOutput.html');
+        assert.doesNotThrow( function() {
+            fileExists('./resources/htmlInitOutput.html');
+        } , Error);
+    })
+})
+
+
+function fileExists(fileLocation) {
+    if (!fs.existsSync(fileLocation)) {
+        throw new Error('No file found.');
+    }
+}
