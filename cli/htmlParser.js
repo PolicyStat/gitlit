@@ -77,15 +77,22 @@ function generateNewPORID(){
 
 function parseChildrenNodes(dom) {
     var children = [];
+    var contents = null;
     for (var childIndex = 0; childIndex < dom.childNodes.length; ++childIndex) {
         if (typeof dom.childNodes[childIndex].tagName == 'undefined') {
-            var contents = processTaglessChild(dom.childNodes[childIndex]);
+            contents = processTaglessChild(dom.childNodes[childIndex]);
             if (contents[0] != null) {
                 children.push({ value: contents[0],
                                 porID: contents[1]
                               });
             }
-        } else {
+        } else if (dom.childNodes[childIndex].tagName == 'por-text') {
+            contents = processCustomTaggedChild(dom.childNodes[childIndex]);
+            if (context != null) {
+                children.push(contents);
+            }
+        }
+        else {
             children.push(processTaggedChild(dom.childNodes[childIndex]));
         }
     }
@@ -174,12 +181,63 @@ function processTaglessChild(dom) {
         id = "doctype";
     }
 
+    /*
+    TODO: Decide if we want to strip whitespace or not
+    This could break documents with <pre> tags in them, so for now, let's not enable this, since
+    it could be bad for our users.
+    */
     if (/^\s*$/.test(contents)) {
         // If all of the contents are whitespace, we don't want to keep track of that
         contents = null;
     }
 
+
     return [contents, id];
+}
+
+function processCustomTaggedChild(dom) {
+    if (dom.tagName != 'por-text' || dom.childNodes.length == 0) {
+        return null;
+    } else if (dom.childNodes.length > 1){
+        /*
+         If there is more than one child, then that means at least one is a tagged element, which we don't want.
+         */
+        throw new SyntaxError("Custom por-text tag had non-text children,\n" +
+            "please ensure that only text is inside a por-text node");
+    }
+    var attributes = null;
+    var id = null;
+
+    if (typeof dom.attrs != 'undefined') {
+        attributes = dom.attrs;
+    }
+
+    var idIndex = null;
+    for (var attributeIndex = 0; attributeIndex < attributes.length; ++attributeIndex) {
+        if (attributes[attributeIndex].name == 'por-id'){
+            idIndex = attributeIndex;
+            break;
+        }
+        if (attributes[attributeIndex].name == 'id'){
+            idIndex = attributeIndex;
+        }
+    }
+
+    if (idIndex != null) {
+        id = attributes[idIndex].value;
+    }
+
+    var contents;
+    if ('value' in dom.childNodes[0]) {
+        contents = dom.childNodes[0].value;
+    } else {
+        throw new SyntaxError("Custom por-text tag had non-text children,\n" +
+            "please ensure that only text is inside a por-text node");
+    }
+
+    return {   value: contents,
+        porID: id
+    };
 }
 
 module.exports = {
