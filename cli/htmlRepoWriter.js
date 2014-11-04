@@ -55,10 +55,8 @@ function writeCommitToDirectory(porObject, path, commitMessage){
         console.log('point 2');
         recursivelyBuildRepoDirectory(porObject, repoOutputPath, 0);
         console.log('point 3');
-        shellOut('mv ./.git ' + repoName);
+        gitCommit(path + porObject['repoName'], commitMessage);
         console.log('point 4');
-        gitCommit(path + porObject['repoName']);
-        console.log('point 5');
     }
 }
 
@@ -97,20 +95,22 @@ function gitCommit(repoPath, commitMessage){
     shellOut(command);
 }
 
-function shellOut(command){
-    // Still looking for a replacement of exec that allows us to keep running after calling.
+function shellOut(command){    var asyncblock = require('asyncblock');
     var exec = require('child_process').exec;
     var child;
 
-    child = exec(command,
-        function (error, stdout, stderr) {
-            console.log('stdout: ' + stdout);
-            if (error !== null) {
-                 console.log('exec error: ' + error);
-            }
-        }
-    );
-    child();
+    asyncblock(function(flow){
+        exec(command,
+            function (error, stdout, stderr) {
+                console.log('stdout: ' + stdout);
+                if (error !== null) {
+                     console.log('exec error: ' + error);
+                }
+            },
+            flow.add('flag')
+        );
+        flow.wait('flag');
+    });
 }
 
 
