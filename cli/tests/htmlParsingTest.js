@@ -161,13 +161,13 @@ describe('Element ordering & storage in metadata objects', function () {
 });
 
 /*
-    TODO: Decide if we actually want to do this
-    Since <pre> tags exist, removing whitespace text nodes might be
-    very dangerous and bad for our users. Thus, it might be better
-    if we just deal with the fact that there are whitespaces and create
-    the files, but we need to think about this more.
+ TODO: Decide if we actually want to do this
+ Since <pre> tags exist, removing whitespace text nodes might be
+ very dangerous and bad for our users. Thus, it might be better
+ if we just deal with the fact that there are whitespaces and create
+ the files, but we need to think about this more.
  */
-/*
+
 describe('Test whitespace text nodes removed', function () {
     it('Just whitespace node', function () {
         var htmlSnippet = "<span por-id=\"basicID\">        </span>";
@@ -179,7 +179,7 @@ describe('Test whitespace text nodes removed', function () {
         assert.equal(porSnippet.children.length, 0);
     });
 
-    it('Keep surrounding whitespace in text node with other text', function(){
+    it('Keep surrounding whitespace in text node with other text', function () {
         var htmlSnippet = "<span por-id=\"basicID\">    other text    </span>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -190,10 +190,10 @@ describe('Test whitespace text nodes removed', function () {
         assert.equal(porSnippet.children[0].value, "    other text    ");
     });
 });
-*/
+
 
 describe('Keeping formatting in Pre tag/node', function () {
-    it('Keep surrounding whitespace in text node with other text', function(){
+    it('Keep surrounding whitespace in text node with other text', function () {
         var htmlSnippet = "<pre por-id=\"basicID\">    other text    </pre>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -204,10 +204,6 @@ describe('Keeping formatting in Pre tag/node', function () {
         assert.equal(porSnippet.children[0].value, "    other text    ");
     });
 
-    /*
-        TODO: Currently these tests fail, but, if we want to support <pre> tags
-        properly, we should make sure they pass. We need to talk to Wes & Kyle about
-        whether we want to support <pre> properly or not.
     it('Just whitespace text node in pre', function () {
         var htmlSnippet = "<pre por-id=\"basicID\">        </pre>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
@@ -219,7 +215,7 @@ describe('Keeping formatting in Pre tag/node', function () {
         assert.equal(porSnippet.children[0].value, "        ");
     });
 
-    it('Keep surrounding whitespace in children nodes', function(){
+    it('Keep surrounding whitespace in children nodes', function () {
         var htmlSnippet = "<pre por-id=\"basicID\">    other text    \n<div>\n\n</div></pre>";
         var output = parser.parseHTML(htmlSnippet, 'repoName');
 
@@ -228,7 +224,7 @@ describe('Keeping formatting in Pre tag/node', function () {
         assert.equal(innerDiv.children.length, 1);
         assert.equal(innerDiv.children[0].value, "\n\n");
     });
-    */
+
 });
 
 describe('Recognize & parse custom por-id tags', function () {
