@@ -65,7 +65,6 @@ function convertPORObjectToHTMLString(porObject){
 		// if the node is not a leaf (folder)
 		if ("tag" in porObject.metadata){
 			// Setting up tag
-            console.log(porObject);
             fileString += convertTagNodeToHTMLString(porObject);
 		}else{
 			porObject.children.forEach(function(child){
@@ -127,5 +126,7 @@ module.exports = {
 	initializeFile: initializeFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
+    convertPORObjectToHTMLString : convertPORObjectToHTMLString,
+    getPORObjectFromRepo : getPORObjectFromRepo,
     extractOpeningTag: extractOpeningTag
 };
