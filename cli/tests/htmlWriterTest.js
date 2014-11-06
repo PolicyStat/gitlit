@@ -74,28 +74,57 @@ describe('Test converting JSON object into a string', function() {
 
     it('Create html string from tree with only tags', function() {
         var metadata = {
-            tag: "html",
-            attributes: []
+            tag: "div",
+            attributes: [{name: "por-id", value: "abc"}]
         };
         var metadata2 = {
-            tag: "br",
-            attributes: []
+            tag: "span",
+            attributes: [{name: "por-id", value: 1234}]
         };
         var secondTagObject = {
             metadata: metadata2,
-            children: []
-        }
+            children: [],
+            porID: 1234
+        };
         var tagObject = {
             metadata: metadata,
-            children: [secondTagObject]
+            children: [secondTagObject],
+            porID: "abc"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<html><br></br></html>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div por-id="abc"><span por-id="1234"></span>\n</div>');
+    });
+
+    it('Create html string with pre tags', function() {
+        var metadata = {
+            tag: "pre",
+            attributes: []
+        };
+        var textChild = {
+            value: "Hello!",
+            porID: 1234
+        };
+        var metadata2 = {
+            tag: "b",
+            attributes: [{name: "por-id", value: 1234}]
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: [textChild],
+            porID: 1234
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [secondTagObject],
+            porID: "owienvo"
+        };
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<body><div>Hello!</div></body>');
     });
 
     it('Create html string from simple tree', function() {
         var metadata = {
-            tag: "head",
+            tag: "div",
             attributes: []
         };
         var textChild = {
@@ -105,10 +134,10 @@ describe('Test converting JSON object into a string', function() {
         var tagObject = {
             metadata: metadata,
             children: [textChild],
-            porID: ""
+            porID: "owienvo"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Hello!</por-text></head>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<body><div>Hello!</div></body>');
     });
 
     it('Create html string from tree with two tags', function() {

@@ -1,6 +1,14 @@
 psychic-octo-robot
 ==================
 
+Libraries used by psychic-octo-robot
+-----------------------------------
+* parse5
+* htmltidy
+* commander.js
+* mocha
+
+
 About Docker:
 
 	Docker is an OS agnostic way to create an identical development environment for every member on a software team. The following steps will get you set up:

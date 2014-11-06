@@ -2,12 +2,17 @@
  * Created by John Kulczak on 10/16/2014.
  */
 var fs = require("fs");
+//var tidy = require('htmltidy').tidy;
+//var deasync = require('deasync');
+var html = require('html');
 
 function initializeFile(directory, outputFile) {
-	if (!fs.existsSync(directory)) {
+    if (!fs.existsSync(directory)) {
         throw new URIError(file + ' is not a directory');
     }
+
     var porRepo = getPORObjectFromRepo(directory);
+
 
     var fileString = convertPORObjectToHTMLString(porRepo);
 
@@ -74,8 +79,9 @@ function convertPORObjectToHTMLString(porObject){
 	} else {
         fileString += convertTextNodeToHTMLString(porObject);
     }
-	return fileString;
 
+    return html.prettyPrint(fileString, {indent_size: 2});
+//    return deasync(tidy)(fileString);
 }
 
 function convertTextNodeToHTMLString(porObject) {
@@ -84,9 +90,9 @@ function convertTextNodeToHTMLString(porObject) {
     var porID = porObject.porID;
     if (porID) {
         //TODO: Decide if we want to tag text nodes
-        objectString += "<por-text por-id=" + porID + ">";
+//        objectString += "<por-text por-id=" + porID + ">";
         objectString += porObject.value;
-        objectString += "</por-text>"
+//        objectString += "</por-text>"
     } else {
         // Text of node
         objectString += porObject.value;
