@@ -26,15 +26,6 @@ function writeRepoToDirectory(porObject, path) {
                 mode: modes.tree}});
 
         recursivelyBuildRepoDirectory(porObject, repoOutputPath, 0);
-        // Create a test commit
-        // repo.saveAs("commit", {
-        //     author: {
-        //         name: "John Kulczak",
-        //         email: "j_kulczak@hotmail.com"
-        //     },
-        //     tree: treeHash,
-        //     message: "Test commit\n"
-        // });
         gitRepoCreation(path + porObject['repoName']);
     }
 }
@@ -50,47 +41,43 @@ function writeCommitToDirectory(porObject, path, commitMessage){
             dirName: {
                 mode: modes.tree}
             });
-        console.log('point 1');
         prepareRepo(path, porObject['repoName']);
-        console.log('point 2');
         recursivelyBuildRepoDirectory(porObject, repoOutputPath, 0);
-        console.log('point 3');
         gitCommit(path + porObject['repoName'], commitMessage);
-        console.log('point 4');
     }
 }
 
 function prepareRepo(path, repoName){
-    // I know these function are gross right now, they can be cleaned up /after/ everything works += .
-    var cdShell = 'cd ' + path;
-    var moveShell = 'mv ' + repoName + '/.git ./';
-    var removeShell = 'rm -rf ' + repoName + '/*';
-    var replaceShell = 'mv ./.git ./' + repoName; 
-    var removeGitShell = 'rm -rf ./.git';
+    var command = '';
 
-    var command = cdShell + ' && ' + moveShell + ' && ' + removeShell + ' && ' + replaceShell + ' && ' + removeGitShell;
+    command += 'cd ' + path + ' && ';
+    command += 'mv ' + repoName + '/.git ./' + ' && ';
+    command += 'rm -rf ' + repoName + '/*' + ' && ';
+    command += 'mv ./.git ./' + repoName + ' && '; 
+    command += 'rm -rf ./.git';
 
     shellOut(command);
 }
 
 function gitRepoCreation(repoPath){
-    var cdShell = 'cd ' + repoPath;
-    var initShell = 'git init '
-    var addAllShell = 'git add *';
-    var commitShell = 'git commit -m \" repo initialized \"';
+    var command = '';
 
-    var command = cdShell + ' && ' + initShell + ' && ' + addAllShell + ' && ' + commitShell;
+    command += 'cd ' + repoPath + ' && ';
+    command += 'git init ' + ' && ';
+    command += 'git add *' + ' && ';
+    command += 'git commit -m \" repo initialized \"';
 
     shellOut(command);
 }
 
 function gitCommit(repoPath, commitMessage){
-    var cdShell = 'cd ' + repoPath;
-    var addAllShell = 'git add *';
-    var commitMessage = commitMessage || 'repo initialized';
-    var commitShell = 'git commit -m \"' + commitMessage + ' \"';
+    var command = '';
 
-    var command = cdShell + ' && ' + addAllShell + ' && ' + commitShell
+    message = commitMessage || 'repo initialized';
+
+    command += 'cd ' + repoPath + ' && ';
+    command += 'git add -A *' + ' && ';
+    command += 'git commit -m \"' + message + ' \"';
 
     shellOut(command);
 }
