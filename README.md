@@ -24,6 +24,13 @@ psychic-octo-robot
 
 	- commit
 	- pretty printing for HTML output
+
+## Disclaimers:
+
+	- tags will contain por-id attributes for tracking purposes
+	- text nodes will be contained in por-text tags for tracking purposes
+	- modifying either of the above can result in unexpected behavior
+	- some formatting may not be preserved. with each milestone we are working to minimize this effect
 	
 
 About Docker:
