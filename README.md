@@ -1,21 +1,17 @@
 psychic-octo-robot
 ==================
 
-	This project is a collection of modules that brings the power of git to structured documents
-	 by students Ian Hallam, John Kulczak, Devon Timaeus and Sydney Satchwill at Rose-Hulman
-	  Institute of Technology under the leadership of Associate Professor Sriram Mohan in addition
-	   to Wes Winham and Kyle Gibson of PolicyStat. Currently HTML is the langugage being
-	    developed for, with the posibility of later including XML and DOCX as well.
+	> This project is a collection of modules that brings the power of git to structured documents by students Ian Hallam, John Kulczak, Devon Timaeus and Sydney Satchwill at Rose-Hulman Institute of Technology under the leadership of Associate Professor Sriram Mohan in addition to Wes Winham and Kyle Gibson of PolicyStat. Currently HTML is the langugage being developed for, with the posibility of later including XML and DOCX as well.
 
 ## Usage: psychic-octo-robot [options] [command]
 
 ### First, create a por local repo
 
-init <file> <outputPath> <repoName>  Initialize a Repository for the given file
+    init <file> <outputPath> <repoName>  Initialize a Repository for the given file
 
 ### And change it back into html
 
-write <directory> <outputFile>       Convert a Repository into an HTML file
+    write <directory> <outputFile>       Convert a Repository into an HTML file
 
 ## Options
 
