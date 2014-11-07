@@ -1,7 +1,11 @@
 psychic-octo-robot
 ==================
 
-	This project is a collection of modules that brings the power of git to structured documents by students Ian Hallam, John Kulczak, Devon Timaeus and Sydney Satchwill at Rose-Hulman Institute of Technology under the leadership of Associate Professor Sriram Mohan in addition to Wes Winham and Kyle Gibson of PolicyStat. Currently HTML is the langugage being developed for, with the posibility of later including XML and DOCX as well.
+	This project is a collection of modules that brings the power of git to structured documents
+	 by students Ian Hallam, John Kulczak, Devon Timaeus and Sydney Satchwill at Rose-Hulman
+	  Institute of Technology under the leadership of Associate Professor Sriram Mohan in addition
+	   to Wes Winham and Kyle Gibson of PolicyStat. Currently HTML is the langugage being
+	    developed for, with the posibility of later including XML and DOCX as well.
 
 ## Usage: psychic-octo-robot [options] [command]
 
