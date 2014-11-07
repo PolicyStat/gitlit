@@ -15,7 +15,11 @@ require('js-git/mixins/create-tree')(repo);
  */
 
 function writePORObjectToRepo(porObject, path) {
-    var repoOutputPath = path + "/" + porObject['repoName'];
+    if (path.slice(-1) == "/") {
+        var repoOutputPath = path + porObject['repoName'];
+    } else {
+        var repoOutputPath = path + "/" + porObject['repoName'];
+    }
 
     try {
         fs.mkdirSync(repoOutputPath);
