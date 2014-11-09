@@ -2,8 +2,8 @@
  * Created by John Kulczak on 10/16/2014.
  */
 var fs = require("fs");
-//var tidy = require('htmltidy').tidy;
-//var deasync = require('deasync');
+var tidy = require('htmltidy').tidy;
+var deasync = require('deasync');
 var html = require('html');
 
 function initializeFile(directory, outputFile) {
@@ -14,7 +14,7 @@ function initializeFile(directory, outputFile) {
     var porRepo = getPORObjectFromRepo(directory);
 
 
-    var fileString = convertPORObjectToHTMLString(porRepo);
+    var fileString = convertPORRepoObjectToHTMLString(porRepo);
 
 	fs.writeFileSync(outputFile, fileString);
     //TODO: Might not be needed, let's see
@@ -59,10 +59,15 @@ function getPORObjectFromRepo(currentDir){
     return porObject;
 }
 
+function convertPORRepoObjectToHTMLString(porObject) {
+    var htmlString =  recursivelyConvertPORObjectToHTML(porObject);
+    return html.prettyPrint(htmlString, {indent_size: 2});
+}
+
 /**
 * Returns a string built from the POR object.
 */
-function convertPORObjectToHTMLString(porObject){
+function recursivelyConvertPORObjectToHTML(porObject){
 
 	var fileString = "";
 
@@ -73,15 +78,14 @@ function convertPORObjectToHTMLString(porObject){
             fileString += convertTagNodeToHTMLString(porObject);
 		}else{
 			porObject.children.forEach(function(child){
-				fileString += convertPORObjectToHTMLString(child);
+				fileString += recursivelyConvertPORObjectToHTML(child);
 			});
 		}
 	} else {
         fileString += convertTextNodeToHTMLString(porObject);
     }
 
-    return html.prettyPrint(fileString, {indent_size: 2});
-//    return deasync(tidy)(fileString);
+    return fileString;
 }
 
 function convertTextNodeToHTMLString(porObject) {
@@ -107,7 +111,7 @@ function convertTagNodeToHTMLString(porObject) {
 
     // Recursively add children to this string
     porObject.children.forEach(function(child){
-        objectString += convertPORObjectToHTMLString(child);
+        objectString += recursivelyConvertPORObjectToHTML(child);
     });
 
     // End tag
@@ -132,7 +136,7 @@ module.exports = {
 	initializeFile: initializeFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
-    convertPORObjectToHTMLString : convertPORObjectToHTMLString,
+    convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
     getPORObjectFromRepo : getPORObjectFromRepo,
     extractOpeningTag: extractOpeningTag
 };
