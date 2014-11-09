@@ -29,6 +29,13 @@ program
     });
 
 program
+    .command('commit <file> <pathToRepository> <commitMessage>')
+    .description('Commit to a Repository with the given file')
+    .action(function(file, pathToRepository, commitMessage) {
+        init.commitDocument(file, pathToRepository, './', commitMessage);
+    });
+
+program
     .command('write <directory> <outputFile>')
     .description('Convert a Repository into an HTML file')
     .action(function(directory, outputFile) {
