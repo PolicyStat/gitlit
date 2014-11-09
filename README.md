@@ -4,7 +4,7 @@ psychic-octo-robot
 Libraries used by psychic-octo-robot
 -----------------------------------
 * parse5
-* htmltidy
+* html
 * commander.js
 * mocha
 

@@ -2,8 +2,6 @@
  * Created by John Kulczak on 10/16/2014.
  */
 var fs = require("fs");
-var tidy = require('htmltidy').tidy;
-var deasync = require('deasync');
 var html = require('html');
 
 function initializeFile(directory, outputFile) {
@@ -91,16 +89,10 @@ function recursivelyConvertPORObjectToHTML(porObject){
 function convertTextNodeToHTMLString(porObject) {
     // if the node is a leaf (text file)
     var objectString = "";
-    var porID = porObject.porID;
-    if (porID) {
-        //TODO: Decide if we want to tag text nodes
-//        objectString += "<por-text por-id=" + porID + ">";
-        objectString += porObject.value;
-//        objectString += "</por-text>"
-    } else {
-        // Text of node
-        objectString += porObject.value;
-    }
+
+    //We don't want to tag text nodes, as this might break something that uses the
+    //HTML, so just give the text
+    objectString += porObject.value;
 
     return objectString;
 }
