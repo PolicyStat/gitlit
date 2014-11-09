@@ -20,10 +20,10 @@ program
     });
 
 program
-    .command('commit <file> <outputPath> <repoName> <commitMessage>')
+    .command('commit <file> <pathToRepository> <commitMessage>')
     .description('Commit to a Repository with the given file')
-    .action(function(file, outputPath, repoName, commitMessage) {
-        init.commitDocument(file, outputPath, repoName, commitMessage);
+    .action(function(file, pathToRepository, commitMessage) {
+        init.commitDocument(file, pathToRepository, './', commitMessage);
     });
 
 program
