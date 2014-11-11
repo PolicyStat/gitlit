@@ -61,7 +61,8 @@ describe('Get text conversion of POR objects', function () {
             value: "This is a test",
             porID: 1111
         };
-        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), '<por-text por-id=1111>This is a test</por-text>');
+        // Since we don't want to insert tags into the HTML, we should just have the text here
+        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'This is a test');
     });
 
     it('Text conversion with no POR ID', function () {
@@ -77,41 +78,122 @@ describe('Test converting POR object into a string', function () {
 
     it('Create html string from tree with only tags', function () {
         var metadata = {
-            tag: "html",
-            attributes: []
+            tag: "div",
+            attributes: [{name: "por-id", value: "abc"}]
         };
         var metadata2 = {
-            tag: "br",
-            attributes: []
+            tag: "span",
+            attributes: [{name: "por-id", value: 1234}]
         };
         var secondTagObject = {
             metadata: metadata2,
-            children: []
+            children: [],
+            porID: 1234
         };
         var tagObject = {
             metadata: metadata,
-            children: [secondTagObject]
+            children: [secondTagObject],
+            porID: "abc"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<html><br></br></html>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div por-id="abc"><span por-id="1234"></span>\n</div>');
     });
 
-    it('Create html string from simple tree', function () {
+    it('Create html string with pre tags', function() {
         var metadata = {
-            tag: "head",
-            attributes: []
+            tag: "pre",
+            attributes: [{name: "por-id", value: "preTag"}]
         };
         var textChild = {
             value: "Hello!",
             porID: 1234
         };
+        var metadata2 = {
+            tag: "b",
+            attributes: [{name: "por-id", value: 1234}]
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: [textChild],
+            porID: 1234
+        };
         var tagObject = {
             metadata: metadata,
-            children: [textChild],
-            porID: ""
+            children: [secondTagObject],
+            porID: "preTag"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Hello!</por-text></head>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<pre por-id="preTag"><b por-id="1234">Hello!</b></pre>');
+    });
+
+    it('Pre tags text & whitespace tree', function() {
+        var metadata = {
+            tag: "pre",
+            attributes: [{name: "por-id", value: "preTag"}]
+        };
+        var textChild2 = {
+            value: "Hello!",
+            porID: 1234
+        };
+
+        var textChild1 = {
+            value: "\n\n\t\t",
+            porID: "newlinesTabs"
+        };
+
+        var textChild3 = {
+            value: "\n\nText after newline!",
+            porID: "textAndNewline"
+        };
+
+        var metadata2 = {
+            tag: "b",
+            attributes: [{name: "por-id", value: 1234}]
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: [textChild2],
+            porID: 1234
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild1, secondTagObject, textChild3],
+            porID: "preTag"
+        };
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<pre por-id="preTag">\n\n\t\t<b por-id="1234">Hello!</b>\n\nText after newline!</pre>');
+    });
+
+    it('Create html string from simple tree', function () {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+
+        var bodyMetadata = {
+            tag: "body",
+            attributes: []
+        };
+
+        var textChild = {
+            value: "Hello!",
+            porID: 1234
+        };
+        var divObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "divObject"
+        };
+
+        var bodyObject = {
+            metadata: bodyMetadata,
+            children: [divObject],
+            porID: "bodyObject"
+        };
+
+        //We currently have our pretty printer doing 2 indents where it can, so we need 2 spaces after newlines
+        //where indents make sense
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(bodyObject), '<body>\n  <div>Hello!</div>\n</body>');
     });
 
     it('Create html string from tree with two tags', function () {
@@ -143,7 +225,7 @@ describe('Test converting POR object into a string', function () {
             porID: ""
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Foo </por-text><span id="newSpan"><por-text por-id=1345>Inner span text </por-text></span></head>');
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head>Foo <span id="newSpan">Inner span text </span></head>');
     });
 
 
@@ -151,9 +233,10 @@ describe('Test converting POR object into a string', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
         var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
-        var porObjHTML = '<por-text por-id=test><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' +
-            '</por-text><html><head lang="en"><meta charset="UTF-8"></meta><title><por-text por-id=5376f5329b6e80a8d7934c62>titletext</por-text></title></head>' +
-            '<body><h1 id="derp" class="herp" name="headerOne"><por-text por-id=derp>Header </por-text><span></span><por-text por-id=derp> afterSpan</por-text></h1></body></html>';
+        var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
+            '<html>\n  \n  <head lang="en">\n    <meta charset="UTF-8"></meta>\n    <title>titletext</title>\n  </head>' +
+            '\n  \n  <body>\n    <h1 id="derp" class="herp" name="headerOne">Header <span>' +
+            '</span> afterSpan</h1>\n  </body>\n\n</html>';
 
         assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
 
@@ -207,6 +290,7 @@ describe('Test creation of por object from repo', function () {
                     ]}
             ]};
         var currentPath = __dirname;
+
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLBasicFormat');
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
     });
