@@ -9,12 +9,11 @@ function generateFile(directory, outputFile) {
         throw new URIError(file + ' is not a directory');
     }
     var porRepo = getPORObjectFromRepo(directory);
-
-    return writeHTMLFile(porRepo, outputFile);
+    return writePORObjectToHTMLFile(porRepo, outputFile);
 }
 
-function writeHTMLFile(porObject, outputFile) {
-    var fileString = convertPORObjectToHTMLString(porObject);
+function writePORObjectToHTMLFile(porObject, outputFile) {
+    var fileString = convertPORRepoObjectToHTMLString(porObject);
 
     fs.writeFileSync(outputFile, fileString);
     return fileString;
@@ -48,7 +47,7 @@ function getPORObjectFromRepo(currentDir){
             if (fs.lstatSync(fileLoc).isFile() && fs.existsSync(fileLoc)){
                 var textValue = {
                     value: fs.readFileSync(fileLoc, "utf-8"),
-                    porID: currentDir.replace(/^.*[\\\/]/, '')
+                    porID: fileLoc.replace(/^.*[\\\/]/, '').split('.')[0]
                 };
                 porObject.children.push(textValue);
             }
@@ -127,7 +126,7 @@ function extractOpeningTag(porObject) {
 
 module.exports = {
     generateFile: generateFile,
-    writeHTMLFile : writeHTMLFile,
+    writePORObjectToHTMLFile : writePORObjectToHTMLFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,

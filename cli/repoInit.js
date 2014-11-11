@@ -44,6 +44,9 @@ function initializeRepository(file, outputPath, repoName) {
         if (err instanceof URIError) {
             console.error(err.message);
         }
+        if (err instanceof ReferenceError) {
+            console.log(err.message);
+        }
     }
 }
 

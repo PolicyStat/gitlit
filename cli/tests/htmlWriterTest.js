@@ -79,11 +79,15 @@ describe('Test converting POR object into a string', function () {
     it('Create html string from tree with only tags', function () {
         var metadata = {
             tag: "div",
-            attributes: [{name: "por-id", value: "abc"}]
+            attributes: [
+                {name: "por-id", value: "abc"}
+            ]
         };
         var metadata2 = {
             tag: "span",
-            attributes: [{name: "por-id", value: 1234}]
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
         };
         var secondTagObject = {
             metadata: metadata2,
@@ -99,10 +103,12 @@ describe('Test converting POR object into a string', function () {
         assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div por-id="abc"><span por-id="1234"></span>\n</div>');
     });
 
-    it('Create html string with pre tags', function() {
+    it('Create html string with pre tags', function () {
         var metadata = {
             tag: "pre",
-            attributes: [{name: "por-id", value: "preTag"}]
+            attributes: [
+                {name: "por-id", value: "preTag"}
+            ]
         };
         var textChild = {
             value: "Hello!",
@@ -110,7 +116,9 @@ describe('Test converting POR object into a string', function () {
         };
         var metadata2 = {
             tag: "b",
-            attributes: [{name: "por-id", value: 1234}]
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
         };
         var secondTagObject = {
             metadata: metadata2,
@@ -126,10 +134,12 @@ describe('Test converting POR object into a string', function () {
         assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<pre por-id="preTag"><b por-id="1234">Hello!</b></pre>');
     });
 
-    it('Pre tags text & whitespace tree', function() {
+    it('Pre tags text & whitespace tree', function () {
         var metadata = {
             tag: "pre",
-            attributes: [{name: "por-id", value: "preTag"}]
+            attributes: [
+                {name: "por-id", value: "preTag"}
+            ]
         };
         var textChild2 = {
             value: "Hello!",
@@ -148,7 +158,9 @@ describe('Test converting POR object into a string', function () {
 
         var metadata2 = {
             tag: "b",
-            attributes: [{name: "por-id", value: 1234}]
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
         };
         var secondTagObject = {
             metadata: metadata2,
@@ -234,9 +246,10 @@ describe('Test converting POR object into a string', function () {
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
         var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
         var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
-            '<html>\n  \n  <head lang="en">\n    <meta charset="UTF-8"></meta>\n    <title>titletext</title>\n  </head>' +
-            '\n  \n  <body>\n    <h1 id="derp" class="herp" name="headerOne">Header <span>' +
-            '</span> afterSpan</h1>\n  </body>\n\n</html>';
+            '<html por-id="3e61894fe84fd31246460272">\n  \n  <head lang="en" por-id="18eda53718376a1c58837e6e">\n    <meta charset="UTF-8"' +
+            ' por-id="9e2928948e789fe743dd9761"></meta>\n    <title por-id="5376f5329b6e80a8d7934c62">titletext</title>\n  </head>' +
+            '\n  \n  <body por-id="32bb8c5780eb0cbd283bc7a0">\n    <h1 id="derp" class="herp" name="headerOne" por-id="derp">Header ' +
+            '<span por-id="5892268b7a3588982d7042eb"></span> afterSpan</h1>\n  </body>\n\n</html>';
 
         assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
 
@@ -249,40 +262,46 @@ describe('Test creation of por object from repo', function () {
     it('Create por object from HTML with very basic formatting', function () {
         var porObject = {porID: "testHTMLBasicFormat", metadata: {"constructionOrder": ["doctype", "95920963fa52e944add2f34d"]},
             children: [
-                {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "testHTMLBasicFormat"},
+                {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
                 {porID: "95920963fa52e944add2f34d",
-                    metadata: {"tag": "html", "attributes": [], "constructionOrder": ["c2df015809050d95722c5129", "550eec4fd617089ec34b5821"]},
+                    metadata: {"tag": "html", "attributes": [
+                        {"name": "por-id", "value": "95920963fa52e944add2f34d"}
+                    ], "constructionOrder": ["c2df015809050d95722c5129", "550eec4fd617089ec34b5821"]},
                     children: [
                         {porID: "c2df015809050d95722c5129",
-                            metadata: {"tag": "head", "attributes": [], "constructionOrder": ["id1"]},
+                            metadata: {"tag": "head", "attributes": [
+                                {"name": "por-id", "value": "c2df015809050d95722c5129"}
+                            ], "constructionOrder": ["id1"]},
                             children: [
                                 {porID: "id1",
                                     metadata: {"tag": "title", "attributes": [
                                         {"name": "por-id", "value": "id1"}
                                     ], "constructionOrder": ["5b778ad71fe839df5eb628bb"]},
                                     children: [
-                                        {value: "\r\n\t\t\tSuper basic formatted html\r\n\t\t", porID: "id1"}
+                                        {value: "\r\n\t\t\tSuper basic formatted html\r\n\t\t", porID: "5b778ad71fe839df5eb628bb"}
                                     ]
                                 }
                             ]
                         },
                         {porID: "550eec4fd617089ec34b5821",
-                            metadata: {"tag": "body", "attributes": [], "constructionOrder": ["id2"]},
+                            metadata: {"tag": "body", "attributes": [
+                                {"name": "por-id", "value": "550eec4fd617089ec34b5821"}
+                            ], "constructionOrder": ["id2"]},
                             children: [
                                 {porID: "id2",
                                     metadata: {"tag": "h1", "attributes": [
                                         {"name": "por-id", "value": "id2"}
                                     ], "constructionOrder": ["a93d4b97d1eac9e23e5b3ef0", "id3", "36c77f6633e16fd853ac652f"]},
                                     children: [
-                                        {value: "\r\n\t\t\tpreSpan\r\n\t\t\t", porID: "id2"},
+                                        {value: "\r\n\t\t\tpreSpan\r\n\t\t\t", porID: "a93d4b97d1eac9e23e5b3ef0"},
                                         {porID: "id3",
                                             metadata: {"tag": "span", "attributes": [
                                                 {"name": "por-id", "value": "id3"}
                                             ], "constructionOrder": ["ebc3ea2cad0c915fc83463ed"]},
                                             children: [
-                                                {value: "\r\n\t\t\t\tinSpan\r\n\t\t\t", porID: "id3"}
+                                                {value: "\r\n\t\t\t\tinSpan\r\n\t\t\t", porID: "ebc3ea2cad0c915fc83463ed"}
                                             ]},
-                                        {value: "\r\n\t\t\tpostSpan\r\n\t\t", porID: "id2"}
+                                        {value: "\r\n\t\t\tpostSpan\r\n\t\t", porID: "36c77f6633e16fd853ac652f"}
                                     ]
                                 }
                             ]
@@ -297,26 +316,32 @@ describe('Test creation of por object from repo', function () {
 
     it('Create por object from a document with inline format', function () {
         var porObject = {porID: "testHTMLInlineFormat", metadata: {"constructionOrder": ["doctype", "7db330ba8e9beece5062fd2e"]}, children: [
-            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "testHTMLInlineFormat"},
-            {porID: "7db330ba8e9beece5062fd2e", metadata: {"tag": "html", "attributes": [], "constructionOrder": ["0a7e9b49533fc5f65d6686c8", "a826d5b54fd832d759250004"]}, children: [
-                {porID: "0a7e9b49533fc5f65d6686c8", metadata: {"tag": "head", "attributes": [], "constructionOrder": ["id1"]}, children: [
+            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
+            {porID: "7db330ba8e9beece5062fd2e", metadata: {"tag": "html", "attributes": [
+                {"name": "por-id", "value": "7db330ba8e9beece5062fd2e"}
+            ], "constructionOrder": ["0a7e9b49533fc5f65d6686c8", "a826d5b54fd832d759250004"]}, children: [
+                {porID: "0a7e9b49533fc5f65d6686c8", metadata: {"tag": "head", "attributes": [
+                    {"name": "por-id", "value": "0a7e9b49533fc5f65d6686c8"}
+                ], "constructionOrder": ["id1"]}, children: [
                     {porID: "id1", metadata: {"tag": "title", "attributes": [
                         {"name": "por-id", "value": "id1"}
                     ], "constructionOrder": ["4fdbbfa4a09f4e32914448f5"]}, children: [
-                        {value: "Super basic formatted html", porID: "id1"}
+                        {value: "Super basic formatted html", porID: "4fdbbfa4a09f4e32914448f5"}
                     ]}
                 ]},
-                {porID: "a826d5b54fd832d759250004", metadata: {"tag": "body", "attributes": [], "constructionOrder": ["id2"]}, children: [
+                {porID: "a826d5b54fd832d759250004", metadata: {"tag": "body", "attributes": [
+                    {"name": "por-id", "value": "a826d5b54fd832d759250004"}
+                ], "constructionOrder": ["id2"]}, children: [
                     {porID: "id2", metadata: {"tag": "h1", "attributes": [
                         {"name": "por-id", "value": "id2"}
                     ], "constructionOrder": ["e9702122daa7d73cbadee71e", "id3", "b6d8eb2a78c4c6ebabe06038"]}, children: [
-                        {value: "preSpan", porID: "id2"},
+                        {value: "preSpan", porID: "e9702122daa7d73cbadee71e"},
                         {porID: "id3", metadata: {"tag": "span", "attributes": [
                             {"name": "por-id", "value": "id3"}
                         ], "constructionOrder": ["0c206a96c11299af9acc8319"]}, children: [
-                            {value: "inSpan", porID: "id3"}
+                            {value: "inSpan", porID: "0c206a96c11299af9acc8319"}
                         ]},
-                        {value: "postSpan", porID: "id2"}
+                        {value: "postSpan", porID: "b6d8eb2a78c4c6ebabe06038"}
                     ]}
                 ]}
             ]}
@@ -331,10 +356,16 @@ describe('Test creation of por object from repo', function () {
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLJustDoctype');
 
         var porObject = {porID: "testHTMLJustDoctype", metadata: {"constructionOrder": ["doctype", "09f35ea82117f977494710ac"]}, children: [
-            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "testHTMLJustDoctype"},
-            {porID: "09f35ea82117f977494710ac", metadata: {"tag": "html", "attributes": [], "constructionOrder": ["977dbd0a1f8cca2919295e9a", "e7a54ae48ddaf227fbe4676d"]}, children: [
-                {porID: "977dbd0a1f8cca2919295e9a", metadata: {"tag": "head", "attributes": [], "constructionOrder": []}, children: []},
-                {porID: "e7a54ae48ddaf227fbe4676d", metadata: {"tag": "body", "attributes": [], "constructionOrder": []}, children: []}
+            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
+            {porID: "09f35ea82117f977494710ac", metadata: {"tag": "html", "attributes": [
+                {"name": "por-id", "value": "09f35ea82117f977494710ac"}
+            ], "constructionOrder": ["977dbd0a1f8cca2919295e9a", "e7a54ae48ddaf227fbe4676d"]}, children: [
+                {porID: "977dbd0a1f8cca2919295e9a", metadata: {"tag": "head", "attributes": [
+                    {"name": "por-id", "value": "977dbd0a1f8cca2919295e9a"}
+                ], "constructionOrder": []}, children: []},
+                {porID: "e7a54ae48ddaf227fbe4676d", metadata: {"tag": "body", "attributes": [
+                    {"name": "por-id", "value": "e7a54ae48ddaf227fbe4676d"}
+                ], "constructionOrder": []}, children: []}
             ]}
         ]};
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
@@ -348,49 +379,60 @@ describe('Test creation of por object from repo', function () {
             porID: "test",
             metadata: {'constructionOrder': ["doctype", "3e61894fe84fd31246460272"]},
             children: [
-                {value: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID: "test"},
+                {value: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID: "doctype"},
                 {porID: "3e61894fe84fd31246460272",
                     metadata: { 'tag': 'html',
-                        'attributes': [],
+                        'attributes': [
+                            {"name": "por-id", "value": "3e61894fe84fd31246460272"}
+                        ],
                         'constructionOrder': [ '18eda53718376a1c58837e6e', '32bb8c5780eb0cbd283bc7a0' ] },
                     children: [
                         { porID: '18eda53718376a1c58837e6e',
                             metadata: { 'tag': 'head',
                                 'attributes': [
-                                    {'name': "lang", 'value': "en"}
+                                    {'name': "lang", 'value': "en"},
+                                    {"name": "por-id", "value": "18eda53718376a1c58837e6e"}
                                 ],
                                 'constructionOrder': [ '9e2928948e789fe743dd9761', '5376f5329b6e80a8d7934c62' ] },
                             children: [
                                 { porID: '9e2928948e789fe743dd9761',
                                     metadata: { 'tag': 'meta', 'attributes': [
-                                        {'name': "charset", 'value': "UTF-8"}
+                                        {'name': "charset", 'value': "UTF-8"},
+                                        {"name": "por-id", "value": "9e2928948e789fe743dd9761"}
                                     ], 'constructionOrder': [] },
                                     children: [] },
                                 { porID: '5376f5329b6e80a8d7934c62',
-                                    metadata: { 'tag': 'title', 'attributes': [], 'constructionOrder': [ '8f422c29094277568d01bde4' ] },
+                                    metadata: { 'tag': 'title', 'attributes': [
+                                        {"name": "por-id", "value": "5376f5329b6e80a8d7934c62"}
+                                    ], 'constructionOrder': [ '8f422c29094277568d01bde4' ] },
                                     children: [
-                                        { value: 'titletext', porID: '5376f5329b6e80a8d7934c62' }
+                                        { value: 'titletext', porID: '8f422c29094277568d01bde4' }
                                     ] }
                             ] },
                         { porID: '32bb8c5780eb0cbd283bc7a0',
-                            metadata: { 'tag': 'body', 'attributes': [], 'constructionOrder': [ 'derp' ] },
+                            metadata: { 'tag': 'body', 'attributes': [
+                                {"name": "por-id", "value": "32bb8c5780eb0cbd283bc7a0"}
+                            ], 'constructionOrder': [ 'derp' ] },
                             children: [
                                 { porID: 'derp',
                                     metadata: { 'tag': 'h1',
                                         'attributes': [
                                             {'name': "id", 'value': "derp"},
                                             {'name': "class", 'value': "herp"},
-                                            {'name': "name", 'value': "headerOne"}
+                                            {'name': "name", 'value': "headerOne"},
+                                            {"name": "por-id", "value": "derp"}
                                         ],
                                         'constructionOrder': [ '63572ec1ae7313a2e128e0fe',
                                             '5892268b7a3588982d7042eb',
                                             '058f9fbe9cc061d2b819c905' ] },
                                     children: [
-                                        { value: 'Header ', porID: 'derp' },
+                                        { value: 'Header ', porID: '63572ec1ae7313a2e128e0fe' },
                                         { porID: '5892268b7a3588982d7042eb',
-                                            metadata: { 'tag': 'span', 'attributes': [], 'constructionOrder': [] },
+                                            metadata: { 'tag': 'span', 'attributes': [
+                                                {"name": "por-id", "value": "5892268b7a3588982d7042eb"}
+                                            ], 'constructionOrder': [] },
                                             children: [] },
-                                        { value: ' afterSpan', porID: 'derp' }
+                                        { value: ' afterSpan', porID: '058f9fbe9cc061d2b819c905' }
                                     ] }
                             ] }
                     ] }
@@ -399,14 +441,14 @@ describe('Test creation of por object from repo', function () {
     })
 });
 
-describe('Test write of local file', function() {
+describe('Test write of local file', function () {
 
-    it('Check file created during write operation', function() {
+    it('Check file created during write operation', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
         var pathToOutputHTML = path.join(currentPath, 'resources', 'htmlInitOutput.html');
         htmlWriter.generateFile(pathToGenerationTest, pathToOutputHTML);
-        assert.doesNotThrow( function() {
+        assert.doesNotThrow(function () {
             fileExists(pathToOutputHTML);
         });
     })

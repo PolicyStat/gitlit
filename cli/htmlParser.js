@@ -30,7 +30,8 @@ function checkPORIds(dom) {
                     } else {
                         // Found a duplicate id, so we will want to let the user know that there is some problem, and error
                         throw new ReferenceError("Multiple elements have the same psychic-octo-robot or HTML id attribute." +
-                                                 "\nAction canceled to prevent possible unexpected behavior");
+                                                 "\nAction canceled to prevent possible unexpected behavior\n" +
+                                                 "Duplicate Key: " + id);
                     }
                 }
             }
