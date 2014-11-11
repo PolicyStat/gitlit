@@ -16,7 +16,7 @@ function printExtraHelp(){
 program._name = 'psychic-octo-robot';
 
 program
-    .version('0.0.1')
+    .version('0.3.1')
     .option('-v, --versionFull', 'Print out all the version info for the CLI')
     .option('-l, --libraries', 'Print out the versions of the libraries used');
 
@@ -39,7 +39,7 @@ program
     .command('write <directory> <outputFile>')
     .description('Convert a Repository into an HTML file')
     .action(function(directory, outputFile) {
-        writer.initializeFile(directory, outputFile);
+        writer.generateFile(directory, outputFile);
     });
 
 if (process.argv.length == 2){
