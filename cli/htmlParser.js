@@ -63,7 +63,7 @@ function parseHTMLToWritableRepo(dom, repoName) {
 
 }
 
-function generateNewPORID(){
+function generateNewPORID(porKeys){
     var token = require('crypto').randomBytes(12).toString("hex");
 
     while (porKeys.indexOf(token) != -1) {
@@ -122,7 +122,7 @@ function processTaggedChild(dom, inPre) {
     }
 
     if (id == null) {
-        id = generateNewPORID();
+        id = generateNewPORID(porKeys);
     }
 
     var children = parseChildrenNodes(dom, tag == 'pre' || inPre);
@@ -155,7 +155,7 @@ function processTaglessChild(dom, inPre) {
          a file for this and put the contents in it.
          */
         contents = dom.value;
-        id = generateNewPORID();
+        id = generateNewPORID(porKeys);
 
         if (/[\"\&\<\>]/.test(contents)){
             throw new Error("Reserved character detected, could be do to an unclosed tag.");
@@ -236,5 +236,6 @@ module.exports = {
     parseHTML: parseHTML,
     processTaglessChild: processTaglessChild,
     processTaggedChild: processTaggedChild,
-    checkPORIds: checkPORIds
+    checkPORIds: checkPORIds,
+    generateNewPORID: generateNewPORID
 };
