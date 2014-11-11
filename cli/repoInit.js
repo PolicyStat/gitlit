@@ -47,6 +47,24 @@ function initializeRepository(file, outputPath, repoName) {
     }
 }
 
+function commitDocument(file, outputPath, repoName, commitMessage) {
+    try {
+        if (!fs.existsSync(outputPath)) {
+            throw new URIError("Output Path does not exist");
+        }
+        var fileContents = getFileContents(file);
+        var porObject = parser.parseHTML(fileContents, repoName);
+        fileWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
+    } catch (err) {
+        if (err instanceof TypeError) {
+            console.error(err.message);
+        }
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+    }
+}
+
 /*
     This makes the functions visible in other js files when using require
     The first part is the key, and will specify what the function should be
@@ -55,6 +73,7 @@ function initializeRepository(file, outputPath, repoName) {
  */
 module.exports = {
     initializeRepository: initializeRepository,
+    commitDocument: commitDocument,
     getFileContents : getFileContents,
     getExtension : getExtension
 };

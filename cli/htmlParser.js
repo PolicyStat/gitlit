@@ -50,14 +50,12 @@ function parseHTMLToWritableRepo(dom, repoName) {
          We are at the top-most layer, so we need to make the top-most directory
          and then go through and add the files to it.
          */
-        var children = parseChildrenNodes(dom);
+        var children = parseChildrenNodes(dom, false);
 
-        var writableRepo = {
+        return {
             repoName: repoName,
             children: children
         };
-
-        return writableRepo;
     } else {
         // There was some problem parsing, as the top-level should be the #document
         throw new TypeError("Error in parsing file: top-level #document not created");
@@ -75,31 +73,31 @@ function generateNewPORID(){
 }
 
 
-function parseChildrenNodes(dom) {
+function parseChildrenNodes(dom, inPre) {
     var children = [];
     var contents = null;
     for (var childIndex = 0; childIndex < dom.childNodes.length; ++childIndex) {
         if (typeof dom.childNodes[childIndex].tagName == 'undefined') {
-            contents = processTaglessChild(dom.childNodes[childIndex]);
+            contents = processTaglessChild(dom.childNodes[childIndex], inPre);
             if (contents[0] != null) {
                 children.push({ value: contents[0],
                                 porID: contents[1]
                               });
             }
         } else if (dom.childNodes[childIndex].tagName == 'por-text') {
-            contents = processCustomTaggedChild(dom.childNodes[childIndex]);
+            contents = processCustomTaggedChild(dom.childNodes[childIndex], inPre);
             if (context != null) {
                 children.push(contents);
             }
         }
         else {
-            children.push(processTaggedChild(dom.childNodes[childIndex]));
+            children.push(processTaggedChild(dom.childNodes[childIndex], inPre));
         }
     }
     return children
 }
 
-function processTaggedChild(dom) {
+function processTaggedChild(dom, inPre) {
     var id = null;
     var tag = dom.tagName;
     var attributes = null;
@@ -127,23 +125,21 @@ function processTaggedChild(dom) {
         id = generateNewPORID();
     }
 
-    var children = parseChildrenNodes(dom);
+    var children = parseChildrenNodes(dom, tag == 'pre' || inPre);
 
     var metaFileJson = {
         tag: tag,
         attributes: attributes
     };
 
-    var porObject = {
+    return  {
         porID: id,
         metadata: metaFileJson,
         children: children
     };
-
-    return porObject;
 }
 
-function processTaglessChild(dom) {
+function processTaglessChild(dom, inPre) {
     /*
      If we don't have a tag, then there is more to be done here, as
      we might be in a text node (a node that has raw text that was in
@@ -181,13 +177,9 @@ function processTaglessChild(dom) {
         id = "doctype";
     }
 
-    /*
-    TODO: Decide if we want to strip whitespace or not
-    This could break documents with <pre> tags in them, so for now, let's not enable this, since
-    it could be bad for our users.
-    */
-    if (/^\s*$/.test(contents)) {
-        // If all of the contents are whitespace, we don't want to keep track of that
+    if (/^\s*$/.test(contents) && !inPre) {
+        // If all of the contents are whitespace, and we aren't in a pre tag,
+        // strip the whitespace as we don't want to keep track of that
         contents = null;
     }
 

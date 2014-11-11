@@ -4,8 +4,8 @@
 var fs = require("fs");
 var html = require('html');
 
-function initializeFile(directory, outputFile) {
-    if (!fs.existsSync(directory)) {
+function generateFile(directory, outputFile) {
+	if (!fs.existsSync(directory)) {
         throw new URIError(file + ' is not a directory');
     }
 
@@ -125,7 +125,7 @@ function extractOpeningTag(porObject) {
 
 
 module.exports = {
-	initializeFile: initializeFile,
+    generateFile: generateFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
