@@ -36,7 +36,7 @@ describe("Test parsing of file into JSON object", function() {
 		assert.ok(porObject.children[1].metadata);
 		assert.equal(porObject.children[1].metadata.tag, 'html');
 		assert.equal(porObject.children[1].metadata.attributes[0].name, "id");
-		assert.equal(porObject.children[1].metadata.attributes[0].value, "one");
+		assert.equal(porObject.children[1].metadata.attributes[0].value, "html");
 	});
 
 	it("Checking 'head' node in the JSON object", function() {
@@ -45,7 +45,7 @@ describe("Test parsing of file into JSON object", function() {
 		assert.ok(porObject.children[1].children[0].metadata);
 		assert.equal(porObject.children[1].children[0].metadata.tag, 'head');
 		assert.equal(porObject.children[1].children[0].metadata.attributes[0].name, "id");
-		assert.equal(porObject.children[1].children[0].metadata.attributes[0].value, "two");
+		assert.equal(porObject.children[1].children[0].metadata.attributes[0].value, "head");
 		assert.equal(porObject.children[1].children[0].metadata.attributes[1].name, "lang");
 		assert.equal(porObject.children[1].children[0].metadata.attributes[1].value, "en");
 	});
@@ -80,12 +80,12 @@ describe("Test writing the JSON object to repo directory", function() {
 		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/doctype.txt"));
 		assert.equal(fs.readFileSync("./cli/tests/conversionTest/testRepo/doctype.txt", "utf-8").substring(0, 9), '<!DOCTYPE');
 
-		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/one"));
-		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/one/two"));
-		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/one/two/three"));
-		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/one/two/three/metadata.json"));
+		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html"));
+		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head"));
+		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head/title"));
+		assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head/title/metadata.json"));
 
-		assert.equal(JSON.parse(fs.readFileSync("./cli/tests/conversionTest/testRepo/one/two/three/metadata.json")).tag, "title");
+		assert.equal(JSON.parse(fs.readFileSync("./cli/tests/conversionTest/testRepo/html/head/title/metadata.json")).tag, "title");
 	});
 });
 
@@ -99,14 +99,12 @@ describe("Test writing repo directory back into HTML file", function() {
 
 	it("Checking the contents of the html file", function() {
 		var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile.html", "utf-8");
-		fileArray = fileContents.split('\n');
-		assert.equal(fileArray[1], '<html id="one">');
-		assert.equal(fileArray[3], '  <head id="two" lang="en">');
-		assert.equal(fileArray[4], '    <meta charset="UTF-8"></meta>');
-		assert.equal(fileArray[5], '    <title id="three">Title Here</title>');
-		assert.equal(fileArray[6], '  </head>');
-		assert.equal(fileArray[8], '  <body></body>');
-		assert.equal(fileArray[10], '</html>');
+		fileString = fileContents.replace(/\n| {2,}/g,'');
+
+		var testFileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+		testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"></meta><title id="title">Title Here</title></head><body></body></html>';
+
+		assert.equal(fileString, testFileString);
 	});
 });
 
@@ -137,14 +135,12 @@ describe("Testing second file sent through repo/html writers", function() {
 	// Parser should correctly put the hr tag inside the body tag
 	it("Checking the contents of the html file", function() {
 		var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile2.html", "utf-8");
-		fileArray = fileContents.split('\n');
-		assert.equal(fileArray[1], '<html>');
-		assert.equal(fileArray[3], '  <head></head>');
-		assert.equal(fileArray[5], '  <body>');
-		assert.equal(fileArray[6], '    <hr></hr>');
-		assert.equal(fileArray[7], '     <h1 class="header" style="color:green">Header</h1>');
-		assert.equal(fileArray[9], '  </body>');
-		assert.equal(fileArray[11], '</html>');
+		fileString = fileContents.replace(/\n| {2,}/g,'');
+
+		var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+		testFile2String += '<html><head></head><body><hr></hr><h1 class="header" style="color:green">Header</h1></body></html>';
+
+		assert.equal(fileString, testFile2String);
 	});
 });
 
@@ -160,15 +156,11 @@ describe("Testing third file sent through repo/html writers", function() {
 	// Parser should correctly put the div tags and everything inside under a body tag
 	it("Checking the contents of the html file", function() {
 		var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile3.html", "utf-8");
-		fileArray = fileContents.split('\n');
-		assert.equal(fileArray[1], '<html>');
-		assert.equal(fileArray[3], '  <head></head>');
-		assert.equal(fileArray[5], '  <body>');
-		assert.equal(fileArray[6], '    <div><span>Span Text</span>');
-		assert.equal(fileArray[8], '      <br></br>');
-		assert.equal(fileArray[9], '       <h3 id="headerTwo" class="test">Underline</h3>');
-		assert.equal(fileArray[11], '    </div>');
-		assert.equal(fileArray[12], '  </body>');
-		assert.equal(fileArray[14], '</html>');
+		fileString = fileContents.replace(/\n| {2,}/g,'');
+
+		var testFile3String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+		testFile3String += '<html><head></head><body><div><span>Span Text</span><br></br><h3 id="headerTwo" class="test">Underline</h3></div></body></html>';
+
+		assert.equal(fileString, testFile3String);
 	});
 });
