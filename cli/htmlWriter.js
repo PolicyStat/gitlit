@@ -9,10 +9,13 @@ function generateFile(directory, outputFile) {
     }
     var porRepo = getPORObjectFromRepo(directory);
 
-    var fileString = convertPORObjectToHTMLString(porRepo);
+    return writeHTMLFile(porRepo, outputFile);
+}
 
-	fs.writeFileSync(outputFile, fileString);
-    //TODO: Might not be needed, let's see
+function writeHTMLFile(porObject, outputFile) {
+    var fileString = convertPORObjectToHTMLString(porObject);
+
+    fs.writeFileSync(outputFile, fileString);
     return fileString;
 }
 
@@ -124,6 +127,7 @@ function extractOpeningTag(porObject) {
 
 module.exports = {
     generateFile: generateFile,
+    writeHTMLFile : writeHTMLFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORObjectToHTMLString,
