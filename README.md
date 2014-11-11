@@ -76,6 +76,12 @@ psychic-octo-robot
 - There are no guarantees that the interpretation of the HTML will be what the author intended
 - To minimize this effect, be sure to include closing tags for each open tag, and vice versa
 
+## Libraries Used
+* parse5
+* html
+* commander.js
+* mocha
+* deasync
 
 ## Development environment
 About Docker:
