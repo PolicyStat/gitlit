@@ -4,6 +4,7 @@
 
 var repoInit = require('../repoInit');
 var assert = require('assert');
+var path = require("path");
 
 describe('Get extension of files properly', function() {
 

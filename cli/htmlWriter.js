@@ -3,7 +3,7 @@
  */
 var fs = require("fs");
 
-function initializeFile(directory, outputFile) {
+function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
         throw new URIError(file + ' is not a directory');
     }
@@ -123,7 +123,7 @@ function extractOpeningTag(porObject) {
 
 
 module.exports = {
-	initializeFile: initializeFile,
+    generateFile: generateFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORObjectToHTMLString,

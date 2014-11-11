@@ -23,7 +23,7 @@ program
     .command('write <directory> <outputFile>')
     .description('Convert a Repository into an HTML file')
     .action(function(directory, outputFile) {
-        writer.initializeFile(directory, outputFile);
+        writer.generateFile(directory, outputFile);
     });
 
 if (process.argv.length == 2){
