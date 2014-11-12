@@ -34,6 +34,9 @@ function initializeRepository(file, outputPath, repoName) {
         if (!fs.existsSync(outputPath)) {
             throw new URIError("Output Path does not exist");
         }
+        if (fs.existsSync(outputPath + repoName) || fs.existsSync(outputPath + "/" + repoName)) {
+            throw new URIError("Error: A directory already exists at this location with the name " + repoName);
+        }
         var fileContents = getFileContents(file);
         var porObject = parser.parseHTML(fileContents, repoName);
         fileWriter.writeRepoToDirectory(porObject, outputPath);

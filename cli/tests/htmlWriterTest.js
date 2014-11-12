@@ -52,6 +52,32 @@ describe('Get opening tag data from JSON objects properly', function () {
 
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<br>');
     });
+
+    it('Metadata conversion with children', function() {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+        var child = {
+            tag: "span",
+            attributes: []
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [child]
+        };
+
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+
+        child2 = child;
+        tagObject.children.push(child2);
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+
+        child3 = child;
+        tagObject.children.push(child3);
+        assert.equal(tagObject.children.length, 3);
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+    });
 });
 
 describe('Get text conversion of POR objects', function () {
@@ -61,6 +87,7 @@ describe('Get text conversion of POR objects', function () {
             value: "This is a test",
             porID: 1111
         };
+
         // Since we don't want to insert tags into the HTML, we should just have the text here
         assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'This is a test');
     });
@@ -194,6 +221,7 @@ describe('Test converting POR object into a string', function () {
         //We currently have our pretty printer doing 2 indents where it can, so we need 2 spaces after newlines
         //where indents make sense
         assert.equal(htmlWriter.convertPORObjectToHTMLString(bodyObject), '<body>\n  <div>Hello!</div>\n</body>');
+
     });
 
     it('Create html string from tree with two tags', function () {
@@ -228,6 +256,24 @@ describe('Test converting POR object into a string', function () {
         assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head>Foo <span id="newSpan">Inner span text </span></head>');
     });
 
+    it('Converting a string properly removes unecessary whitespace', function() {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+        var textChild = {
+            value: "     Extra    whitespace  here   . ",
+            porID: 1234
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div>Extra whitespace here .</div>');
+    });
+
 
     it('Convert por object of a complex tree', function () {
         var currentPath = __dirname;
@@ -242,6 +288,61 @@ describe('Test converting POR object into a string', function () {
 
     });
 
+    it('Convert por object', function () {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo');
+
+        var porObject = {
+        porID: "testRepo",
+        metadata: {'constructionOrder':["doctype","d9835d3f5428900b9e52c70f"]},
+        children: [{value:'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID:"testRepo"},
+                   {porID:"d9835d3f5428900b9e52c70f",
+                        metadata: { 'tag': 'html',
+                                    'attributes': [],
+                                    'constructionOrder': [ '54a62d0c502bf19663eb4723', 'fcea086913c5f5dc7b06a4de' ] }, 
+                        children:[ { porID: '54a62d0c502bf19663eb4723',
+                                        metadata: { 'tag': 'head',
+                                                    'attributes': [ {'name':"lang",'value':"en"} ],
+                                                    'constructionOrder': [ '90f57321dadf4338b5e71474', 'd5fb38ee71f2bb6998c874a5' ] },
+                                        children: [ { porID: '90f57321dadf4338b5e71474',
+                                                    metadata: { 'tag': 'meta', 'attributes': [ {'name':"charset",'value':"UTF-8"} ], 'constructionOrder': [] },
+                                                    children: [] },
+                                                  { porID: 'd5fb38ee71f2bb6998c874a5',
+                                                    metadata: { 'tag': 'title', 'attributes': [], 'constructionOrder': [ '223f94230a17fb81e9cce876' ] },
+                                                    children: [ { value: 'titletext', porID: 'd5fb38ee71f2bb6998c874a5' } ] } ] },
+                                   { porID: 'fcea086913c5f5dc7b06a4de',
+                                        metadata: { 'tag': 'body', 'attributes': [], 'constructionOrder': [ 'derp' ] },
+                                        children: [ { porID: 'derp', 
+                                                      metadata: { 'tag': 'h1',
+                                                      'attributes': [ {'name':"id",'value':"derp"},{'name':"class",'value':"herp"},{'name':"name",'value':"headerOne"} ],
+                                                      'constructionOrder': 
+                                                          [ 'e1e9afb14db3c86d21107e72',
+                                                            'f15c70dd19e650c8fe2a1926',
+                                                            '1877349f0396f7c7e3ac3ba2' ] }, 
+                                                      children: [ { value: 'Header ', porID: 'derp' },
+                                                                  { porID: 'f15c70dd19e650c8fe2a1926',
+                                                                    metadata: { 'tag': 'span', 'attributes': [], 'constructionOrder': [] },
+                                                                    children: [] },
+                                                                  { value: ' afterSpan', porID: 'derp' } ] } ] } ] } ] };
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
+
+    it("Create por object from small tree", function() {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'smallRepo');
+
+        var porObject = {
+        porID: "smallRepo",
+        metadata: {'constructionOrder':["doctype","one"]},
+        children: [{value:'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID:"smallRepo"},
+                    {porID: "one",
+                        metadata: { 'tag': 'html',
+                                    'attributes': [],
+                                    'constructionOrder': [ 'two' ] }, 
+                        children:[ { value:'Text here\n', porID: "one"} ] } ] };
+
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
 });
 
 describe('Test creation of por object from repo', function () {
@@ -261,7 +362,7 @@ describe('Test creation of por object from repo', function () {
                                         {"name": "por-id", "value": "id1"}
                                     ], "constructionOrder": ["5b778ad71fe839df5eb628bb"]},
                                     children: [
-                                        {value: "\r\n\t\t\tSuper basic formatted html\r\n\t\t", porID: "id1"}
+                                        {value: "\n\t\t\tSuper basic formatted html\n\t\t", porID: "id1"}
                                     ]
                                 }
                             ]
@@ -274,15 +375,15 @@ describe('Test creation of por object from repo', function () {
                                         {"name": "por-id", "value": "id2"}
                                     ], "constructionOrder": ["a93d4b97d1eac9e23e5b3ef0", "id3", "36c77f6633e16fd853ac652f"]},
                                     children: [
-                                        {value: "\r\n\t\t\tpreSpan\r\n\t\t\t", porID: "id2"},
+                                        {value: "\n\t\t\tpreSpan\n\t\t\t", porID: "id2"},
                                         {porID: "id3",
                                             metadata: {"tag": "span", "attributes": [
                                                 {"name": "por-id", "value": "id3"}
                                             ], "constructionOrder": ["ebc3ea2cad0c915fc83463ed"]},
                                             children: [
-                                                {value: "\r\n\t\t\t\tinSpan\r\n\t\t\t", porID: "id3"}
+                                                {value: "\n\t\t\t\tinSpan\n\t\t\t", porID: "id3"}
                                             ]},
-                                        {value: "\r\n\t\t\tpostSpan\r\n\t\t", porID: "id2"}
+                                        {value: "\n\t\t\tpostSpan\n\t\t", porID: "id2"}
                                     ]
                                 }
                             ]
@@ -324,6 +425,19 @@ describe('Test creation of por object from repo', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLInlineFormat');
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
+
+    it('Convert simple POR object into a string', function() {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'smallRepo');
+        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
+        var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html>Text here</html>';
+
+        assert.ok(porObj.children);
+        assert.ok(porObj.children.length == 2);
+        assert.ok(porObj.children[1].children.length == 1);
+        assert.equal(porObj.children[1].children[0].value, "Text here\n");
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj).replace(/\n| {2,}/g,''), porObjHTML);
     });
 
     it('Create por object from a document with only a doctype definition', function () {
@@ -401,15 +515,38 @@ describe('Test creation of por object from repo', function () {
 
 describe('Test write of local file', function() {
 
+    it("Throw error if directory doesn't exist", function() {
+        assert.throws( function() {
+            htmlWriter.generateFile("./brokenPath", "testRepo");
+        } , URIError);
+    });
+
     it('Check file created during write operation', function() {
         var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo');
         var pathToOutputHTML = path.join(currentPath, 'resources', 'htmlInitOutput.html');
         htmlWriter.generateFile(pathToGenerationTest, pathToOutputHTML);
         assert.doesNotThrow( function() {
             fileExists(pathToOutputHTML);
-        });
-    })
+        } , Error);
+    });
+
+    it('Create html from a simple POR repository', function() {
+        var currentPath = __dirname;
+        var pathToSmallTest = path.join(currentPath, 'generationTest', 'smallRepo');
+        var pathToOutputHTML = path.join(currentPath, 'generationTest', 'smallOutput.html');
+
+        assert.ok(htmlWriter.generateFile(pathToSmallTest, pathToOutputHTML));
+        assert.doesNotThrow( function() {
+            fileExists(pathToOutputHTML);
+        } , Error);
+
+        var fileOutput = fs.readFileSync(pathToOutputHTML, "utf-8");
+        var fileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+        fileString += '\n<html>Text here\n</html>';
+
+        assert.equal(fileOutput, fileString);
+    });
 });
 
 function fileExists(fileLocation) {

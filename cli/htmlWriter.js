@@ -6,7 +6,7 @@ var html = require('html');
 
 function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
-        throw new URIError(file + ' is not a directory');
+        throw new URIError(directory + ' is not a directory');
     }
 
     var porRepo = getPORObjectFromRepo(directory);
