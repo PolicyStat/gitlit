@@ -124,6 +124,7 @@ function processTaggedChild(dom, inPre) {
 
     if (id == null) {
         id = generateNewPORID(porKeys);
+        attributes.push({name: 'por-id', value: id});
     }
 
     var children = parseChildrenNodes(dom, tag == 'pre' || inPre);
