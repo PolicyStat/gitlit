@@ -10,7 +10,7 @@ var htmlParser = require("./htmlParser");
 /*
  TODO: Change to using async file and directory creation, but for now, this makes the logic easier to track
  */
-
+ 
 function writeRepoToDirectory(porObject, outputPath) {
     var repoOutputPath = path.join(outputPath, porObject['repoName']);
     try {
