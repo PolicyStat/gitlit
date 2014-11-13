@@ -286,6 +286,53 @@ describe('Test converting POR object into a string', function () {
         assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div>Extra whitespace here .</div>');
     });
 
+    it("Converting break tag does not include a closing break tag", function() {
+        var metadata = {
+            tag: "br",
+            attributes: []
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<br>');
+
+        var metadata = {
+            tag: "br",
+            attributes: []
+        };
+        var textChild = {
+            value: "No closing tag here",
+            porID: "text"
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<br>No closing tag here');
+    });
+
+    it("Converting multiple tags with several break tags included", function () {
+        var body = { tag: "body", attributes: [] };
+        var br = { tag: "br", attributes: [] };
+        var div = { tag: "div", attributes: [] };
+        var textChild = { value: "Text here", porID: "text" };
+        
+        var tag1 = { metadata: br, children: [textChild]};
+        var tag2 = { metadata: br, children: []};
+        var tag3 = { metadata: div, children: [textChild, tag2]};
+        var tag4 = { metadata: br, children: []};
+        var tagObject = { metadata: body, children: [tag4, tag3, tag1], porID: "test"};
+
+        var porString = "<body><br><div>Text here<br></div><br>Text here</body>";
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject).replace(/\n| {2,}/g,''), porString);
+    });
+
 
     it('Convert por object of a complex tree', function () {
         var currentPath = __dirname;

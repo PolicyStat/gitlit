@@ -107,7 +107,9 @@ function convertTagNodeToHTMLString(porObject) {
     });
 
     // End tag
-    objectString += "</" + porObject.metadata.tag + ">";
+    if (porObject.metadata.tag != "br") {
+        objectString += "</" + porObject.metadata.tag + ">";
+    }
     return objectString;
 }
 

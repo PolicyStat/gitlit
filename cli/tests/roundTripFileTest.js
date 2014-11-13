@@ -181,11 +181,15 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
 describe("First tests: Reading the file", function() {
 
     it("Grabbing file extension", function() {
-        assert.equal(repoInit.getExtension('./cli/tests/resources/testFullConversion.html'), 'html');
+        var currentPath = __dirname;
+        var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
+        assert.equal(repoInit.getExtension(pathToGeneratedFile), 'html');
     });
 
     it("Getting file contents", function() {
-        var fileContents = repoInit.getFileContents('./cli/tests/resources/testFullConversion.html');
+        var currentPath = __dirname;
+        var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
+        var fileContents = repoInit.getFileContents(pathToGeneratedFile);
         assert.ok(typeof fileContents == 'string');
         assert.ok(fileContents.length > 0);
         assert.equal(fileContents.substring(0, 14), '<!DOCTYPE html');
@@ -197,7 +201,9 @@ describe("Test parsing of file into JSON object", function() {
      * Best way to do this is to generate the JSON object and then 
      * examine several nodes and make sure they're what we expect them to be.
      */
-    var fileContents = repoInit.getFileContents('./cli/tests/resources/testFullConversion.html');
+    var currentPath = __dirname;
+    var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
+    var fileContents = repoInit.getFileContents(pathToGeneratedFile);
     var porObject = parser.parseHTML(fileContents, "testRepo");
 
     it("Checking first node in the JSON object", function() {
@@ -239,40 +245,43 @@ describe("Test parsing of file into JSON object", function() {
 });
 
 describe("Test writing the JSON object to repo directory", function() {
-
-    repoInit.initializeRepository('./cli/tests/resources/testFullConversion.html', './cli/tests/conversionTest', 'testRepo');
+    var currentPath = __dirname;
+    var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
+    var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo');
 
     it("Checking that the directory was created", function() {
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo"));
-        assert.equal(fs.readdirSync("./cli/tests/conversionTest/testRepo").length, 3);
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/metadata.json"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo"));
+        assert.equal(fs.readdirSync(pathToGeneratedRepo + "/testRepo").length, 3);
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/metadata.json"));
     });
 
     it("Checking the contents of several files in the directory", function() {
-        assert.ok(JSON.parse(fs.readFileSync("./cli/tests/conversionTest/testRepo/metadata.json")).constructionOrder);
+        assert.ok(JSON.parse(fs.readFileSync(pathToGeneratedRepo + "/testRepo/metadata.json")).constructionOrder);
 
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/doctype.txt"));
-        assert.equal(fs.readFileSync("./cli/tests/conversionTest/testRepo/doctype.txt", "utf-8").substring(0, 9), '<!DOCTYPE');
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/doctype.txt"));
+        assert.equal(fs.readFileSync(pathToGeneratedRepo + "/testRepo/doctype.txt", "utf-8").substring(0, 9), '<!DOCTYPE');
 
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html"));
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head"));
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head/title"));
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testRepo/html/head/title/metadata.json"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/html"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/html/head"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/html/head/title"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/html/head/title/metadata.json"));
 
-        assert.equal(JSON.parse(fs.readFileSync("./cli/tests/conversionTest/testRepo/html/head/title/metadata.json")).tag, "title");
+        assert.equal(JSON.parse(fs.readFileSync(pathToGeneratedRepo + "/testRepo/html/head/title/metadata.json")).tag, "title");
     });
 });
 
 describe("Test writing repo directory back into HTML file", function() {
-
-    htmlWriter.generateFile("./cli/tests/conversionTest/testRepo", "./cli/tests/conversionTest/testFile.html");
+    var currentPath = __dirname;
+    var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo", pathToGeneratedRepo + "/testFile.html");
 
     it("Checking that the html file was created", function() {
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testFile.html"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testFile.html"));
     });
 
     it("Checking the contents of the html file", function() {
-        var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile.html", "utf-8");
+        var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile.html", "utf-8");
         fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
@@ -283,32 +292,38 @@ describe("Test writing repo directory back into HTML file", function() {
 });
 
 describe("Sending the new HTML file back through repo/html generation", function() {
-    repoInit.initializeRepository('./cli/tests/conversionTest/testFile.html', './cli/tests/conversionTest', 'testRepoRepeat');
-    htmlWriter.generateFile("./cli/tests/conversionTest/testRepoRepeat", "./cli/tests/conversionTest/testFileRepeat.html");
+    var currentPath = __dirname;
+    var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFile.html');
+    var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepoRepeat');
+    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepoRepeat", pathToGeneratedRepo + "/testFileRepeat.html");
 
     it("Checking that the html file was created", function() {
         assert.ok(fs.existsSync("./cli/tests/conversionTest/testFileRepeat.html"));
     });
 
     it("Checking the contents of the html file", function() {
-        var oldFileContents = fs.readFileSync("./cli/tests/conversionTest/testFile.html", "utf-8");
-        var newFileContents = fs.readFileSync("./cli/tests/conversionTest/testFileRepeat.html", "utf-8");
+        var oldFileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile.html", "utf-8");
+        var newFileContents = fs.readFileSync(pathToGeneratedRepo + "/testFileRepeat.html", "utf-8");
         assert.equal(oldFileContents, newFileContents);
     });
 });
 
 
 describe("Testing second file sent through repo/html writers", function() {
-    repoInit.initializeRepository('./cli/tests/resources/testFullConversion2.html', './cli/tests/conversionTest', 'testRepo2');
-    htmlWriter.generateFile("./cli/tests/conversionTest/testRepo2", "./cli/tests/conversionTest/testFile2.html");
+    var currentPath = __dirname;
+    var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion2.html');
+    var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo2');
+    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo2", pathToGeneratedRepo + "/testFile2.html");
 
     it("Checking that the html file was created", function() {
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testFile2.html"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testFile2.html"));
     });
 
     // Parser should correctly put the hr tag inside the body tag
     it("Checking the contents of the html file", function() {
-        var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile2.html", "utf-8");
+        var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile2.html", "utf-8");
         fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
@@ -320,20 +335,23 @@ describe("Testing second file sent through repo/html writers", function() {
 
 
 describe("Testing third file sent through repo/html writers", function() {
-    repoInit.initializeRepository('./cli/tests/resources/testFullConversion3.html', './cli/tests/conversionTest', 'testRepo3');
-    htmlWriter.generateFile("./cli/tests/conversionTest/testRepo3", "./cli/tests/conversionTest/testFile3.html");
+    var currentPath = __dirname;
+    var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion3.html');
+    var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo3');
+    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo3", pathToGeneratedRepo + "/testFile3.html");
 
     it("Checking that the html file was created", function() {
-        assert.ok(fs.existsSync("./cli/tests/conversionTest/testFile3.html"));
+        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testFile3.html"));
     });
 
     // Parser should correctly put the div tags and everything inside under a body tag
     it("Checking the contents of the html file", function() {
-        var fileContents = fs.readFileSync("./cli/tests/conversionTest/testFile3.html", "utf-8");
+        var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile3.html", "utf-8");
         fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFile3String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFile3String += '<html><head></head><body><div><span>Span Text</span><br></br><h3 id="headerTwo" class="test">Underline</h3></div></body></html>';
+        testFile3String += '<html><head></head><body><div><span>Span Text</span><br><h3 id="headerTwo" class="test">Underline</h3></div></body></html>';
 
         assert.equal(fileString, testFile3String);
     });
