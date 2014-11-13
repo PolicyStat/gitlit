@@ -5,11 +5,12 @@
 var fs = require("fs");
 var path = require("path");
 var deasync = require("deasync");
+var htmlParser = require("./htmlParser");
 
 /*
  TODO: Change to using async file and directory creation, but for now, this makes the logic easier to track
  */
-
+ 
 function writeRepoToDirectory(porObject, outputPath) {
     var repoOutputPath = path.join(outputPath, porObject['repoName']);
     try {
@@ -36,16 +37,30 @@ function writeCommitToDirectory(porObject, outputPath, commitMessage){
     }
 }
 
-function prepareRepo(path, repoName){
+function prepareRepo(outputPath, repoName){
     var command = '';
 
-    command += 'cd ' + path + ' && ';
-    //TODO: We need to come up with some other way to save the
-    //git repo info, but for now this works
-    command += 'mv ./.git ../tempGit' + ' && ';
+    var tempDirectoryName = htmlParser.generateNewPORID([]);
+    var relPath = path.join(outputPath, '..', tempDirectoryName);
+    var absPath = path.resolve(relPath);
+    console.log('absolute path for temporary folder: ' + absPath);
+
+    //If we SOMEHOW generate a name that already exists, generate another id and try again
+    //Technically, this could run forever, but it won't because the chances of there being
+    //A directory for every possible combination of 12 random bytes is absurdly low
+    if(fs.existsSync(absPath)) {
+        while(fs.existsSync(absPath)) {
+            tempDirectoryName = htmlParser.generateNewPORID([]);
+            relPath = path.join(outputPath, '..', tempDirectoryName);
+            absPath = path.resolve(relPath);
+        }
+    }
+
+    command += 'cd ' + outputPath + ' && ';
+    command += 'mv ./.git ' + absPath + ' && ';
     command += 'rm -rf *' + ' && ';
-    command += 'mv ../tempGit ./.git && ';
-    command += 'rm -rf ../tempGit';
+    command += 'mv ' + absPath + ' ./.git && ';
+    command += 'rm -rf ' + absPath;
 
     shellOut(command);
 }

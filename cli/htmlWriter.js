@@ -6,16 +6,16 @@ var html = require('html');
 
 function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
-        throw new URIError(file + ' is not a directory');
+        throw new URIError(directory + ' is not a directory');
     }
-
     var porRepo = getPORObjectFromRepo(directory);
+    return writePORObjectToHTMLFile(porRepo, outputFile);
+}
 
+function writePORObjectToHTMLFile(porObject, outputFile) {
+    var fileString = convertPORRepoObjectToHTMLString(porObject);
 
-    var fileString = convertPORRepoObjectToHTMLString(porRepo);
-
-	fs.writeFileSync(outputFile, fileString);
-    //TODO: Might not be needed, let's see
+    fs.writeFileSync(outputFile, fileString);
     return fileString;
 }
 
@@ -47,7 +47,7 @@ function getPORObjectFromRepo(currentDir){
             if (fs.lstatSync(fileLoc).isFile() && fs.existsSync(fileLoc)){
                 var textValue = {
                     value: fs.readFileSync(fileLoc, "utf-8"),
-                    porID: currentDir.replace(/^.*[\\\/]/, '')
+                    porID: fileLoc.replace(/^.*[\\\/]/, '').split('.')[0]
                 };
                 porObject.children.push(textValue);
             }
@@ -107,7 +107,9 @@ function convertTagNodeToHTMLString(porObject) {
     });
 
     // End tag
-    objectString += "</" + porObject.metadata.tag + ">";
+    if (porObject.metadata.tag != "br") {
+        objectString += "</" + porObject.metadata.tag + ">";
+    }
     return objectString;
 }
 
@@ -126,6 +128,7 @@ function extractOpeningTag(porObject) {
 
 module.exports = {
     generateFile: generateFile,
+    writePORObjectToHTMLFile : writePORObjectToHTMLFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
