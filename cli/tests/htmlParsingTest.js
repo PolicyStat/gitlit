@@ -6,7 +6,8 @@ var fs = require('fs');
 var Parser = require('parse5').Parser;
 var parse5 = new Parser();
 var assert = require('assert');
-var test = require('unit.js');
+var path = require("path");
+//var test = require('unit.js');
 
 /*
  TODO: Test cases still needing to be covered:
@@ -18,7 +19,9 @@ var test = require('unit.js');
 describe('Check POR-ids and id attributes', function() {
 
     it('Throw error on duplicate id attribute', function() {
-        var faultyHTML = fs.readFileSync('./cli/tests/resources/duplicateIDs.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'duplicateIDs.html');
+        var faultyHTML = fs.readFileSync(pathToFile, 'utf8');
         var faultyDom = parse5.parse(faultyHTML);
 
         assert.throws(function (){
@@ -163,7 +166,9 @@ describe('Element ordering & storage in metadata objects', function() {
 describe('Create repo info correctly', function(){
 	
 	it('Stores the correct repo name', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLJustDocType.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLJustDocType.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output1 = parser.parseHTML(validHTML, 'reposGalore');
 		var output2 = parser.parseHTML(validHTML, 'repo with spaces');
 		var output3 = parser.parseHTML(validHTML, 'repo with bang!');
@@ -182,7 +187,9 @@ describe('Create repo info correctly', function(){
 describe('parseHTML over basic test file', function(){
 	
 	it('Parses correct tags from formatted HTML document', function() {
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLBasicFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[1].children[0].children[0].porID, "id1");
@@ -191,7 +198,9 @@ describe('parseHTML over basic test file', function(){
 	});
 	
 	it('Parses text nodes correctly from formatted HTML document', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLBasicFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[1].children[0].children[0].children[0].value, "\n\t\t\tSuper basic formatted html\n\t\t");
@@ -201,7 +210,9 @@ describe('parseHTML over basic test file', function(){
 	});
 	
 	it('Creates the correct tree structure from formatted HTML document', function(){
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLBasicFormat.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLBasicFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[0].children, null); //doctype
@@ -222,7 +233,9 @@ describe('parseHTML over basic test file', function(){
 describe('parseHTML over inline text file', function(){
 	
 		it('Parses correct tags from inline HTML document', function() {
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLInlineFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[1].children[0].children[0].porID, "id1");
@@ -231,8 +244,9 @@ describe('parseHTML over inline text file', function(){
 	});
 	
 	it('Parses text nodes correctly from inline HTML document', function(){
-		
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+		var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLInlineFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[1].children[0].children[0].children[0].value, "Super basic formatted html");
@@ -242,8 +256,9 @@ describe('parseHTML over inline text file', function(){
 	});
 	
 	it('Creates the correct tree structure from inline HTML document', function(){
-			
-		var validHTML = fs.readFileSync('./cli/tests/resources/testHTMLInlineFormat.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLInlineFormat.html');
+		var validHTML = fs.readFileSync(pathToFile, 'utf8');
 		var output = parser.parseHTML(validHTML, 'repoName');
 		
 		assert.equal(output.children[0].children, null); //doctype
@@ -264,7 +279,9 @@ describe('parseHTML over inline text file', function(){
 describe('Fail to parse broken HTML files', function(){
 
 	it('Does not parse on an unclosed tag -text', function(){
-		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLMissingCloseTagText.html');
+		var invalidHTML = fs.readFileSync(pathToFile, 'utf8');
 
 		test.error(function(){
 			parser.parseHTML(invalidHTML, 'repoName');
@@ -272,7 +289,9 @@ describe('Fail to parse broken HTML files', function(){
 	});
 
 	it('Does not parse on mismatched tags -text', function(){
-		var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTMLMismatchedTagsText.html');
+		var invalidHTML = fs.readFileSync(pathToFile, 'utf8');
 		
 		test.error(function(){
 			parser.parseHTML(invalidHTML, 'repoName');
