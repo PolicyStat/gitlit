@@ -172,6 +172,9 @@ function processTaglessChild(dom) {
         }
         contents = "<!DOCTYPE " + dom.name + " " + publicInfo + " " + systemInfo +">";
         id = "doctype";
+    } else if (dom.nodeName == '#comment') {
+        contents = "<!--" + dom.data + "-->";
+        id = generateNewPORID();
     }
 
     if (/^\s*$/.test(contents)) {
