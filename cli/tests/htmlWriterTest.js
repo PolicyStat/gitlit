@@ -340,7 +340,7 @@ describe('Test converting POR object into a string', function () {
         var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
         var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
             '<html por-id="3e61894fe84fd31246460272">\n  \n  <head lang="en" por-id="18eda53718376a1c58837e6e">\n    <meta charset="UTF-8"' +
-            ' por-id="9e2928948e789fe743dd9761"></meta>\n    <title por-id="5376f5329b6e80a8d7934c62">titletext</title>\n  </head>' +
+            ' por-id="9e2928948e789fe743dd9761">\n    <title por-id="5376f5329b6e80a8d7934c62">titletext</title>\n  </head>' +
             '\n  \n  <body por-id="32bb8c5780eb0cbd283bc7a0">\n    <h1 id="derp" class="herp" name="headerOne" por-id="derp">Header ' +
             '<span por-id="5892268b7a3588982d7042eb"></span> afterSpan</h1>\n  </body>\n\n</html>';
 

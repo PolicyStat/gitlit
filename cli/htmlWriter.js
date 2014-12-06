@@ -98,6 +98,7 @@ function convertTextNodeToHTMLString(porObject) {
 }
 
 function convertTagNodeToHTMLString(porObject) {
+    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
     var objectString = "";
     objectString += extractOpeningTag(porObject);
 
@@ -106,8 +107,9 @@ function convertTagNodeToHTMLString(porObject) {
         objectString += recursivelyConvertPORObjectToHTML(child);
     });
 
+
     // End tag
-    if (porObject.metadata.tag != "br") {
+    if (emptyTags.indexOf(porObject.metadata.tag) == -1) {
         objectString += "</" + porObject.metadata.tag + ">";
     }
     return objectString;
