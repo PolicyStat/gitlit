@@ -1,0 +1,26 @@
+{
+    "name": "psychic-octo-robot",
+    "version": "0.3.1",
+    "license" : "MIT",
+    "engines" : ">=0.10.x",
+    "contributors" : [ {"name" : "Devon Timaeus"},
+        {"name" : "Sydney Satchwill"},
+        {"name" : "Ian Hallam"}],
+    "bin": "./cli/psychic-octo-robot.js",
+    "repository" :
+    { "type" : "git"
+        , "url" : "https://github.com/PolicyStat/psychic-octo-robot"
+    },
+    "scripts": {
+        "test": "runTests.sh"
+    },
+    "devDependencies": {
+        "mocha": "1.24.4"
+    },
+    "dependencies": {
+        "html": "0.0.7",
+        "deasync": "0.0.7",
+        "parse5": "1.1.4",
+        "commander": "2.3.0"
+    }
+}

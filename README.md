@@ -9,7 +9,6 @@ psychic-octo-robot
 	 
 	Currently HTML is the target language for development, with the posibility
 	of later including XML, DOCX, and other structure document formats.
-
 ## Usage: psychic-octo-robot [options] [command]
 
 ### First, create a por local repo
