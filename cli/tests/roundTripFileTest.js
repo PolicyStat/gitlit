@@ -285,7 +285,7 @@ describe("Test writing repo directory back into HTML file", function() {
         fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"></meta><title id="title">Title Here</title></head><body></body></html>';
+        testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body></body></html>';
 
         assert.equal(fileString, testFileString);
     });
@@ -327,7 +327,7 @@ describe("Testing second file sent through repo/html writers", function() {
         fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFile2String += '<html><head></head><body><hr></hr><h1 class="header" style="color:green">Header</h1></body></html>';
+        testFile2String += '<html><head></head><body><hr><h1 class="header" style="color:green">Header</h1></body></html>';
 
         assert.equal(fileString, testFile2String);
     });
