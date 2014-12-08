@@ -12,7 +12,7 @@
         , "url" : "https://github.com/PolicyStat/psychic-octo-robot"
     },
     "scripts": {
-        "test": "runTests.sh"
+        "test": "mocha cli/tests"
     },
     "devDependencies": {
         "mocha": "1.21.4"
