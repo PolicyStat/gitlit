@@ -15,7 +15,8 @@
         "test": "mocha cli/tests"
     },
     "devDependencies": {
-        "mocha": "1.21.4"
+        "mocha": "1.21.4",
+        "unit.js" : "1.0.2"
     },
     "dependencies": {
         "html": "0.0.7",
