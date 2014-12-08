@@ -3,6 +3,7 @@
  */
 
 var htmlWriter = require('../htmlWriter');
+var repoWriter = require("../htmlRepoWriter");
 var repoInit = require("../repoInit.js");
 var parser = require('../htmlParser');
 var assert = require('assert');
@@ -69,7 +70,7 @@ describe('Round Trip Testing:', function () {
                                                 {"name": "por-id", "value": "5892268b7a3588982d7042eb"}
                                             ], 'constructionOrder': [] },
                                             children: [] },
-                                        { value: ' afterSpan', porID: '058f9fbe9cc061d2b819c905' }
+                                        { value: ' afterSpan\n', porID: '058f9fbe9cc061d2b819c905' }
                                     ] }
                             ] }
                     ] }
@@ -155,6 +156,7 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'resources', 'roundTripTesting', baseFileName);
 
+    deleteFileIfExists(pathToGeneratedFile);
     htmlWriter.writePORObjectToHTMLFile(porObject, pathToGeneratedFile);
     assert.ok(fs.existsSync(pathToGeneratedFile));
 
@@ -162,6 +164,7 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     //round-trip, it should be the same before and after.
     var pathToRepoOutput = path.join(currentPath, 'resources', 'roundTripTesting');
 
+    deleteDirectoryIfExists(path.join(pathToRepoOutput,repoName));
     repoInit.initializeRepository(pathToGeneratedFile, pathToRepoOutput, repoName);
     pathToRepoOutput = path.join(pathToRepoOutput, repoName);
     assert.ok(fs.existsSync(pathToRepoOutput));
@@ -175,8 +178,6 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     assert.equal(baseContents, roundTripContents);
 
 }
-
-
 
 describe("First tests: Reading the file", function() {
 
@@ -248,11 +249,12 @@ describe("Test writing the JSON object to repo directory", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo');
 
     it("Checking that the directory was created", function() {
         assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo"));
-        assert.equal(fs.readdirSync(pathToGeneratedRepo + "/testRepo").length, 3);
+        assert.equal(fs.readdirSync(path.join(pathToGeneratedRepo, "testRepo")).length, 4);
         assert.ok(fs.existsSync(pathToGeneratedRepo + "/testRepo/metadata.json"));
     });
 
@@ -274,6 +276,7 @@ describe("Test writing the JSON object to repo directory", function() {
 describe("Test writing repo directory back into HTML file", function() {
     var currentPath = __dirname;
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile.html'));
     htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo", pathToGeneratedRepo + "/testFile.html");
 
     it("Checking that the html file was created", function() {
@@ -282,10 +285,10 @@ describe("Test writing repo directory back into HTML file", function() {
 
     it("Checking the contents of the html file", function() {
         var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile.html", "utf-8");
-        fileString = fileContents.replace(/\n| {2,}/g,'');
+        var fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body></body></html>';
+        testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body"></body></html>';
 
         assert.equal(fileString, testFileString);
     });
@@ -295,7 +298,9 @@ describe("Sending the new HTML file back through repo/html generation", function
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFile.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepoRepeat'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepoRepeat');
+    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFileRepeat.html'));
     htmlWriter.generateFile(pathToGeneratedRepo + "/testRepoRepeat", pathToGeneratedRepo + "/testFileRepeat.html");
 
     it("Checking that the html file was created", function() {
@@ -314,8 +319,10 @@ describe("Testing second file sent through repo/html writers", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion2.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo2'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo2');
-    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo2", pathToGeneratedRepo + "/testFile2.html");
+    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile2.html'));
+    htmlWriter.generateFile(path.join(pathToGeneratedRepo,"testRepo2"), path.join(pathToGeneratedRepo, "testFile2.html"));
 
     it("Checking that the html file was created", function() {
         assert.ok(fs.existsSync(pathToGeneratedRepo + "/testFile2.html"));
@@ -323,11 +330,12 @@ describe("Testing second file sent through repo/html writers", function() {
 
     // Parser should correctly put the hr tag inside the body tag
     it("Checking the contents of the html file", function() {
-        var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile2.html", "utf-8");
-        fileString = fileContents.replace(/\n| {2,}/g,'');
+        var fileContents = fs.readFileSync(path.join(pathToGeneratedRepo, "testFile2.html"), "utf-8");
+        var fileString = fileContents.replace(/\n| {2,}/g,'');
 
-        var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFile2String += '<html><head></head><body><hr><h1 class="header" style="color:green">Header</h1></body></html>';
+        var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' +
+            '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body">' +
+            '<hr id="hr"><h1 id="h1" class="header" style="color:green">Header</h1></body></html>';
 
         assert.equal(fileString, testFile2String);
     });
@@ -338,21 +346,36 @@ describe("Testing third file sent through repo/html writers", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion3.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
+    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo3'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo3');
-    htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo3", pathToGeneratedRepo + "/testFile3.html");
+    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile3.html'));
+    htmlWriter.generateFile(path.join(pathToGeneratedRepo, "testRepo3"), path.join(pathToGeneratedRepo, "testFile3.html"));
 
     it("Checking that the html file was created", function() {
-        assert.ok(fs.existsSync(pathToGeneratedRepo + "/testFile3.html"));
+        assert.ok(fs.existsSync(path.join(pathToGeneratedRepo , "testFile3.html")));
     });
 
     // Parser should correctly put the div tags and everything inside under a body tag
     it("Checking the contents of the html file", function() {
-        var fileContents = fs.readFileSync(pathToGeneratedRepo + "/testFile3.html", "utf-8");
-        fileString = fileContents.replace(/\n| {2,}/g,'');
+        var fileContents = fs.readFileSync(path.join(pathToGeneratedRepo, "testFile3.html"), "utf-8");
+        var fileString = fileContents.replace(/\n| {2,}/g,'');
 
-        var testFile3String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFile3String += '<html><head></head><body><div><span>Span Text</span><br><h3 id="headerTwo" class="test">Underline</h3></div></body></html>';
+        var testFile3String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' +
+            '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body">' +
+            '<div id="div"><span id="span">Span Text</span><br id="br"><h3 id="headerThree" class="test">Underline</h3></div></body></html>';
 
         assert.equal(fileString, testFile3String);
     });
 });
+
+function deleteDirectoryIfExists(pathToDirectory) {
+    if(fs.existsSync(pathToDirectory)) {
+        repoWriter.shellOut('rm -rf ' + pathToDirectory);
+    }
+}
+
+function deleteFileIfExists(pathToFile) {
+    if(fs.existsSync(pathToFile)) {
+        fs.unlinkSync(pathToFile);
+    }
+}
