@@ -1,12 +1,14 @@
 psychic-octo-robot
 ==================
 
-	This project is a collection of modules that brings the power of git to structured documents by students 
-	Ian Hallam, John Kulczak, Devon Timaeus and Sydney Satchwill at Rose-Hulman Institute of Technology under
-	the leadership of Associate Professor Sriram Mohan in addition to Wes Winham and Kyle Gibson of PolicyStat.
+	This project is a collection of modules that brings the power of git to 
+    structured documents by students Ian Hallam, John Kulczak, Devon Timaeus 
+    and Sydney Satchwill at Rose-Hulman Institute of Technology under the 
+    leadership of Associate Professor Sriram Mohan in addition to Wes Winham 
+    and Kyle Gibson of PolicyStat.
 	 
-	Currently HTML is the target language for development, with the posibility of later including XML, DOCX,
-	and other structure document formats.
+	Currently HTML is the target language for development, with the posibility 
+    of later including XML, DOCX, and other structure document formats.
 
 ## Usage: psychic-octo-robot [options] [command]
 
@@ -69,12 +71,11 @@ psychic-octo-robot
     
 
 ## Disclaimers:
-- tags will contain por-id attributes for tracking purposes
-- modifying either of the above can result in unexpected behavior
-- some formatting may not be preserved. with each milestone we are working to minimize this effect
-- IF THE HTML IS MISSING STARTING OR ENDING TAGS WHEN USED IN ANY OPERATIONS
-- There are no guarantees that the interpretation of the HTML will be what the author intended
-- To minimize this effect, be sure to include closing tags for each open tag, and vice versa
+- Tags will contain por-id attributes for tracking purposes.
+- Modifying por-ids can result in unexpected behavior
+- Some formatting may not be preserved. With each milestone we are working to minimize this.
+- If the html is missing starting or ending tags when used in any operations then there are no guarantee that the interpretation of the HTML will be what the author intended.
+- To minimize this effect, be sure to include closing tags for each open tag, and vice versa.
 
 ## Libraries Used
 * parse5
