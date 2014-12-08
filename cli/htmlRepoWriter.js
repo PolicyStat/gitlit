@@ -141,5 +141,6 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
 
 module.exports = {
     writeRepoToDirectory: writeRepoToDirectory,
-    writeCommitToDirectory: writeCommitToDirectory
+    writeCommitToDirectory: writeCommitToDirectory,
+    shellOut: shellOut
 };
