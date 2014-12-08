@@ -1,6 +1,9 @@
 psychic-octo-robot
 ==================
 
+[![Build Status](https://travis-ci.org/PolicyStat/psychic-octo-robot.svg)]
+(https://travis-ci.org/PolicyStat/psychic-octo-robot)
+
 	This project is a collection of modules that brings the power of git to 
 	structured documents by students Ian Hallam Devon Timaeus and Sydney 
 	Satchwill at Rose-Hulman Institute of Technology under the leadership of
@@ -9,7 +12,6 @@ psychic-octo-robot
 	 
 	Currently HTML is the target language for development, with the posibility
 	of later including XML, DOCX, and other structure document formats.
-
 ## Usage: psychic-octo-robot [options] [command]
 
 ### First, create a por local repo
