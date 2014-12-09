@@ -20,8 +20,14 @@ RUN npm install -g browserify
 #install commander
 RUN npm install -y -g commander
 
-#install js-git
-RUN npm install -g js-git
+#install html
+RUN npm install -g html
+
+#install deasync
+RUN npm install -g deasync
+
+#install parse5
+RUN npm install -g parse4
 
 #install unit.js & mocha to run tests
 RUN npm install -g unit.js

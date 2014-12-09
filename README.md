@@ -4,38 +4,47 @@ psychic-octo-robot
 [![Build Status](https://travis-ci.org/PolicyStat/psychic-octo-robot.svg)]
 (https://travis-ci.org/PolicyStat/psychic-octo-robot)
 
-	This project is a collection of modules that brings the power of git to 
-	structured documents by students Ian Hallam Devon Timaeus and Sydney 
-	Satchwill at Rose-Hulman Institute of Technology under the leadership of
-	Associate Professor Sriram Mohan in addition to Wes Winham and Kyle Gibson
-	of PolicyStat.
+This project is a collection of modules that brings the power of git to 
+structured documents by students Ian Hallam, Devon Timaeus, and Sydney 
+Satchwill at Rose-Hulman Institute of Technology under the leadership of
+Associate Professor Sriram Mohan in addition to Wes Winham and Kyle Gibson
+of PolicyStat.
 	 
-	Currently HTML is the target language for development, with the posibility
-	of later including XML, DOCX, and other structure document formats.
-## Usage: psychic-octo-robot [options] [command]
+Currently HTML is the target language for development, with the posibility
+of later including XML, DOCX, and other structure document formats.
 
-### First, create a por local repo
+## Usage: psychic-octo-robot [options] [command] [arguments]
 
-    init <file> <outputPath> <repoName>  Initialize a Repository for the given file
+<!---
+make a bin if we can
+    done with npm?
+-->
+
+### First, create a psychic-octo-robot local repo
+    node ./cli/psychic-octo-robot.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
+   
+In this case, the output path is the directory that you want the repository to
+be made in. This means that for future commands that need the repository location
+the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
 
 ### And change it back into html
-
-    write <directory> <outputFile>       Convert a Repository into an HTML file
+    node ./cli/psychic-octo-robot.js write <directory> <outputFile>       Convert a Repository into an HTML file
+Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
+be outputted as HTML, but won't be that filetype.
     
 ### Make a new revision of the local repo given a new document
-    commit <file to make the new revision> <path to repo> <commit message>
+    node ./cli/psychic-octo-robot.js commit <file to make the new revision> <path to repo> <commit message>
 
 ## Options
 
-	-h, --help         output usage information
-    -V, --version      output the version number
-    -v, --versionFull  Print out all the version info for the CLI
-    -l, --libraries    Print out the versions of the libraries used
+* -h, (--help)         output usage information
+* -V, (--version)      output the version number
+* -v, (--versionFull)  Print out all the version info for the CLI
+* -l, (--libraries)    Print out the versions of the libraries used
 
 ## Upcoming Features
-
-	- commit
-	- pretty printing for HTML output
+- more complete NPM package
+- diffs
 	
 ## Version History
 * 0.0.1
@@ -69,24 +78,75 @@ psychic-octo-robot
     * `commit` feature: Given new file and a path to a repository directory, 
     create a new version of the document with a commit message
 * 0.3.1
-    * IN PROGRESS
+    * Updated project to be packaged on npm. Can be found [here](https://www.npmjs.org/package/psychic-octo-robot)
+    * Set up project to work with Travis-CI
+    * Added support for comments in HTML files
+    * Added support for self-closing tags
     
+## por-ids : What are they?
+
+They way that psychic-octo-robot keeps track of the structure of documents for intelligent handling of
+sections is via a file structure. In the Git repository that is the version control underlying the 
+project, the basic file structure looks like this:
+
+- Root folder
+   * metadata.json
+   * child-text-node.txt
+   * tagged-child-node
+       * grandchild-text.txt
+       * metadata.json
+       
+The idea, is that at each level, the directories and text files are given ID's that identify *what* they are.
+This is useful for tracking the movement of sections even if there are small changes in their children (e.g.
+text nodes). As such, the names of these directories need to be tracked, and each different element needs to
+have some sort of name to be able to tell them apart.
+
+These names are the por-ids, which are 12 byte, hex-encoded strings. The information about the order each node
+is constructed is kept track of in the metadata.json files. In addition to this, the metadata.json files also
+track information like the tag of the current directory, and any information like attributes. This encodes
+all of the information in a simple yet robust manner.
+
+This setup does come with a few caveats however.
 
 ## Disclaimers:
-- Tags will contain por-id attributes for tracking purposes.
-- Modifying por-ids can result in unexpected behavior
-- Some formatting may not be preserved. With each milestone we are working to minimize this.
-- If the html is missing starting or ending tags when used in any operations then there are no guarantee that the interpretation of the HTML will be what the author intended.
-- To minimize this effect, be sure to include closing tags for each open tag, and vice versa.
+### Modifying por-ids can result in unexpected behavior
+If por-ids are edited between revisions of a document, diff output can be strange, and difficult to read.
+To avoid this, try not to wholesale change or delete por-ids.
+
+### Some formatting may not be preserved
+The goal of this project is to keep as much information and formatting of the file as possible.
+However, unless we want to keep track of numerous files that are only whitespace, and increase 
+the possibility of changes being reported by `diff`, we need to ignore some whitespace.
+
+Currently, we are using [html](https://www.npmjs.org/package/html) for our pretty printing of output
+html. Another thing to note, is that there may be closing tags on the same line as the opening tag,
+this is because it is difficult know when it is alright to arbitrarily add an extra newline. So html
+doesn't, it only adds the newlines when it knows for certain it is safe to.
+
+### Missing tags (opening or closing) results in undefined behavior
+If the html is missing starting or ending tags when used in any operations, then there are no 
+guarantee that the interpretation of the HTML will be what the author intended. This is because
+missing tags can be interpreted in many ways, so the one selected may not be what the author intended. 
+
+To minimize this effect, be sure to include closing tags for each open tag, and vice versa.
 
 ## Libraries Used
 * parse5
 * html
 * commander.js
 * mocha
+* unit.js
 * deasync
 
 ## Development environment
+### Docker & Vagrant
+For this project, we use Docker and/or Vagrant. We chose to go for 2 different development environments since
+it would get a bit more coverage for individual preferences.
+
+Additionally, Vagrant seems to be just a bit easier if developing on Windows, since it works basically
+immediately out of the box, unlike Docker for Windows.
+
+### Docker
 About Docker:
 
 	Docker is an OS agnostic way to create an identical development environment for every member 
@@ -114,3 +174,18 @@ or to run in the background:
 
 Docker is now running in the terminal and files can be executed within the container to have 
 access to all packages needed. Further documentation can be found [here](https://docs.docker.com/userguide/)
+
+### Vagrant
+First, just install Vagrant via an [installer](https://www.vagrantup.com/downloads).
+
+From there, when in the project directory, just run
+
+```
+vagrant up
+```
+
+The VM & Vagrant box will then provision themselves with the proper libraries and be ready for development
+From there, just run `vagrant ssh` to ssh to the box for exploring the project in the environment.
+
+Note: Vagrant syncs directories, so editing can still be done in the original directory, and Vagrant
+will pick up the changes.
