@@ -15,7 +15,7 @@ describe('Performs a git commit correctly', function () {
 	var pathToGeneratedRepo = path.join(currentPath, 'commitTest');
 	deleteDirectoryIfExists(path.join(pathToGeneratedRepo, repoName));
 	repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, repoName);
-	locCommand = 'cd ' + pathToGeneratedRepo + '\\' + repoName + ' && ';
+	locCommand = 'cd ' + path.join(pathToGeneratedRepo, repoName) + ' && ';
 
 	it('Tests to see if the repo was initilized correctly', function () {
 		command = locCommand + 'git rev-list HEAD --count';
