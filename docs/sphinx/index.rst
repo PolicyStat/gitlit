@@ -17,6 +17,7 @@ Contents:
    developmentSetup
    html-to-file-serialization
    xml-text-tailVScustom-tags
+   usage
 
 
 Indices and tables

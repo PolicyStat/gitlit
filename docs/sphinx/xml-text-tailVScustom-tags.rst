@@ -73,7 +73,7 @@ purpose of a table, additionally,
 if there was ever an insert of a new
 element that had a text node near it,
 there could be problems with 
-misidentification with old sections.
+miss-identification with old sections.
 
 This leaves us with trying to store
 the id of the text node somehow so
@@ -327,7 +327,7 @@ is just saying that the first section was changed,
 with no other perceived changes or moves.
 
 Custom Tags
------------
+===========
 Assuming the repository already existed, if we made
 the change with Custom tags, then there are 2 cases.
 
@@ -374,8 +374,8 @@ file/section, which is what we wanted. Even if we did diff
 logic ourselves, it would be easy to see that the text was
 edited, so it is just a text change.
 
-XML text-tail
--------------
+XML text tail
+=============
 Assuming the repository already existed, if we made
 the change with XML text-tail, then the relationships
 of text & tail would already be stored in the HTML's
@@ -452,7 +452,7 @@ is just saying that the first section was deleted,
 with no other perceived changes or moves.
 
 Custom Tags
------------
+===========
 For this case, we really only care about if there
 already tags.
 
@@ -500,7 +500,7 @@ case means there is a bit more decision making to be made
 that for editing.
 
 XML text-tail
--------------
+=============
 Document before change
 
 .. code-block:: html
@@ -608,7 +608,7 @@ with no other perceived changes or moves.
 
 
 Custom Tags
------------
+===========
 Before the edit
 
 .. code-block:: html
@@ -650,7 +650,7 @@ insertions of new paragraphs might be nicely tracked
 by allowing something like this.
 
 XML text-tail
--------------
+=============
 Document before change
 
 .. code-block:: html
@@ -750,7 +750,7 @@ to be after the first div.
     of the old node.
 
 Custom Tags
------------
+===========
 Before the edit
 
 .. code-block:: html
@@ -791,7 +791,7 @@ new, and the old tag would say it was edited in some manner, or perhaps
 deleted.
 
 XML text-tail
--------------
+=============
 Document before change
 
 .. code-block:: html
@@ -896,7 +896,7 @@ the user just wouldn't need tracking to identify both
 the move and then change.
 
 Custom Tags
------------
+===========
 Before the edit
 
 .. code-block:: html
@@ -934,7 +934,7 @@ tracking moves & changes would be straightforward, as we can
 just look at the section itself and the order of the metadata.
 
 XML text-tail
--------------
+=============
 Document before change
 
 .. code-block:: html

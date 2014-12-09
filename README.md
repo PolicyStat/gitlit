@@ -3,6 +3,8 @@ psychic-octo-robot
 
 [![Build Status](https://travis-ci.org/PolicyStat/psychic-octo-robot.svg)]
 (https://travis-ci.org/PolicyStat/psychic-octo-robot)
+[![Documentation Status](https://readthedocs.org/projects/psychic-octo-robot/badge/?version=latest)]
+(http://psychic-octo-robot.readthedocs.org/en/latest/)
 
 This project is a collection of modules that brings the power of git to 
 structured documents by students Ian Hallam, Devon Timaeus, and Sydney 
