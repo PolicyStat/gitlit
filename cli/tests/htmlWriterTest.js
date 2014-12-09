@@ -4,12 +4,12 @@
 
 var htmlWriter = require('../htmlWriter');
 var assert = require('assert');
-var fs = require("fs");
 var path = require("path");
+var fs = require("fs");
 
-describe('Get opening tag data from JSON objects properly', function() {
+describe('Get opening tag data from JSON objects properly', function () {
 
-    it('Metadata conversion no attributes', function() {
+    it('Metadata conversion no attributes', function () {
         var metadata = {
             tag: "head",
             attributes: []
@@ -23,10 +23,13 @@ describe('Get opening tag data from JSON objects properly', function() {
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<head>');
     });
 
-    it('Metadata conversion with attributes', function() {
+    it('Metadata conversion with attributes', function () {
         var metadata = {
             tag: "head",
-            attributes: [{name: "id", value: "test1"}, {name: "class", value: "test2"}]
+            attributes: [
+                {name: "id", value: "test1"},
+                {name: "class", value: "test2"}
+            ]
         };
         var tagObject = {
             metadata: metadata,
@@ -37,7 +40,7 @@ describe('Get opening tag data from JSON objects properly', function() {
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<head id="test1" class="test2">');
     });
 
-    it('Metadata conversion with special tags', function() {
+    it('Metadata conversion with special tags', function () {
         var metadata = {
             tag: "br",
             attributes: []
@@ -49,19 +52,47 @@ describe('Get opening tag data from JSON objects properly', function() {
 
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<br>');
     });
+
+    it('Metadata conversion with children', function() {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+        var child = {
+            tag: "span",
+            attributes: []
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [child]
+        };
+
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+
+        var child2 = child;
+        tagObject.children.push(child2);
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+
+        var child3 = child;
+        tagObject.children.push(child3);
+        assert.equal(tagObject.children.length, 3);
+        assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
+    });
 });
 
-describe('Get text conversion of JSON objects', function() {
+describe('Get text conversion of POR objects', function () {
 
-    it('Text conversion with porID', function() {
+    it('Text conversion with porID', function () {
         var textObject = {
             value: "This is a test",
             porID: 1111
         };
-        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), '<por-text por-id=1111>This is a test</por-text>');
+
+        // Since we don't want to insert tags into the HTML, we should just have the text here
+        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'This is a test');
     });
 
-    it('Text conversion with no POR ID', function() {
+    it('Text conversion with no POR ID', function () {
         var textObject = {
             value: "Psychic Octo Robot."
         };
@@ -70,48 +101,142 @@ describe('Get text conversion of JSON objects', function() {
 
 });
 
-describe('Test converting JSON object into a string', function() {
+describe('Test converting POR object into a string', function () {
 
-    it('Create html string from tree with only tags', function() {
+    it('Create html string from tree with only tags', function () {
         var metadata = {
-            tag: "html",
-            attributes: []
+            tag: "div",
+            attributes: [
+                {name: "por-id", value: "abc"}
+            ]
         };
         var metadata2 = {
-            tag: "br",
-            attributes: []
+            tag: "span",
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
         };
         var secondTagObject = {
             metadata: metadata2,
-            children: []
-        }
+            children: [],
+            porID: 1234
+        };
         var tagObject = {
             metadata: metadata,
-            children: [secondTagObject]
+            children: [secondTagObject],
+            porID: "abc"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<html><br></br></html>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div por-id="abc"><span por-id="1234"></span>\n</div>');
     });
 
-    it('Create html string from simple tree', function() {
+    it('Create html string with pre tags', function () {
         var metadata = {
-            tag: "head",
-            attributes: []
+            tag: "pre",
+            attributes: [
+                {name: "por-id", value: "preTag"}
+            ]
         };
         var textChild = {
             value: "Hello!",
             porID: 1234
         };
+        var metadata2 = {
+            tag: "b",
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: [textChild],
+            porID: 1234
+        };
         var tagObject = {
             metadata: metadata,
-            children: [textChild],
-            porID: ""
+            children: [secondTagObject],
+            porID: "preTag"
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Hello!</por-text></head>');
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<pre por-id="preTag"><b por-id="1234">Hello!</b></pre>');
     });
 
-    it('Create html string from tree with two tags', function() {
+    it('Pre tags text & whitespace tree', function () {
+        var metadata = {
+            tag: "pre",
+            attributes: [
+                {name: "por-id", value: "preTag"}
+            ]
+        };
+        var textChild2 = {
+            value: "Hello!",
+            porID: 1234
+        };
+
+        var textChild1 = {
+            value: "\n\n\t\t",
+            porID: "newlinesTabs"
+        };
+
+        var textChild3 = {
+            value: "\n\nText after newline!",
+            porID: "textAndNewline"
+        };
+
+        var metadata2 = {
+            tag: "b",
+            attributes: [
+                {name: "por-id", value: 1234}
+            ]
+        };
+        var secondTagObject = {
+            metadata: metadata2,
+            children: [textChild2],
+            porID: 1234
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild1, secondTagObject, textChild3],
+            porID: "preTag"
+        };
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<pre por-id="preTag">\n\n\t\t<b por-id="1234">Hello!</b>\n\nText after newline!</pre>');
+    });
+
+    it('Create html string from simple tree', function () {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+
+        var bodyMetadata = {
+            tag: "body",
+            attributes: []
+        };
+
+        var textChild = {
+            value: "Hello!",
+            porID: 1234
+        };
+        var divObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "divObject"
+        };
+
+        var bodyObject = {
+            metadata: bodyMetadata,
+            children: [divObject],
+            porID: "bodyObject"
+        };
+
+        //We currently have our pretty printer doing 2 indents where it can, so we need 2 spaces after newlines
+        //where indents make sense
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(bodyObject), '<body>\n  <div>Hello!</div>\n</body>');
+
+    });
+
+    it('Create html string from tree with two tags', function () {
         var metadata = {
             tag: "head",
             attributes: []
@@ -122,7 +247,9 @@ describe('Test converting JSON object into a string', function() {
         };
         var metadata2 = {
             tag: "span",
-            attributes: [{name: "id", value: "newSpan"}]
+            attributes: [
+                {name: "id", value: "newSpan"}
+            ]
         };
         var textChild2 = {
             value: "Inner span text ",
@@ -138,103 +265,378 @@ describe('Test converting JSON object into a string', function() {
             porID: ""
         };
 
-        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head><por-text por-id=1234>Foo </por-text><span id="newSpan"><por-text por-id=1345>Inner span text </por-text></span></head>');
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<head>Foo <span id="newSpan">Inner span text </span></head>');
     });
 
+    it('Converting a string properly removes unecessary whitespace', function() {
+        var metadata = {
+            tag: "div",
+            attributes: []
+        };
+        var textChild = {
+            value: "     Extra    whitespace  here   . ",
+            porID: 1234
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject), '<div>Extra whitespace here .</div>');
+    });
+
+    it("Converting break tag does not include a closing break tag", function() {
+        var metadata = {
+            tag: "br",
+            attributes: []
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<br>');
+
+        var metadata = {
+            tag: "br",
+            attributes: []
+        };
+        var textChild = {
+            value: "No closing tag here",
+            porID: "text"
+        };
+        var tagObject = {
+            metadata: metadata,
+            children: [textChild],
+            porID: "test"
+        };
+
+        assert.equal(htmlWriter.convertTagNodeToHTMLString(tagObject), '<br>No closing tag here');
+    });
+
+    it("Converting multiple tags with several break tags included", function () {
+        var body = { tag: "body", attributes: [] };
+        var br = { tag: "br", attributes: [] };
+        var div = { tag: "div", attributes: [] };
+        var textChild = { value: "Text here", porID: "text" };
+        
+        var tag1 = { metadata: br, children: [textChild]};
+        var tag2 = { metadata: br, children: []};
+        var tag3 = { metadata: div, children: [textChild, tag2]};
+        var tag4 = { metadata: br, children: []};
+        var tagObject = { metadata: body, children: [tag4, tag3, tag1], porID: "test"};
+
+        var porString = "<body><br><div>Text here<br></div><br>Text here</body>";
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject).replace(/\n| {2,}/g,''), porString);
+    });
+
+    it('Convert por object of a complex tree', function () {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
+        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
+        var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
+            '<html por-id="3e61894fe84fd31246460272">\n  \n  <head lang="en" por-id="18eda53718376a1c58837e6e">\n    <meta charset="UTF-8"' +
+            ' por-id="9e2928948e789fe743dd9761">\n    <title por-id="5376f5329b6e80a8d7934c62">titletext</title>\n  </head>' +
+            '\n  \n  <body por-id="32bb8c5780eb0cbd283bc7a0">\n    <h1 id="derp" class="herp" name="headerOne" por-id="derp">Header ' +
+            '<span por-id="5892268b7a3588982d7042eb"></span> afterSpan</h1>\n  </body>\n\n</html>';
+
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
+
+    });
+
+    it('Convert por object', function () {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo');
+
+        var porObject = {
+        porID: "testRepo",
+        metadata: {'constructionOrder':["doctype","d9835d3f5428900b9e52c70f"]},
+        children: [{value:'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID:"doctype"},
+                   {porID:"d9835d3f5428900b9e52c70f",
+                        metadata: { 'tag': 'html',
+                                    'attributes': [],
+                                    'constructionOrder': [ '54a62d0c502bf19663eb4723', 'fcea086913c5f5dc7b06a4de' ] }, 
+                        children:[ { porID: '54a62d0c502bf19663eb4723',
+                                        metadata: { 'tag': 'head',
+                                                    'attributes': [ {'name':"lang",'value':"en"} ],
+                                                    'constructionOrder': [ '90f57321dadf4338b5e71474', 'd5fb38ee71f2bb6998c874a5' ] },
+                                        children: [ { porID: '90f57321dadf4338b5e71474',
+                                                    metadata: { 'tag': 'meta', 'attributes': [ {'name':"charset",'value':"UTF-8"} ], 'constructionOrder': [] },
+                                                    children: [] },
+                                                  { porID: 'd5fb38ee71f2bb6998c874a5',
+                                                    metadata: { 'tag': 'title', 'attributes': [], 'constructionOrder': [ '223f94230a17fb81e9cce876' ] },
+                                                    children: [ { value: 'titletext', porID: '223f94230a17fb81e9cce876' } ] } ] },
+                                   { porID: 'fcea086913c5f5dc7b06a4de',
+                                        metadata: { 'tag': 'body', 'attributes': [], 'constructionOrder': [ 'derp' ] },
+                                        children: [ { porID: 'derp', 
+                                                      metadata: { 'tag': 'h1',
+                                                      'attributes': [ {'name':"id",'value':"derp"},{'name':"class",'value':"herp"},{'name':"name",'value':"headerOne"} ],
+                                                      'constructionOrder': 
+                                                          [ 'e1e9afb14db3c86d21107e72',
+                                                            'f15c70dd19e650c8fe2a1926',
+                                                            '1877349f0396f7c7e3ac3ba2' ] }, 
+                                                      children: [ { value: 'Header ', porID: 'e1e9afb14db3c86d21107e72' },
+                                                                  { porID: 'f15c70dd19e650c8fe2a1926',
+                                                                    metadata: { 'tag': 'span', 'attributes': [], 'constructionOrder': [] },
+                                                                    children: [] },
+                                                                  { value: ' afterSpan', porID: '1877349f0396f7c7e3ac3ba2' } ] } ] } ] } ] };
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
+
+    it("Create por object from small tree", function() {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'smallRepo');
+
+        var porObject = {
+        porID: "smallRepo",
+        metadata: {'constructionOrder':["doctype","one"]},
+        children: [{value:'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID:"doctype"},
+                    {porID: "one",
+                        metadata: { 'tag': 'html',
+                                    'attributes': [],
+                                    'constructionOrder': [ 'two' ] }, 
+                        children:[ { value:'Text here\n', porID: "two"} ] } ] };
+
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
 });
 
-describe('Test creation of por object from repo', function() {
+describe('Test creation of por object from repo', function () {
 
-    it('Create por object from HTML with very basic formatting', function() {
+    it('Create por object from HTML with very basic formatting', function () {
+        var porObject = {porID: "testHTMLBasicFormat", metadata: {"constructionOrder": ["doctype", "95920963fa52e944add2f34d"]},
+            children: [
+                {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
+                {porID: "95920963fa52e944add2f34d",
+                    metadata: {"tag": "html", "attributes": [
+                        {"name": "por-id", "value": "95920963fa52e944add2f34d"}
+                    ], "constructionOrder": ["c2df015809050d95722c5129", "550eec4fd617089ec34b5821"]},
+                    children: [
+                        {porID: "c2df015809050d95722c5129",
+                            metadata: {"tag": "head", "attributes": [
+                                {"name": "por-id", "value": "c2df015809050d95722c5129"}
+                            ], "constructionOrder": ["id1"]},
+                            children: [
+                                {porID: "id1",
+                                    metadata: {"tag": "title", "attributes": [
+                                        {"name": "por-id", "value": "id1"}
+                                    ], "constructionOrder": ["5b778ad71fe839df5eb628bb"]},
+                                    children: [
+                                        {value: "\n\t\t\tSuper basic formatted html\n\t\t", porID: "5b778ad71fe839df5eb628bb"}
+                                    ]
+                                }
+                            ]
+                        },
+                        {porID: "550eec4fd617089ec34b5821",
+                            metadata: {"tag": "body", "attributes": [
+                                {"name": "por-id", "value": "550eec4fd617089ec34b5821"}
+                            ], "constructionOrder": ["id2"]},
+                            children: [
+                                {porID: "id2",
+                                    metadata: {"tag": "h1", "attributes": [
+                                        {"name": "por-id", "value": "id2"}
+                                    ], "constructionOrder": ["a93d4b97d1eac9e23e5b3ef0", "id3", "36c77f6633e16fd853ac652f"]},
+                                    children: [
+                                        {value: "\n\t\t\tpreSpan\n\t\t\t", porID: "a93d4b97d1eac9e23e5b3ef0"},
+                                        {porID: "id3",
+                                            metadata: {"tag": "span", "attributes": [
+                                                {"name": "por-id", "value": "id3"}
+                                            ], "constructionOrder": ["ebc3ea2cad0c915fc83463ed"]},
+                                            children: [
+                                                {value: "\n\t\t\t\tinSpan\n\t\t\t", porID: "ebc3ea2cad0c915fc83463ed"}
+                                            ]},
+                                        {value: "\n\t\t\tpostSpan\n\t\t", porID: "36c77f6633e16fd853ac652f"}
+                                    ]
+                                }
+                            ]
+                        }
+                    ]}
+            ]};
         var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLBasicFormat');
-        var porObject = {porID:"testHTMLBasicFormat",metadata: {"constructionOrder":["doctype","95920963fa52e944add2f34d"]}, children: [{value:"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">",porID:"testHTMLBasicFormat"}, {porID:"95920963fa52e944add2f34d", metadata:{"tag":"html","attributes":[],"constructionOrder":["c2df015809050d95722c5129","550eec4fd617089ec34b5821"]}, children: [{porID:"c2df015809050d95722c5129", metadata:{"tag":"head","attributes":[],"constructionOrder":["id1"]}, children: [{porID:"id1", metadata:{"tag":"title","attributes":[{"name":"por-id","value":"id1"}],"constructionOrder":["5b778ad71fe839df5eb628bb"]}, children: [{value:"\n\t\t\tSuper basic formatted html\n\t\t",porID:"id1"}] }] }, {porID:"550eec4fd617089ec34b5821", metadata:{"tag":"body","attributes":[],"constructionOrder":["id2"]}, children: [{porID:"id2", metadata:{"tag":"h1","attributes":[{"name":"por-id","value":"id2"}],"constructionOrder":["a93d4b97d1eac9e23e5b3ef0","id3","36c77f6633e16fd853ac652f"]}, children: [{value:"\n\t\t\tpreSpan\n\t\t\t",porID:"id2"}, {porID:"id3", metadata:{"tag":"span","attributes":[{"name":"por-id","value":"id3"}],"constructionOrder":["ebc3ea2cad0c915fc83463ed"]}, children: [{value:"\n\t\t\t\tinSpan\n\t\t\t",porID:"id3"}]},{value:"\n\t\t\tpostSpan\n\t\t",porID:"id2"}] }] }]}]};
-        
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
-    })
 
-    it('Create por object from a document with inline format', function() {
+        var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLBasicFormat');
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
+
+    it('Create por object from a document with inline format', function () {
+        var porObject = {porID: "testHTMLInlineFormat", metadata: {"constructionOrder": ["doctype", "7db330ba8e9beece5062fd2e"]}, children: [
+            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
+            {porID: "7db330ba8e9beece5062fd2e", metadata: {"tag": "html", "attributes": [
+                {"name": "por-id", "value": "7db330ba8e9beece5062fd2e"}
+            ], "constructionOrder": ["0a7e9b49533fc5f65d6686c8", "a826d5b54fd832d759250004"]}, children: [
+                {porID: "0a7e9b49533fc5f65d6686c8", metadata: {"tag": "head", "attributes": [
+                    {"name": "por-id", "value": "0a7e9b49533fc5f65d6686c8"}
+                ], "constructionOrder": ["id1"]}, children: [
+                    {porID: "id1", metadata: {"tag": "title", "attributes": [
+                        {"name": "por-id", "value": "id1"}
+                    ], "constructionOrder": ["4fdbbfa4a09f4e32914448f5"]}, children: [
+                        {value: "Super basic formatted html", porID: "4fdbbfa4a09f4e32914448f5"}
+                    ]}
+                ]},
+                {porID: "a826d5b54fd832d759250004", metadata: {"tag": "body", "attributes": [
+                    {"name": "por-id", "value": "a826d5b54fd832d759250004"}
+                ], "constructionOrder": ["id2"]}, children: [
+                    {porID: "id2", metadata: {"tag": "h1", "attributes": [
+                        {"name": "por-id", "value": "id2"}
+                    ], "constructionOrder": ["e9702122daa7d73cbadee71e", "id3", "b6d8eb2a78c4c6ebabe06038"]}, children: [
+                        {value: "preSpan", porID: "e9702122daa7d73cbadee71e"},
+                        {porID: "id3", metadata: {"tag": "span", "attributes": [
+                            {"name": "por-id", "value": "id3"}
+                        ], "constructionOrder": ["0c206a96c11299af9acc8319"]}, children: [
+                            {value: "inSpan", porID: "0c206a96c11299af9acc8319"}
+                        ]},
+                        {value: "postSpan", porID: "b6d8eb2a78c4c6ebabe06038"}
+                    ]}
+                ]}
+            ]}
+        ]};
+
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLInlineFormat');
-        var porObject = {porID:"testHTMLInlineFormat",metadata:{"constructionOrder":["doctype","7db330ba8e9beece5062fd2e"]},children:[{value:"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">",porID:"testHTMLInlineFormat"},{porID:"7db330ba8e9beece5062fd2e",metadata:{"tag":"html","attributes":[],"constructionOrder":["0a7e9b49533fc5f65d6686c8","a826d5b54fd832d759250004"]},children:[{porID:"0a7e9b49533fc5f65d6686c8",metadata:{"tag":"head","attributes":[],"constructionOrder":["id1"]},children:[{porID:"id1",metadata:{"tag":"title","attributes":[{"name":"por-id","value":"id1"}],"constructionOrder":["4fdbbfa4a09f4e32914448f5"]},children:[{value:"Super basic formatted html",porID:"id1"}]}]},{porID:"a826d5b54fd832d759250004",metadata:{"tag":"body","attributes":[],"constructionOrder":["id2"]},children:[{porID:"id2",metadata:{"tag":"h1","attributes":[{"name":"por-id","value":"id2"}],"constructionOrder":["e9702122daa7d73cbadee71e","id3","b6d8eb2a78c4c6ebabe06038"]},children:[{value:"preSpan",porID:"id2"},{porID:"id3",metadata:{"tag":"span","attributes":[{"name":"por-id","value":"id3"}],"constructionOrder":["0c206a96c11299af9acc8319"]},children:[{value:"inSpan",porID:"id3"}]},{value:"postSpan",porID:"id2"}]}]}]}]};
-        
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
-    })
+    });
 
-    it('Create por object from a document with only a doctype definition', function() {
+    it('Convert simple POR object into a string', function() {
+        var currentPath = __dirname;
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'smallRepo');
+        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
+        var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html>Text here</html>';
+
+        assert.ok(porObj.children);
+        assert.ok(porObj.children.length == 2);
+        assert.ok(porObj.children[1].children.length == 1);
+        assert.equal(porObj.children[1].children[0].value, "Text here\n");
+        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj).replace(/\n| {2,}/g,''), porObjHTML);
+    });
+
+    it('Create por object from a document with only a doctype definition', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLJustDoctype');
-        var porObject = {porID:"testHTMLJustDoctype",metadata:{"constructionOrder":["doctype","09f35ea82117f977494710ac"]},children:[{value:"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">",porID:"testHTMLJustDoctype"},{porID:"09f35ea82117f977494710ac",metadata:{"tag":"html","attributes":[],"constructionOrder":["977dbd0a1f8cca2919295e9a","e7a54ae48ddaf227fbe4676d"]},children:[{porID:"977dbd0a1f8cca2919295e9a",metadata:{"tag":"head","attributes":[],"constructionOrder":[]},children:[]},{porID:"e7a54ae48ddaf227fbe4676d",metadata:{"tag":"body","attributes":[],"constructionOrder":[]},children:[]}]}]};
-        
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
-    })
 
-    it('Create por object from a complex tree', function() {
+        var porObject = {porID: "testHTMLJustDoctype", metadata: {"constructionOrder": ["doctype", "09f35ea82117f977494710ac"]}, children: [
+            {value: "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">", porID: "doctype"},
+            {porID: "09f35ea82117f977494710ac", metadata: {"tag": "html", "attributes": [
+                {"name": "por-id", "value": "09f35ea82117f977494710ac"}
+            ], "constructionOrder": ["977dbd0a1f8cca2919295e9a", "e7a54ae48ddaf227fbe4676d"]}, children: [
+                {porID: "977dbd0a1f8cca2919295e9a", metadata: {"tag": "head", "attributes": [
+                    {"name": "por-id", "value": "977dbd0a1f8cca2919295e9a"}
+                ], "constructionOrder": []}, children: []},
+                {porID: "e7a54ae48ddaf227fbe4676d", metadata: {"tag": "body", "attributes": [
+                    {"name": "por-id", "value": "e7a54ae48ddaf227fbe4676d"}
+                ], "constructionOrder": []}, children: []}
+            ]}
+        ]};
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+    });
+
+    it('Create por object from a complex tree', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
-        var porObject = { porID: "test", metadata: {'constructionOrder':["doctype","3e61894fe84fd31246460272"]}, children: [{value:'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID:"test"}, {porID:"3e61894fe84fd31246460272", metadata: { 'tag': 'html', 'attributes': [], 'constructionOrder': [ '18eda53718376a1c58837e6e', '32bb8c5780eb0cbd283bc7a0' ] }, children:[ { porID: '18eda53718376a1c58837e6e', metadata: { 'tag': 'head', 'attributes': [ {'name':"lang",'value':"en"} ], 'constructionOrder': [ '9e2928948e789fe743dd9761', '5376f5329b6e80a8d7934c62' ] }, children: [ { porID: '9e2928948e789fe743dd9761', metadata: { 'tag': 'meta', 'attributes': [ {'name':"charset",'value':"UTF-8"} ], 'constructionOrder': [] }, children: [] }, { porID: '5376f5329b6e80a8d7934c62', metadata: { 'tag': 'title', 'attributes': [], 'constructionOrder': [ '8f422c29094277568d01bde4' ] }, children: [ { value: 'titletext', porID: '5376f5329b6e80a8d7934c62' } ] } ] }, { porID: '32bb8c5780eb0cbd283bc7a0', metadata: { 'tag': 'body', 'attributes': [], 'constructionOrder': [ 'derp' ] }, children: [ { porID: 'derp', metadata: { 'tag': 'h1', 'attributes': [ {'name':"id",'value':"derp"},{'name':"class",'value':"herp"},{'name':"name",'value':"headerOne"} ], 'constructionOrder': [ '63572ec1ae7313a2e128e0fe', '5892268b7a3588982d7042eb', '058f9fbe9cc061d2b819c905' ] }, children: [ { value: 'Header ', porID: 'derp' }, { porID: '5892268b7a3588982d7042eb', metadata: { 'tag': 'span', 'attributes': [], 'constructionOrder': [] }, children: [] }, { value: ' afterSpan', porID: 'derp' } ] } ] } ] } ] };
-        
+
+        var porObject = {
+            porID: "test",
+            metadata: {'constructionOrder': ["doctype", "3e61894fe84fd31246460272"]},
+            children: [
+                {value: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', porID: "doctype"},
+                {porID: "3e61894fe84fd31246460272",
+                    metadata: { 'tag': 'html',
+                        'attributes': [
+                            {"name": "por-id", "value": "3e61894fe84fd31246460272"}
+                        ],
+                        'constructionOrder': [ '18eda53718376a1c58837e6e', '32bb8c5780eb0cbd283bc7a0' ] },
+                    children: [
+                        { porID: '18eda53718376a1c58837e6e',
+                            metadata: { 'tag': 'head',
+                                'attributes': [
+                                    {'name': "lang", 'value': "en"},
+                                    {"name": "por-id", "value": "18eda53718376a1c58837e6e"}
+                                ],
+                                'constructionOrder': [ '9e2928948e789fe743dd9761', '5376f5329b6e80a8d7934c62' ] },
+                            children: [
+                                { porID: '9e2928948e789fe743dd9761',
+                                    metadata: { 'tag': 'meta', 'attributes': [
+                                        {'name': "charset", 'value': "UTF-8"},
+                                        {"name": "por-id", "value": "9e2928948e789fe743dd9761"}
+                                    ], 'constructionOrder': [] },
+                                    children: [] },
+                                { porID: '5376f5329b6e80a8d7934c62',
+                                    metadata: { 'tag': 'title', 'attributes': [
+                                        {"name": "por-id", "value": "5376f5329b6e80a8d7934c62"}
+                                    ], 'constructionOrder': [ '8f422c29094277568d01bde4' ] },
+                                    children: [
+                                        { value: 'titletext', porID: '8f422c29094277568d01bde4' }
+                                    ] }
+                            ] },
+                        { porID: '32bb8c5780eb0cbd283bc7a0',
+                            metadata: { 'tag': 'body', 'attributes': [
+                                {"name": "por-id", "value": "32bb8c5780eb0cbd283bc7a0"}
+                            ], 'constructionOrder': [ 'derp' ] },
+                            children: [
+                                { porID: 'derp',
+                                    metadata: { 'tag': 'h1',
+                                        'attributes': [
+                                            {'name': "id", 'value': "derp"},
+                                            {'name': "class", 'value': "herp"},
+                                            {'name': "name", 'value': "headerOne"},
+                                            {"name": "por-id", "value": "derp"}
+                                        ],
+                                        'constructionOrder': [ '63572ec1ae7313a2e128e0fe',
+                                            '5892268b7a3588982d7042eb',
+                                            '058f9fbe9cc061d2b819c905' ] },
+                                    children: [
+                                        { value: 'Header ', porID: '63572ec1ae7313a2e128e0fe' },
+                                        { porID: '5892268b7a3588982d7042eb',
+                                            metadata: { 'tag': 'span', 'attributes': [
+                                                {"name": "por-id", "value": "5892268b7a3588982d7042eb"}
+                                            ], 'constructionOrder': [] },
+                                            children: [] },
+                                        { value: ' afterSpan', porID: '058f9fbe9cc061d2b819c905' }
+                                    ] }
+                            ] }
+                    ] }
+            ] };
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
     })
 });
 
-describe('Test conversion from por object to HTML string', function() {
+describe('Test write of local file', function () {
 
-    it('Convert por object of just a doctype definition', function() {
-        var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLJustDoctype');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
-        var porObjHTML = '<por-text por-id=testHTMLJustDoctype><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"></por-text><html><head></head><body></body></html>';
-
-        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
-
+    it("Throw error if directory doesn't exist", function() {
+        assert.throws( function() {
+            htmlWriter.generateFile("./brokenPath", "testRepo");
+        } , URIError);
     });
 
-    it('Convert por object of HTML with inline formatting', function() {
+    it('Check file created during write operation', function() {
         var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLInlineFormat');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
-        var porObjHTML = '<por-text por-id=testHTMLInlineFormat><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"></por-text><html><head><title por-id="id1"><por-text por-id=id1>Super basic formatted html</por-text></title></head><body><h1 por-id="id2"><por-text por-id=id2>preSpan</por-text><span por-id="id3"><por-text por-id=id3>inSpan</por-text></span><por-text por-id=id2>postSpan</por-text></h1></body></html>';
-
-        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
-
-    });
-
-    it('Convert por object of HTML with basic formatting', function() {
-        var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLBasicFormat');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
-        var porObjHTML = '<por-text por-id=testHTMLBasicFormat><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"></por-text><html><head><title por-id="id1"><por-text por-id=id1>\n\t\t\tSuper basic formatted html\n\t\t</por-text></title></head><body><h1 por-id="id2"><por-text por-id=id2>\n\t\t\tpreSpan\n\t\t\t</por-text><span por-id="id3"><por-text por-id=id3>\n\t\t\t\tinSpan\n\t\t\t</por-text></span><por-text por-id=id2>\n\t\t\tpostSpan\n\t\t</por-text></h1></body></html>';
-        
-        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
-
-    });
-
-    it('Convert por object of a complex tree', function() {
-        var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
-        var porObjHTML = '<por-text por-id=test><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"></por-text><html><head lang="en"><meta charset="UTF-8"></meta><title><por-text por-id=5376f5329b6e80a8d7934c62>titletext</por-text></title></head><body><h1 id="derp" class="herp" name="headerOne"><por-text por-id=derp>Header </por-text><span></span><por-text por-id=derp> afterSpan</por-text></h1></body></html>';
-
-        assert.equal(htmlWriter.convertPORObjectToHTMLString(porObj), porObjHTML);
-
-    });
-
-})
-
-describe('Test initialization of local file', function() {
-
-    it('Create html from a complex tree', function() {
-        var currentPath = __dirname;
-        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
+        var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo');
         var pathToOutputHTML = path.join(currentPath, 'resources', 'htmlInitOutput.html');
-        htmlWriter.initializeFile(pathToGenerationTest, pathToOutputHTML);
+        htmlWriter.generateFile(pathToGenerationTest, pathToOutputHTML);
+        assert.doesNotThrow(function () {
+            fileExists(pathToOutputHTML);
+        } , Error);
+    });
+
+    it('Create html from a simple POR repository', function() {
+        var currentPath = __dirname;
+        var pathToSmallTest = path.join(currentPath, 'generationTest', 'smallRepo');
+        var pathToOutputHTML = path.join(currentPath, 'generationTest', 'smallOutput.html');
+
+        assert.ok(htmlWriter.generateFile(pathToSmallTest, pathToOutputHTML));
         assert.doesNotThrow( function() {
             fileExists(pathToOutputHTML);
         } , Error);
-    })
-});
 
+        var fileOutput = fs.readFileSync(pathToOutputHTML, "utf-8");
+        var fileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+        fileString += '\n<html>Text here\n</html>';
+
+        assert.equal(fileOutput, fileString);
+    });
+});
 
 function fileExists(fileLocation) {
     if (!fs.existsSync(fileLocation)) {

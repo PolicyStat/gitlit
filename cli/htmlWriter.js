@@ -2,17 +2,20 @@
  * Created by John Kulczak on 10/16/2014.
  */
 var fs = require("fs");
+var html = require('html');
 
-function initializeFile(directory, outputFile) {
+function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
-        throw new URIError(file + ' is not a directory');
+        throw new URIError(directory + ' is not a directory');
     }
     var porRepo = getPORObjectFromRepo(directory);
+    return writePORObjectToHTMLFile(porRepo, outputFile);
+}
 
-    var fileString = convertPORObjectToHTMLString(porRepo);
+function writePORObjectToHTMLFile(porObject, outputFile) {
+    var fileString = convertPORRepoObjectToHTMLString(porObject);
 
-	fs.writeFileSync(outputFile, fileString);
-    //TODO: Might not be needed, let's see
+    fs.writeFileSync(outputFile, fileString);
     return fileString;
 }
 
@@ -44,7 +47,7 @@ function getPORObjectFromRepo(currentDir){
             if (fs.lstatSync(fileLoc).isFile() && fs.existsSync(fileLoc)){
                 var textValue = {
                     value: fs.readFileSync(fileLoc, "utf-8"),
-                    porID: currentDir.replace(/^.*[\\\/]/, '')
+                    porID: fileLoc.replace(/^.*[\\\/]/, '').split('.')[0]
                 };
                 porObject.children.push(textValue);
             }
@@ -54,10 +57,15 @@ function getPORObjectFromRepo(currentDir){
     return porObject;
 }
 
+function convertPORRepoObjectToHTMLString(porObject) {
+    var htmlString =  recursivelyConvertPORObjectToHTML(porObject);
+    return html.prettyPrint(htmlString, {indent_size: 2});
+}
+
 /**
 * Returns a string built from the POR object.
 */
-function convertPORObjectToHTMLString(porObject){
+function recursivelyConvertPORObjectToHTML(porObject){
 
 	var fileString = "";
 
@@ -68,44 +76,42 @@ function convertPORObjectToHTMLString(porObject){
             fileString += convertTagNodeToHTMLString(porObject);
 		}else{
 			porObject.children.forEach(function(child){
-				fileString += convertPORObjectToHTMLString(child);
+				fileString += recursivelyConvertPORObjectToHTML(child);
 			});
 		}
 	} else {
         fileString += convertTextNodeToHTMLString(porObject);
     }
-	return fileString;
 
+    return fileString;
 }
 
 function convertTextNodeToHTMLString(porObject) {
     // if the node is a leaf (text file)
     var objectString = "";
-    var porID = porObject.porID;
-    if (porID) {
-        //TODO: Decide if we want to tag text nodes
-        objectString += "<por-text por-id=" + porID + ">";
-        objectString += porObject.value;
-        objectString += "</por-text>"
-    } else {
-        // Text of node
-        objectString += porObject.value;
-    }
+
+    //We don't want to tag text nodes, as this might break something that uses the
+    //HTML, so just give the text
+    objectString += porObject.value;
 
     return objectString;
 }
 
 function convertTagNodeToHTMLString(porObject) {
+    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
     var objectString = "";
     objectString += extractOpeningTag(porObject);
 
     // Recursively add children to this string
     porObject.children.forEach(function(child){
-        objectString += convertPORObjectToHTMLString(child);
+        objectString += recursivelyConvertPORObjectToHTML(child);
     });
 
+
     // End tag
-    objectString += "</" + porObject.metadata.tag + ">";
+    if (emptyTags.indexOf(porObject.metadata.tag) == -1) {
+        objectString += "</" + porObject.metadata.tag + ">";
+    }
     return objectString;
 }
 
@@ -123,10 +129,11 @@ function extractOpeningTag(porObject) {
 
 
 module.exports = {
-	initializeFile: initializeFile,
+    generateFile: generateFile,
+    writePORObjectToHTMLFile : writePORObjectToHTMLFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
-    convertPORObjectToHTMLString : convertPORObjectToHTMLString,
+    convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
     getPORObjectFromRepo : getPORObjectFromRepo,
     extractOpeningTag: extractOpeningTag
 };

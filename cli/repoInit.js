@@ -34,9 +34,33 @@ function initializeRepository(file, outputPath, repoName) {
         if (!fs.existsSync(outputPath)) {
             throw new URIError("Output Path does not exist");
         }
+        if (fs.existsSync(outputPath + repoName) || fs.existsSync(outputPath + "/" + repoName)) {
+            throw new URIError("Error: A directory already exists at this location with the name " + repoName);
+        }
         var fileContents = getFileContents(file);
         var porObject = parser.parseHTML(fileContents, repoName);
         fileWriter.writeRepoToDirectory(porObject, outputPath);
+    } catch (err) {
+        if (err instanceof TypeError) {
+            console.error(err.message);
+        }
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+        if (err instanceof ReferenceError) {
+            console.log(err.message);
+        }
+    }
+}
+
+function commitDocument(file, outputPath, repoName, commitMessage) {
+    try {
+        if (!fs.existsSync(outputPath)) {
+            throw new URIError("Output Path does not exist");
+        }
+        var fileContents = getFileContents(file);
+        var porObject = parser.parseHTML(fileContents, repoName);
+        fileWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
     } catch (err) {
         if (err instanceof TypeError) {
             console.error(err.message);
@@ -55,6 +79,7 @@ function initializeRepository(file, outputPath, repoName) {
  */
 module.exports = {
     initializeRepository: initializeRepository,
+    commitDocument: commitDocument,
     getFileContents : getFileContents,
     getExtension : getExtension
 };
