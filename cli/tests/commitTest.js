@@ -13,30 +13,35 @@ describe('Performs a git commit correctly', function () {
 	var repoName = 'testRepo';
 	var pathToGeneratedFile = path.join(currentPath, 'commitTest', 'testHTML.html');
 	var pathToGeneratedRepo = path.join(currentPath, 'commitTest');
-	deleteDirectoryIfExists(path.join(pathToGeneratedRepo, repoName));
+    var fullRepoPath = path.join(pathToGeneratedRepo, repoName);
+	deleteDirectoryIfExists(fullRepoPath);
+    console.log("Deleted directory if it existed: " + fullRepoPath);
 	repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, repoName);
-	locCommand = 'cd ' + path.join(pathToGeneratedRepo, repoName) + ' && ';
+    console.log("completed the initialization");
+    console.log(repoWriter.shellOut("ls " + fullRepoPath));
+	var locCommand = 'cd ' + fullRepoPath + ' && ';
+    console.log(repoWriter.shellOut('git --version'));
 
 	it('Tests to see if the repo was initilized correctly', function () {
-		command = locCommand + 'git rev-list HEAD --count';
+		var command = locCommand + 'git rev-list HEAD --count';
 		assert.equal(repoWriter.shellOut(command), '1\n');
 	});
 	
 	it('Tests to see if the commit hash changes between commits', function () {
-		command = locCommand + 'git rev-parse HEAD';
-		initialSHA1 = repoWriter.shellOut(command);
+		var command = locCommand + 'git rev-parse HEAD';
+		var initialSHA1 = repoWriter.shellOut(command);
 		repoInit.commitDocument(pathToGeneratedFile, pathToGeneratedRepo, repoName, "this is a test commit");
 		assert.notEqual(repoWriter.shellOut(command), initialSHA1);
 	});
 
 	it('Tests to see if the commit count is correct after second commit', function () {
-		command = locCommand + 'git rev-list HEAD --count';
+		var command = locCommand + 'git rev-list HEAD --count';
 		assert.equal(repoWriter.shellOut(command), '2\n');
 	});
 
 	it('Tests to see if the commit message is correct', function () {
-		command = locCommand + 'git rev-parse HEAD';
-		sha1 = repoWriter.shellOut(command);
+		var command = locCommand + 'git rev-parse HEAD';
+		var sha1 = repoWriter.shellOut(command);
 		command = locCommand + 'git log -n 1 --pretty=format:%s ' + sha1;
 		assert.equal(repoWriter.shellOut(command), "this is a test commit");
 	});
