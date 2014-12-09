@@ -1,6 +1,6 @@
-##########################
-HTML to File Serialization
-##########################
+################################
+HTML to Repository Serialization
+################################
 
 In order to store meaningful changes in git,
 PSO serializes HTML
@@ -141,7 +141,7 @@ Assume they're there.
 Lexicographical Representation
 ------------------------------
 
-.. code-block:: markdown
+.. ::
 
     * 1000-GUID1
       * content.txt
@@ -153,7 +153,7 @@ Lexicographical Representation
 Table Representation
 --------------------
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -183,7 +183,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * 1000-GUID1
       * content.txt
@@ -200,7 +200,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -237,7 +237,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * 1000-GUID1
       * content.txt
@@ -254,7 +254,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -292,7 +292,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * 1000-GUID1
       * content.txt
@@ -312,7 +312,7 @@ Table Representation
 
 Conflicts: Yes. In ``metadata.json``.
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -365,7 +365,7 @@ Initial Content
 Lexicographical Representation
 ------------------------------
 
-.. code-block:: markdown
+.. ::
 
     * 1000-GUID1
       * content.txt
@@ -383,7 +383,7 @@ Lexicographical Representation
 Table Representation
 --------------------
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -422,7 +422,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * 0500-GUID4
       * content.txt
@@ -442,7 +442,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -481,7 +481,7 @@ Lexicographical Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * 0500-GUID4
       * content.txt
@@ -501,7 +501,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
@@ -544,7 +544,7 @@ Lexicographical Representation
 Conflicts: No. Not if content and move
 are separate commits.
 
-.. code-block:: markdown
+.. ::
 
     * 0500-GUID4
       * content.txt
@@ -564,7 +564,7 @@ Table Representation
 
 Conflicts: No
 
-.. code-block:: markdown
+.. ::
 
     * GUID1
       * content.txt
