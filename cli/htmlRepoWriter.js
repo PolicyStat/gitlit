@@ -92,7 +92,7 @@ function shellOut(command){
     var exec = require('child_process').exec;
 
     var execSync = deasync(exec);
-    execSync(command);
+    return execSync(command);
 
 }
 
