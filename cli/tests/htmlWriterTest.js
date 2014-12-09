@@ -69,11 +69,11 @@ describe('Get opening tag data from JSON objects properly', function () {
 
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
 
-        child2 = child;
+        var child2 = child;
         tagObject.children.push(child2);
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
 
-        child3 = child;
+        var child3 = child;
         tagObject.children.push(child3);
         assert.equal(tagObject.children.length, 3);
         assert.equal(htmlWriter.extractOpeningTag(tagObject), '<div>');
@@ -333,7 +333,6 @@ describe('Test converting POR object into a string', function () {
         assert.equal(htmlWriter.convertPORObjectToHTMLString(tagObject).replace(/\n| {2,}/g,''), porString);
     });
 
-
     it('Convert por object of a complex tree', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
@@ -494,6 +493,7 @@ describe('Test creation of por object from repo', function () {
                 ]}
             ]}
         ]};
+
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLInlineFormat');
         assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));

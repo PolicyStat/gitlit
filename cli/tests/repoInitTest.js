@@ -9,15 +9,21 @@ var path = require("path");
 describe('Get extension of files properly', function() {
 
     it('non-HTML extension', function() {
-        assert.equal(repoInit.getExtension('./cli/tests/resources/nonHTML.txt'), 'txt');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'nonHTML.txt');
+        assert.equal(repoInit.getExtension(pathToFile), 'txt');
     });
 
     it('HTML extension', function() {
-        assert.equal(repoInit.getExtension('./cli/tests/resources/testHTML.html'), 'html');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTML.html');
+        assert.equal(repoInit.getExtension(pathToFile), 'html');
     });
 
     it('extension-less file', function(){
-        assert.equal(repoInit.getExtension('./cli/tests/resources/noExtension'), '');
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'noExtension');
+        assert.equal(repoInit.getExtension(pathToFile), '');
     });
 
 });
@@ -26,19 +32,25 @@ describe('Get file contents', function() {
 
     it('Error on non-HTML file', function() {
         assert.throws(function (){
-            repoInit.getFileContents('./cli/tests/resources/nonHTML.txt');
+            var currentPath = __dirname;
+            var pathToFile = path.join(currentPath, 'resources', 'nonHTML.txt');
+            repoInit.getFileContents(pathToFile);
         }, TypeError);
 
     });
 
     it('Error on file with no extension', function(){
         assert.throws(function (){
-            repoInit.getFileContents('./cli/tests/resources/noExtension');
+            var currentPath = __dirname;
+            var pathToFile = path.join(currentPath, 'resources', 'noExtension');
+            repoInit.getFileContents(pathToFile);
         }, TypeError);
     });
 
     it('Getting HTML file contents', function() {
-        assert.ok(typeof repoInit.getFileContents('./cli/tests/resources/testHTML.html') == "string");
+        var currentPath = __dirname;
+        var pathToFile = path.join(currentPath, 'resources', 'testHTML.html');
+        assert.ok(typeof repoInit.getFileContents(pathToFile) == "string");
     });
 
 });

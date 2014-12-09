@@ -158,6 +158,23 @@ describe('Element ordering & storage in metadata objects', function () {
         assert.ok(sixth.name == 'class' && sixth.value == 6);
     });
 
+    it('has correct handling for comments', function(){
+        var htmlSnippet = "<span por-id=\"1\">test<!--this is for tests--></span>";
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].porID, 1);
+        assert.equal(output.children[0].children[1].children[0].metadata.tag, 'span');
+        assert.equal(output.children[0].children[1].children[0].children[0].value, 'test');
+        assert.equal(output.children[0].children[1].children[0].children[1].value, '<!--this is for tests-->');
+    });
+
+    it('handles a comment on its own', function(){
+        var htmlSnippet = "<!--hi, I\'m a comment!-->"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].value, '<!--hi, I\'m a comment!-->');
+    });
+
 });
 
 /*

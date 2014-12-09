@@ -52,7 +52,6 @@ function parseHTMLToWritableRepo(dom, repoName) {
          and then go through and add the files to it.
          */
         var children = parseChildrenNodes(dom, false);
-
         return {
             repoName: repoName,
             children: children
@@ -177,6 +176,9 @@ function processTaglessChild(dom, inPre) {
         }
         contents = "<!DOCTYPE " + dom.name + " " + publicInfo + " " + systemInfo +">";
         id = "doctype";
+    } else if (dom.nodeName == '#comment') {
+        contents = "<!--" + dom.data + "-->";
+        id = generateNewPORID(porKeys);
     }
 
     if (/^\s*$/.test(contents) && !inPre) {
