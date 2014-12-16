@@ -71,7 +71,8 @@ function gitRepoCreation(repoPath){
     command += 'cd ' + repoPath + ' && ';
     command += 'git init ' + ' && ';
     command += 'git add -A .' + ' && ';
-    command += 'git commit -m \" repo initialized \" --allow-empty';
+    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' ' +
+        'commit -m \" repo initialized \" --allow-empty';
 //    console.log(command);
 
     shellOut(command);
@@ -84,7 +85,8 @@ function gitCommit(repoPath, commitMessage){
 
     command += 'cd ' + repoPath + ' && ';
     command += 'git add -A .' + ' && ';
-    command += 'git commit -m \"' + message + ' \" --allow-empty';
+    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' commit -m \"'
+        + commitMessage + '\" --allow-empty';
 
     shellOut(command);
 }
