@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html por-id="0a8df412c914c558820b895a">
+  
+  <head por-id="4763179c41b4b9dd94f8c03a">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" por-id="5e18b482d1326cc79f673e72">
+    <title por-id="ba6f6cf39ee617ed28e6dfbb">Backgammon</title>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      attribute vec4 vPosition;
+      
+      void
+      main()
+      {
+      	gl_PointSize = 30.0;
+          gl_Position = vPosition;
+      }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      precision mediump float;
+      
+      uniform vec4 color;
+      
+      void
+      main()
+      {
+          gl_FragColor = color;
+      }
+    </script>
+    <script type="text/javascript" src="./Common/webgl-utils.js"
+    por-id="de69676c702a7a9883c63dcd"></script>
+    <script type="text/javascript" src="./Common/initShaders.js"
+    por-id="84c0fdde7f76e05ea8507e3d"></script>
+    <script type="text/javascript" src="./Common/MV.js" por-id="ed1bce3ce700cffdc84d9a47"></script>
+    <script type="text/javascript" src="backgammon.js" por-id="7164d61132a4db1625ef632c"></script>
+  </head>
+  
+  <body style="background-image: url('tweed.png');" por-id="623ea214c6bfca115be632d6">
+    <div style="width: 100%; overflow: hidden;" por-id="f31c5819abb84951b2f69df9">
+      <div style="float:left;" por-id="6aaf9dbb0cc37cc2e35afe58">
+        <canvas id="gl-canvas" width="720" height="640" style="background-image: url('board.jpg');">Oops ... your browser doesn't support the HTML5 canvas element</canvas>
+      </div>
+      <div style="margin-left:740px; position: relative;" por-id="7efae2c8fd99651f0b2cbc58">
+        <div style="z-index: 1;" por-id="14ead9d20d3a0c982ea2d29e">
+          <img src="title.png" por-id="92be1639b4eefa7d44ed2c66">
+        </div>
+        <div style="z-index: 2; margin-left:100px; margin-top:30px;" por-id="66dc7ad1f1b9284031ffbce0">
+          <img src="player1.png" por-id="ed6ba5611811fb51e5ff9cd7">
+          <div id="player1dice"></div>
+        </div>
+        <div style="z-index: 3; margin-left:100px; margin-top:30px;" por-id="7cb907cbffa10c96f8af467c">
+          <img src="player2.png" por-id="e81c433c0e1e693bcfc4b969">
+          <div id="player2dice"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+</html>
