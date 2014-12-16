@@ -84,7 +84,7 @@ function gitCommit(repoPath, commitMessage){
 
     command += 'cd ' + repoPath + ' && ';
     command += 'git add -A .' + ' && ';
-    command += 'git commit -m \"' + message + ' \"';
+    command += 'git commit -m \"' + message + ' \" --allow-empty';
 
     shellOut(command);
 }

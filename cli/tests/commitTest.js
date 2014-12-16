@@ -26,7 +26,7 @@ describe('Performs a git commit correctly', function () {
     console.log(repoWriter.shellOut('git --version'));
 
 	it('Tests to see if the repo was initilized correctly', function () {
-        console.log(repoWriter.shellOut(locCommand + 'git log -- HEAD'));
+        console.log(repoWriter.shellOut(locCommand + 'git log --all'));
 		var command = locCommand + 'git rev-list HEAD --count';
 		assert.equal(repoWriter.shellOut(command), '1\n');
 	});
