@@ -16,17 +16,10 @@ describe('Performs a git commit correctly', function () {
     var fullRepoPath = path.join(pathToGeneratedRepo, repoName);
 	deleteDirectoryIfExists(fullRepoPath);
 	repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, repoName);
-    console.log("completed the initialization");
-    var investigateCommand = "ls -a " + fullRepoPath + " && " +
-                             "ls -a " + path.join(fullRepoPath, ".git") + " && " +
-                             "cat " + path.join(fullRepoPath, ".git", "HEAD");
-    console.log(repoWriter.shellOut(investigateCommand));
     var currentPlace = currentPath;
 	var locCommand = 'cd ' + fullRepoPath + ' && ';
-    console.log(repoWriter.shellOut('git --version'));
 
 	it('Tests to see if the repo was initilized correctly', function () {
-        console.log(repoWriter.shellOut(locCommand + 'git log --all'));
 		var command = locCommand + 'git rev-list HEAD --count';
 		assert.equal(repoWriter.shellOut(command), '1\n');
 	});

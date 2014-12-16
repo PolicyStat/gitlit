@@ -71,7 +71,7 @@ function gitRepoCreation(repoPath){
     command += 'cd ' + repoPath + ' && ';
     command += 'git init ' + ' && ';
     command += 'git add -A .' + ' && ';
-    command += 'git commit -m \" repo initialized \"';
+    command += 'git commit -m \" repo initialized \" --allow-empty';
 //    console.log(command);
 
     shellOut(command);
