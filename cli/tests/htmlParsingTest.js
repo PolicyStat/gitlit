@@ -175,6 +175,31 @@ describe('Element ordering & storage in metadata objects', function () {
         assert.equal(output.children[0].value, '<!--hi, I\'m a comment!-->');
     });
 
+    it('handles ampersands correctly', function(){
+        var htmlSnippet = "<span por-id=\"1\"> 1 &amp; 2 </span>"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].porID, 1);
+        assert.equal(output.children[0].children[1].children[0].metadata.tag, 'span');
+        assert.equal(output.children[0].children[1].children[0].children[0].value, ' 1 &amp; 2 ');
+    });
+
+    it('handles single and double quotes correctly', function(){
+        var htmlSnippet = "<span por-id=\"1\"> &quot;I&#39;m prime twice&quot; </span>"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].porID, 1);
+        assert.equal(output.children[0].children[1].children[0].metadata.tag, 'span');
+        assert.equal(output.children[0].children[1].children[0].children[0].value, ' &quot;I&#39;m prime twice&quot; ');
+    });
+
+    it('does not break on entity tags', function(){
+        var htmlSnippet = "&lt;span&gt; text &lt;/span&gt;"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].value, '&lt;span&gt; text &lt;/span&gt;');
+    });
+
 });
 
 /*
@@ -372,22 +397,23 @@ describe('parseHTML over inline text file', function () {
 
 });
 
-describe('Fail to parse broken HTML files', function () {
+// No longer valid
+// describe('Fail to parse broken HTML files', function () {
 
-    it('Does not parse on an unclosed tag -text', function () {
-        var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
+//     it('Does not parse on an unclosed tag -text', function () {
+//         var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMissingCloseTagText.html', 'utf8');
 
-        test.error(function () {
-            parser.parseHTML(invalidHTML, 'repoName');
-        });
-    });
+//         test.error(function () {
+//             parser.parseHTML(invalidHTML, 'repoName');
+//         });
+//     });
 
-    it('Does not parse on mismatched tags -text', function () {
-        var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
+//     it('Does not parse on mismatched tags -text', function () {
+//         var invalidHTML = fs.readFileSync('./cli/tests/resources/testHTMLMismatchedTagsText.html', 'utf8');
 
-        test.error(function () {
-            parser.parseHTML(invalidHTML, 'repoName');
-        });
-    });
+//         test.error(function () {
+//             parser.parseHTML(invalidHTML, 'repoName');
+//         });
+//     });
 
-});
+// });

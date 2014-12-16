@@ -158,9 +158,22 @@ function processTaglessChild(dom, inPre) {
         contents = dom.value;
         id = generateNewPORID(porKeys);
 
-        if (/[\"\&\<\>]/.test(contents)){
-            throw new Error("Reserved character detected, could be do to an unclosed tag.");
+        if (/&/.test(contents)){
+            contents = contents.replace(/&/g, '&amp;');
         }
+        if (/'/.test(contents)) {
+            contents = contents.replace(/'/g, '&#39;');
+        };
+        if (/"/.test(contents)) {
+            contents = contents.replace(/"/g, '&quot;')
+        };
+        if (/</.test(contents)) {
+            contents = contents.replace(/</g, '&lt;')
+        };
+        if (/>/.test(contents)) {
+            contents = contents.replace(/>/g, '&gt;')
+        };
+
 
     } else if (dom.nodeName == '#documentType') {
         /*
