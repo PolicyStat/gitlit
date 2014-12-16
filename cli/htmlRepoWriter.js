@@ -70,8 +70,10 @@ function gitRepoCreation(repoPath){
 
     command += 'cd ' + repoPath + ' && ';
     command += 'git init ' + ' && ';
-    command += 'git add *' + ' && ';
-    command += 'git commit -m \" repo initialized \"';
+    command += 'git add -A .' + ' && ';
+    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' ' +
+        'commit -m \" repo initialized \" --allow-empty';
+//    console.log(command);
 
     shellOut(command);
 }
@@ -82,17 +84,18 @@ function gitCommit(repoPath, commitMessage){
     var message = commitMessage || 'repo initialized';
 
     command += 'cd ' + repoPath + ' && ';
-    command += 'git add -A *' + ' && ';
-    command += 'git commit -m \"' + message + ' \"';
+    command += 'git add -A .' + ' && ';
+    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' commit -m \"'
+        + commitMessage + '\" --allow-empty';
 
     shellOut(command);
 }
 
 function shellOut(command){
     var exec = require('child_process').exec;
-
+//    console.log(command);
     var execSync = deasync(exec);
-    execSync(command);
+    return execSync(command);
 
 }
 
