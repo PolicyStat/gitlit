@@ -5,7 +5,6 @@ var fs = require("fs");
 var path = require("path");
 var deasync = require("deasync");
 var shellTools = require('./shellTools');
-var simpleGit = require('simple-git')();
 
 function getDiff(repoLocation) {
     // Note: This doesn't work currently, not sure why, but it's here for posterity for now
