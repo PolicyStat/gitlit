@@ -4,8 +4,8 @@
 
 var fs = require("fs");
 var path = require("path");
-var deasync = require("deasync");
 var htmlParser = require("./htmlParser");
+var shellTools = require('./shellTools');
 
 /*
  TODO: Change to using async file and directory creation, but for now, this makes the logic easier to track
@@ -19,7 +19,7 @@ function writeRepoToDirectory(porObject, outputPath) {
         // Initialize the repo
 
         recursivelyBuildRepoDirectory(porObject, repoOutputPath);
-        gitRepoCreation(repoOutputPath);
+        shellTools.gitRepoCreation(repoOutputPath);
     }
 }
 
@@ -33,7 +33,7 @@ function writeCommitToDirectory(porObject, outputPath, commitMessage){
 
         prepareRepo(repoOutputPath, porObject['repoName']);
         recursivelyBuildRepoDirectory(porObject, repoOutputPath);
-        gitCommit(repoOutputPath, commitMessage);
+        shellTools.gitCommit(repoOutputPath, commitMessage);
     }
 }
 
@@ -62,41 +62,7 @@ function prepareRepo(outputPath, repoName){
     command += 'mv ' + absPath + ' ./.git && ';
     command += 'rm -rf ' + absPath;
 
-    shellOut(command);
-}
-
-function gitRepoCreation(repoPath){
-    var command = '';
-
-    command += 'cd ' + repoPath + ' && ';
-    command += 'git init ' + ' && ';
-    command += 'git add -A .' + ' && ';
-    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' ' +
-        'commit -m \" repo initialized \" --allow-empty';
-//    console.log(command);
-
-    shellOut(command);
-}
-
-function gitCommit(repoPath, commitMessage){
-    var command = '';
-
-    var message = commitMessage || 'repo initialized';
-
-    command += 'cd ' + repoPath + ' && ';
-    command += 'git add -A .' + ' && ';
-    command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' commit -m \"'
-        + commitMessage + '\" --allow-empty';
-
-    shellOut(command);
-}
-
-function shellOut(command){
-    var exec = require('child_process').exec;
-//    console.log(command);
-    var execSync = deasync(exec);
-    return execSync(command);
-
+    shellTools.shellOut(command);
 }
 
 function recursivelyBuildRepoDirectory(porObject, outputPath) {
@@ -144,6 +110,5 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
 
 module.exports = {
     writeRepoToDirectory: writeRepoToDirectory,
-    writeCommitToDirectory: writeCommitToDirectory,
-    shellOut: shellOut
+    writeCommitToDirectory: writeCommitToDirectory
 };

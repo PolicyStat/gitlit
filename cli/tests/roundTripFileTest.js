@@ -5,6 +5,7 @@
 var htmlWriter = require('../htmlWriter');
 var repoWriter = require("../htmlRepoWriter");
 var repoInit = require("../repoInit.js");
+var shellTools = require('../shellTools');
 var parser = require('../htmlParser');
 var assert = require('assert');
 var path = require("path");
@@ -156,7 +157,7 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'resources', 'roundTripTesting', baseFileName);
 
-    deleteFileIfExists(pathToGeneratedFile);
+    repoInit.deleteFileIfExists(pathToGeneratedFile);
     htmlWriter.writePORObjectToHTMLFile(porObject, pathToGeneratedFile);
     assert.ok(fs.existsSync(pathToGeneratedFile));
 
@@ -164,7 +165,7 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     //round-trip, it should be the same before and after.
     var pathToRepoOutput = path.join(currentPath, 'resources', 'roundTripTesting');
 
-    deleteDirectoryIfExists(path.join(pathToRepoOutput,repoName));
+    repoInit.deleteDirectoryIfExists(path.join(pathToRepoOutput,repoName));
     repoInit.initializeRepository(pathToGeneratedFile, pathToRepoOutput, repoName);
     pathToRepoOutput = path.join(pathToRepoOutput, repoName);
     assert.ok(fs.existsSync(pathToRepoOutput));
@@ -249,7 +250,7 @@ describe("Test writing the JSON object to repo directory", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
-    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo'));
+    repoInit.deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo');
 
     it("Checking that the directory was created", function() {
@@ -276,7 +277,7 @@ describe("Test writing the JSON object to repo directory", function() {
 describe("Test writing repo directory back into HTML file", function() {
     var currentPath = __dirname;
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
-    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile.html'));
+    repoInit.deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile.html'));
     htmlWriter.generateFile(pathToGeneratedRepo + "/testRepo", pathToGeneratedRepo + "/testFile.html");
 
     it("Checking that the html file was created", function() {
@@ -298,9 +299,9 @@ describe("Sending the new HTML file back through repo/html generation", function
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFile.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
-    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepoRepeat'));
+    repoInit.deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepoRepeat'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepoRepeat');
-    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFileRepeat.html'));
+    repoInit.deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFileRepeat.html'));
     htmlWriter.generateFile(pathToGeneratedRepo + "/testRepoRepeat", pathToGeneratedRepo + "/testFileRepeat.html");
 
     it("Checking that the html file was created", function() {
@@ -319,9 +320,9 @@ describe("Testing second file sent through repo/html writers", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion2.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
-    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo2'));
+    repoInit.deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo2'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo2');
-    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile2.html'));
+    repoInit.deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile2.html'));
     htmlWriter.generateFile(path.join(pathToGeneratedRepo,"testRepo2"), path.join(pathToGeneratedRepo, "testFile2.html"));
 
     it("Checking that the html file was created", function() {
@@ -346,9 +347,9 @@ describe("Testing third file sent through repo/html writers", function() {
     var currentPath = __dirname;
     var pathToGeneratedFile = path.join(currentPath, 'conversionTest', 'testFullConversion3.html');
     var pathToGeneratedRepo = path.join(currentPath, 'conversionTest');
-    deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo3'));
+    repoInit.deleteDirectoryIfExists(path.join(pathToGeneratedRepo, 'testRepo3'));
     repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, 'testRepo3');
-    deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile3.html'));
+    repoInit.deleteFileIfExists(path.join(pathToGeneratedRepo, 'testFile3.html'));
     htmlWriter.generateFile(path.join(pathToGeneratedRepo, "testRepo3"), path.join(pathToGeneratedRepo, "testFile3.html"));
 
     it("Checking that the html file was created", function() {
@@ -368,14 +369,3 @@ describe("Testing third file sent through repo/html writers", function() {
     });
 });
 
-function deleteDirectoryIfExists(pathToDirectory) {
-    if(fs.existsSync(pathToDirectory)) {
-        repoWriter.shellOut('rm -rf ' + pathToDirectory);
-    }
-}
-
-function deleteFileIfExists(pathToFile) {
-    if(fs.existsSync(pathToFile)) {
-        fs.unlinkSync(pathToFile);
-    }
-}

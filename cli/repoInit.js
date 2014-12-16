@@ -5,6 +5,8 @@ var fs = require('fs');
 var path = require('path');
 var parser = require('./htmlParser');
 var fileWriter = require('./htmlRepoWriter');
+var diffParser = require('./diffParser');
+var shellTools = require('./shellTools');
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -71,6 +73,32 @@ function commitDocument(file, outputPath, repoName, commitMessage) {
     }
 }
 
+function getDiff(repoLocation) {
+    try {
+        if(!fs.existsSync(repoLocation)) {
+            throw new URIError("Directory does not exist at location: " + repoLocation);
+        }
+        var diffOutput = diffParser.getDiff(repoLocation);
+        console.log(diffOutput);
+    } catch (err) {
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+    }
+}
+
+function deleteDirectoryIfExists(pathToDirectory) {
+    if(fs.existsSync(pathToDirectory)) {
+        shellTools.shellOut('rm -rf ' + pathToDirectory);
+    }
+}
+
+function deleteFileIfExists(pathToFile) {
+    if(fs.existsSync(pathToFile)) {
+        fs.unlinkSync(pathToFile);
+    }
+}
+
 /*
     This makes the functions visible in other js files when using require
     The first part is the key, and will specify what the function should be
@@ -81,5 +109,8 @@ module.exports = {
     initializeRepository: initializeRepository,
     commitDocument: commitDocument,
     getFileContents : getFileContents,
-    getExtension : getExtension
+    getExtension : getExtension,
+    deleteDirectoryIfExists: deleteDirectoryIfExists,
+    deleteFileIfExists: deleteFileIfExists,
+    getDiff: getDiff
 };

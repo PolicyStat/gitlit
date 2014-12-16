@@ -42,6 +42,13 @@ program
         writer.generateFile(directory, outputFile);
     });
 
+program
+    .command('diff <directory>')
+    .description('Show the difference between the last 2 revisions of the repository')
+    .action(function(directory) {
+        init.getDiff(directory);
+    });
+
 if (process.argv.length == 2){
     // This should only happen if no arguments are provided, since the command would be:
     // node /path/to/script/psychic-octo-robot.js
