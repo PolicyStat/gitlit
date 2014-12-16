@@ -70,8 +70,9 @@ function gitRepoCreation(repoPath){
 
     command += 'cd ' + repoPath + ' && ';
     command += 'git init ' + ' && ';
-    command += 'git add *' + ' && ';
+    command += 'git add -A .' + ' && ';
     command += 'git commit -m \" repo initialized \"';
+//    console.log(command);
 
     shellOut(command);
 }
@@ -82,7 +83,7 @@ function gitCommit(repoPath, commitMessage){
     var message = commitMessage || 'repo initialized';
 
     command += 'cd ' + repoPath + ' && ';
-    command += 'git add -A *' + ' && ';
+    command += 'git add -A .' + ' && ';
     command += 'git commit -m \"' + message + ' \"';
 
     shellOut(command);
@@ -90,7 +91,7 @@ function gitCommit(repoPath, commitMessage){
 
 function shellOut(command){
     var exec = require('child_process').exec;
-
+//    console.log(command);
     var execSync = deasync(exec);
     return execSync(command);
 

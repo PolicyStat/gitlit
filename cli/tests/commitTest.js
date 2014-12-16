@@ -9,7 +9,7 @@ var fs = require("fs");
 
 describe('Performs a git commit correctly', function () {
 
-	var currentPath = __dirname;
+	var currentPath = path.resolve(__dirname);
 	var repoName = 'testRepo';
 	var pathToGeneratedFile = path.join(currentPath, 'commitTest', 'testHTML.html');
 	var pathToGeneratedRepo = path.join(currentPath, 'commitTest');
@@ -17,13 +17,16 @@ describe('Performs a git commit correctly', function () {
 	deleteDirectoryIfExists(fullRepoPath);
 	repoInit.initializeRepository(pathToGeneratedFile, pathToGeneratedRepo, repoName);
     console.log("completed the initialization");
-    console.log(repoWriter.shellOut("ls " + fullRepoPath));
-    var currentPlace = repoWriter.shellOut("pwd");
+    var investigateCommand = "ls -a " + fullRepoPath + " && " +
+                             "ls -a " + path.join(fullRepoPath, ".git") + " && " +
+                             "cat " + path.join(fullRepoPath, ".git", "HEAD");
+    console.log(repoWriter.shellOut(investigateCommand));
+    var currentPlace = currentPath;
 	var locCommand = 'cd ' + fullRepoPath + ' && ';
     console.log(repoWriter.shellOut('git --version'));
 
 	it('Tests to see if the repo was initilized correctly', function () {
-        console.log(repoWriter.shellOut(locCommand + 'git log'));
+        console.log(repoWriter.shellOut(locCommand + 'git log -- HEAD'));
 		var command = locCommand + 'git rev-list HEAD --count';
 		assert.equal(repoWriter.shellOut(command), '1\n');
 	});
