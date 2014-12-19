@@ -1,10 +1,9 @@
-psychic-octo-robot
-==================
+# gitlit
 
-[![Build Status](https://travis-ci.org/PolicyStat/psychic-octo-robot.svg)]
-(https://travis-ci.org/PolicyStat/psychic-octo-robot)
-[![Documentation Status](https://readthedocs.org/projects/psychic-octo-robot/badge/?version=latest)]
-(http://psychic-octo-robot.readthedocs.org/en/latest/)
+[![Build Status](https://travis-ci.org/PolicyStat/gitlit.svg)]
+(https://travis-ci.org/PolicyStat/gitlit)
+[![Documentation Status](https://readthedocs.org/projects/gitlit/badge/?version=latest)]
+(http://gitlit.readthedocs.org/en/latest/)
 
 This project is a collection of modules that brings the power of git to 
 structured documents by students Ian Hallam, Devon Timaeus, and Sydney 
@@ -15,27 +14,27 @@ of PolicyStat.
 Currently HTML is the target language for development, with the posibility
 of later including XML, DOCX, and other structure document formats.
 
-## Usage: psychic-octo-robot [options] [command] [arguments]
+## Usage: gitlit [options] [command] [arguments]
 
 <!---
 make a bin if we can
     done with npm?
 -->
 
-### First, create a psychic-octo-robot local repo
-    node ./cli/psychic-octo-robot.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
+### First, create a gitlit local repo
+    node ./cli/gitlit.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
    
 In this case, the output path is the directory that you want the repository to
 be made in. This means that for future commands that need the repository location
 the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
 
 ### And change it back into html
-    node ./cli/psychic-octo-robot.js write <directory> <outputFile>       Convert a Repository into an HTML file
+    node ./cli/gitlit.js write <directory> <outputFile>       Convert a Repository into an HTML file
 Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
 be outputted as HTML, but won't be that filetype.
     
 ### Make a new revision of the local repo given a new document
-    node ./cli/psychic-octo-robot.js commit <file to make the new revision> <path to repo> <commit message>
+    node ./cli/gitlit.js commit <file to make the new revision> <path to repo> <commit message>
 
 ## Options
 
@@ -80,14 +79,14 @@ be outputted as HTML, but won't be that filetype.
     * `commit` feature: Given new file and a path to a repository directory, 
     create a new version of the document with a commit message
 * 0.3.1
-    * Updated project to be packaged on npm. Can be found [here](https://www.npmjs.org/package/psychic-octo-robot)
+    * Updated project to be packaged on npm. Can be found [here](https://www.npmjs.org/package/gitlit)
     * Set up project to work with Travis-CI
     * Added support for comments in HTML files
     * Added support for self-closing tags
     
 ## por-ids : What are they?
 
-They way that psychic-octo-robot keeps track of the structure of documents for intelligent handling of
+They way that gitlit keeps track of the structure of documents for intelligent handling of
 sections is via a file structure. In the Git repository that is the version control underlying the 
 project, the basic file structure looks like this:
 
