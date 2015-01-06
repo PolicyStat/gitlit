@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Created by Devon Timaeus on 9/24/2014.
  */
