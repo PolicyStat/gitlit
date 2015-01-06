@@ -89,7 +89,8 @@ function getDiff(repoLocation) {
 
 function deleteDirectoryIfExists(pathToDirectory) {
     if(fs.existsSync(pathToDirectory)) {
-        shellTools.shellOut('rm -rf ' + pathToDirectory);
+        //Need to change the permissions to write so that we can actually delete stuff in general
+        shellTools.shellOut('sudo chmod -R u+w ' + pathToDirectory + ';rm -rf ' + pathToDirectory);
     }
 }
 
