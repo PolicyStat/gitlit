@@ -79,7 +79,6 @@ function getDiff(repoLocation) {
             throw new URIError("Directory does not exist at location: " + repoLocation);
         }
         var diffOutput = diffParser.getDiff(repoLocation);
-        console.log(diffOutput);
     } catch (err) {
         if (err instanceof URIError) {
             console.error(err.message);

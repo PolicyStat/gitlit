@@ -12,18 +12,9 @@ function getDiff(repoLocation) {
     var resolvedRepoLocation = path.resolve(repoLocation);
     process.chdir(resolvedRepoLocation);
 
-    var command = "git --no-pager diff HEAD HEAD^ > patch_file";
-    console.log(command);
-    var other = shellTools.shellOut(command);
-    other = require('simple-git')().diff('HEAD^ HEAD');
-    console.log("Other: " + other);
-    var patchFileLocation = path.join(resolvedRepoLocation, 'patch_file');
-    console.log("patchFileLocation: " + patchFileLocation);
-    var diffOutput = fs.readFileSync(patchFileLocation, 'utf-8');
-//    fs.unlinkSync(patchFileLocation);
-    var otherOutput = shellTools.shellOut("git log");
-    console.log(diffOutput);
-    console.log(otherOutput);
+    var command = 'git --no-pager diff HEAD^';
+    var diffOutput = shellTools.shellOut(command);
+//    console.log("output of the command is: " + diffOutput);
     process.chdir(startingLocation);
     return diffOutput;
 }
