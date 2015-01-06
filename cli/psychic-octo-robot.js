@@ -23,7 +23,7 @@ program
 
 program
     .command('init <file> <outputPath> <repoName>')
-    .description('Initialize a Repository for the given file')
+    .description('\n\tInitialize a Repository for the given file')
     .action(function(file, outputPath, repoName) {
         init.initializeRepository(file, outputPath, repoName);
         printExtraHelp();
@@ -31,21 +31,21 @@ program
 
 program
     .command('commit <file> <pathToRepository> <commitMessage>')
-    .description('Commit to a Repository with the given file')
+    .description('\n\tCommit to a Repository with the given file')
     .action(function(file, pathToRepository, commitMessage) {
         init.commitDocument(file, pathToRepository, './', commitMessage);
     });
 
 program
     .command('write <directory> <outputFile>')
-    .description('Convert a Repository into an HTML file')
+    .description('\n\tConvert a Repository into an HTML file')
     .action(function(directory, outputFile) {
         writer.generateFile(directory, outputFile);
     });
 
 program
     .command('diff <directory>')
-    .description('Show the difference between the last 2 revisions of the repository')
+    .description('\n\tShow the difference between the last 2 revisions of the repository')
     .action(function(directory) {
         init.getDiff(directory);
     });
