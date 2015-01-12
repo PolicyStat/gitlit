@@ -70,5 +70,5 @@ describe('Diff result testing:', function () {
 	    var expected = [{isself:false, por_id:"40E36DB5C0AD13957351", child:0, modification:"delete"}, {isself:false, por_id:"40E36DB5C0AD13957351", child:1, modification:"add", text:"This is my new First Text"}];
 	    assert.equal(expected, result);
 	});
-}
+});
 
