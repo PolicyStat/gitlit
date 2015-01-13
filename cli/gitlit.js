@@ -8,13 +8,13 @@ var program = require("commander");
 
 function printExtraHelp(){
     console.log('IMPORTANT NOTE:');
-    console.log('psychic-octo-robot uses the parse5 HTML parsing library,\n' + '' +
+    console.log('gitlit uses the parse5 HTML parsing library,\n' + '' +
         'as such, there is undefined behavior if there are missing\n' +
         'opening or closing tags. If undesired behavior occurs,\n' +
         'check your document for missing opening or closing tags.');
 }
 
-program._name = 'psychic-octo-robot';
+program._name = 'gitlit';
 
 program
     .version('0.3.1')
@@ -52,7 +52,6 @@ program
 
 if (process.argv.length == 2){
     // This should only happen if no arguments are provided, since the command would be:
-    // node /path/to/script/psychic-octo-robot.js
     // The fact there were only 2 args mean that there was nothing other than this in the
     // command, so we should print out the help
     console.log("No arguments provided");

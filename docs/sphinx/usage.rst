@@ -24,7 +24,10 @@ If contributing to the project, then inside the GitHub
 project folder, at the root (where the package.json file
 is), simply run: ::
 
-    node ./cli/psychic-octo-robot.js <command info>
+    node ./cli/gitlit.js <command info>
+
+Alternatively:
+    ./cli/gitlit.js <command info>
 
 .. note::
 

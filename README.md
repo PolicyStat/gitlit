@@ -16,11 +16,6 @@ of later including XML, DOCX, and other structure document formats.
 
 ## Usage: gitlit [options] [command] [arguments]
 
-<!---
-make a bin if we can
-    done with npm?
--->
-
 ### First, create a gitlit local repo
     node ./cli/gitlit.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
    
@@ -83,6 +78,13 @@ be outputted as HTML, but won't be that filetype.
     * Set up project to work with Travis-CI
     * Added support for comments in HTML files
     * Added support for self-closing tags
+* 0.3.2
+    * Added executable version for global install via npm
+    * Added Vagrantfile for Vagrant development support
+    * Began work on diff functionality for telling the difference between 2 revisions
+* 0.4.0
+    * Renamed project: psychic-octo-robot -> gitlit
+    * Dropped Windows support in order to keep the project working easily in Linux
     
 ## por-ids : What are they?
 
