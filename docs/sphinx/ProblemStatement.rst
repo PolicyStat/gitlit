@@ -1,7 +1,7 @@
 Problem Statement
-==============================
+=================
 The Gospel of Git & and Source Control
-----------------------------------------
+--------------------------------------
 Software Developers the world over make use of Git, 
 SVN, and other source control systems to keep track of their source code, 
 merge in branches, and generally keep their projects well maintained.
@@ -16,7 +16,7 @@ Having a system like this has almost become second nature to
 project management and development in the world of software development.
 
 What Everyone else does
----------------------------------
+-----------------------
 For the most part, source control systems are limited 
 to strictly software development fields; 
 it is rare for similar tools to be used by other groups. 
@@ -35,7 +35,7 @@ users with almost no features that are present in a source control system,
 only the basic functionally of simultaneous editing, viewing, and syncing.
 
 Who Cares?
------------------------------------
+----------
 Applications like Google Drive could benefit greatly from having more functionality 
 that is present in tools like Git, since it would buy users powers like:
              * Showing differences between revisions of a document
@@ -54,8 +54,8 @@ and people virtually nonexistent, as they would need to learn a tool that has a 
 burden of knowledge, and get used to using command-line tools, which is foreign to 
 the average user.
 
-Place your trust in the mighty Psychic-Octo-Robot
-------------------------------------------------------
+Place your trust in the mighty gitlit
+-------------------------------------
 Our tool is meant to solve some of the problems that crop up with casual users trying 
 to use Git on non-source-code documents. 
 

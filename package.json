@@ -1,15 +1,15 @@
 {
-    "name": "psychic-octo-robot",
-    "version": "0.3.1",
+    "name": "gitlit",
+    "version": "0.4.0",
     "license" : "MIT",
     "engines" : ">=0.10.x",
     "contributors" : [ {"name" : "Devon Timaeus"},
         {"name" : "Sydney Satchwill"},
         {"name" : "Ian Hallam"}],
-    "bin": "./cli/psychic-octo-robot.js",
+    "bin": "./cli/gitlit.js",
     "repository" :
     { "type" : "git"
-        , "url" : "https://github.com/PolicyStat/psychic-octo-robot"
+        , "url" : "https://github.com/PolicyStat/gitlit"
     },
     "scripts": {
         "test": "mocha cli/tests"
