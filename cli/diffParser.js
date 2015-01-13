@@ -19,6 +19,39 @@ function getDiff(repoLocation) {
     return diffOutput;
 }
 
+function processDiffIntoFileGranules(diff) {
+    var pattern = /(diff --git [^\s]* [^\s]*)/g;
+    var match;
+    var matchIndeces = [];
+    var counter = 0;
+    while ((match = pattern.exec(diff)) !== null)
+    {
+        matchIndeces.push(match.index);
+        counter++;
+    }
+    matchIndeces.push(diff.length);
+
+    var diffGranules = [];
+    for(var item = 0; item < (matchIndeces.length-1); item++) {
+        diffGranules.push(diff.substring(matchIndeces[item], matchIndeces[item+1]));
+    }
+    return diffGranules;
+}
+
+function convertFileGranulesIntoDiffObjects(granules) {
+    var granule = granules[0];
+    var splitGranule = granule.split("\n");
+    console.log(splitGranule);
+    var diffHeader = splitGranule[0].split(" ");
+    var oldFilePath = diffHeader[2].substring(2,diffHeader[2].length);
+    var newFilePath = diffHeader[3].substring(2,diffHeader[3].length);
+
+    console.log("Old: " + oldFilePath);
+    console.log("New: " + newFilePath);
+}
+
 module.exports = {
-    getDiff: getDiff
+    getDiff: getDiff,
+    processDiffIntoFileGranules: processDiffIntoFileGranules,
+    convertFileGranulesIntoDiffObjects: convertFileGranulesIntoDiffObjects
 };
