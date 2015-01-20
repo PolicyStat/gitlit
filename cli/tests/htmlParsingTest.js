@@ -200,6 +200,26 @@ describe('Element ordering & storage in metadata objects', function () {
         assert.equal(output.children[0].children[1].children[0].value, '&lt;span&gt; text &lt;/span&gt;');
     });
 
+    it('newlines on periods', function(){
+        var htmlSnippet = "text."
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].value, 'text.newline\n');
+    });
+    
+    it('newlines on bangs', function(){
+        var htmlSnippet = "text!"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].value, 'text!newline\n');
+    });
+    
+    it('newlines on queries', function(){
+        var htmlSnippet = "text?"
+        var output = parser.parseHTML(htmlSnippet, 'repoName');
+
+        assert.equal(output.children[0].children[1].children[0].value, 'text?newline\n');
+    });
 });
 
 /*

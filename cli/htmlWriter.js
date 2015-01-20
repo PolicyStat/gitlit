@@ -93,7 +93,10 @@ function convertTextNodeToHTMLString(porObject) {
     //We don't want to tag text nodes, as this might break something that uses the
     //HTML, so just give the text
     objectString += porObject.value;
-
+    if (/newline\n/.test(objectString)){
+        objectString = objectString.replace(/newline\n/g, '')
+    }
+    
     return objectString;
 }
 
