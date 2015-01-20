@@ -23,9 +23,17 @@ describe('Diff result testing:', function () {
 	    var repoLocation = path.join(currentPath, 'deletionTest');
 	    var diff = differ.getDiff(repoLocation);
 
-	    var result = compare(pathToFirstFile, pathToSecondFile);
-	    var expected = [{isself:false, por_id:"40E36DB5C0AD13957351", child:0, modification:"delete"}];
-	    assert.equal(expected, result);
+	    var tag = diff['tag'];
+	    var attributes = diff['attributes'];
+	    var children = diff['children'];
+
+	    var expectedTag = '';
+	    var expectedAttributes = '';
+	    var expectedChildren = [{'old':"<div>extra text</div>", 'new':"", 'type':"deletion"}];
+
+	    assert.equal(expectedChildren['type', children[0]['type']);
+	    assert.equal(expectedChildren['type', children[0]['new']);
+	    assert.equal(expectedChildren['type', children[0]['old']);
 	});
 
 	it ('handles the insertion of text in a node', function(){
@@ -39,9 +47,17 @@ describe('Diff result testing:', function () {
 	    var repoLocation = path.join(currentPath, 'insertionTest');
 	    var diff = differ.getDiff(repoLocation);
 
-	    var result = compare(pathToFirstFile, pathToSecondFile);
-	    var expected = [{isself:false, por_id:"40E36DB5C0AD13957351", child:0, modification:"add", text:"First Text"}];
-	    assert.equal(expected, result);
+	    var tag = diff['tag'];
+	    var attributes = diff['attributes'];
+	    var children = diff['children'];
+
+	    var expectedTag = '';
+	    var expectedAttributes = '';
+	    var expectedChildren = [{'old':"", 'new':"<div>new added text</div>", 'type':"insertion"}];
+
+	    assert.equal(expectedChildren['type', children[0]['type']);
+	    assert.equal(expectedChildren['type', children[0]['new']);
+	    assert.equal(expectedChildren['type', children[0]['old']);
 	});
 
 	it ('handles the move of text in a node', function(){
@@ -55,9 +71,10 @@ describe('Diff result testing:', function () {
 	    var repoLocation = path.join(currentPath, 'moveTest');
 	    var diff = differ.getDiff(repoLocation);
 
-	    var result = compare(pathToFirstFile, pathToSecondFile);
-	    var expected = [{isself:false, por_id:"40E36DB5C0AD13957351", child:0, modification:"delete"}, {isself:false, por_id:"40E36DB5C0AD13957351", child:1, modification:"add", text:"First Text"}];
-	    assert.equal(expected, result);
+	    var tag = diff['tag'];
+	    var attributes = diff['attributes'];
+	    var children = diff['children'];
+
 	});
 
 });
