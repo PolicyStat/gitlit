@@ -80,7 +80,7 @@ function getDiff(repoLocation) {
         }
         var diffOutput = diffParser.getDiff(repoLocation);
         var granules = diffParser.processDiffIntoFileGranules(diffOutput);
-        diffParser.convertFileGranulesIntoDiffObjects(granules);
+        return diffParser.convertFileGranulesIntoDiffObjects(granules);
     } catch (err) {
         if (err instanceof URIError) {
             console.error(err.message);
