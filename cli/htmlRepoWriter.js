@@ -100,6 +100,7 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
 
         var metadataJSON = JSON.stringify(metaFileJson);
         fs.writeFileSync(newDirectory + "/" + "metadata.json", metadataJSON, "utf8");
+        fs.writeFileSync(newDirectory + "/" + "metadata.json", '\n', "utf8");
 
     } else {
         var filepath = outputPath + "/" + porObject.porID + ".txt";
