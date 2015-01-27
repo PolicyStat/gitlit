@@ -48,7 +48,6 @@ function convertFileGranulesIntoDiffObjects(granules) {
         var splitGranuleObject = splitGranuleIntoHeaderAndBodyObject(granule);
         var header = headerInterpretation(splitGranuleObject.header);
         var fileVersions = getFileVersionsFromBody(splitGranuleObject.body);
-
         interprettedGranules.push({fileInfo: header, versions:fileVersions});
     });
 
@@ -172,7 +171,6 @@ function headerInterpretation(header){
     var newFilePath = diffHeaderList[0].split(" ")[3].substring(2,itemizedHeader[3].length);
 
     var changeData = interpretChangeType(diffHeaderList);
-
     changeData = resolveIdsAndParent(changeData, oldFilePath, newFilePath);
 
     return changeData;
@@ -256,7 +254,9 @@ function interpretChangeType(headerLines) {
     switch (changeType) {
         case "rename":
             var splitRenameFrom = changeTypeLines[0].split('/');
+            splitRenameFrom = splitRenameFrom[0].split(' ').concat(splitRenameFrom.slice(1, splitRenameFrom.length));
             var splitRenameTo = changeTypeLines[1].split('/');
+            splitRenameTo = splitRenameTo[0].split(' ').concat(splitRenameTo.slice(1, splitRenameTo.length));
             oldParent = splitRenameFrom[splitRenameFrom.length-2];
             newParent = splitRenameTo[splitRenameTo.length-2];
             oldId = splitRenameFrom[splitRenameFrom.length-1];
