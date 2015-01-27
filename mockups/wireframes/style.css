@@ -10,3 +10,19 @@ textarea, input, select{
 	margin-left: 100px;
 	margin-bottom: 10px;
 }
+
+.left{
+	float: left;
+}
+
+.right{
+	float: right;
+}
+
+.doc{
+	width: 50%;
+}
+
+.clear{
+	float: clear;
+}
