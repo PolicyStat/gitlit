@@ -272,9 +272,7 @@ function interpretChangeType(headerLines) {
     switch (changeType) {
         case "rename":
             var splitRenameFrom = changeTypeLines[0].split('/');
-            splitRenameFrom = splitRenameFrom[0].split(' ').concat(splitRenameFrom.slice(1, splitRenameFrom.length));
             var splitRenameTo = changeTypeLines[1].split('/');
-            splitRenameTo = splitRenameTo[0].split(' ').concat(splitRenameTo.slice(1, splitRenameTo.length));
             oldParent = splitRenameFrom[splitRenameFrom.length-2];
             newParent = splitRenameTo[splitRenameTo.length-2];
             oldId = splitRenameFrom[splitRenameFrom.length-1];
