@@ -6,7 +6,7 @@ var path = require("path");
 var deasync = require("deasync");
 var shellTools = require('./shellTools');
 
-function getDiff(repoLocation) {
+function getGitDiffOutput(repoLocation) {
     var startingLocation = process.cwd();
     var resolvedRepoLocation = path.resolve(repoLocation);
     process.chdir(resolvedRepoLocation);
@@ -43,12 +43,10 @@ function processDiffIntoFileGranules(diff) {
 
 function convertFileGranulesIntoDiffObjects(granules) {
     var interprettedGranules = [];
-
     granules.forEach(function(granule) {
         var splitGranuleObject = splitGranuleIntoHeaderAndBodyObject(granule);
         var header = headerInterpretation(splitGranuleObject.header);
         var fileVersions = getFileVersionsFromBody(splitGranuleObject.body);
-
         interprettedGranules.push({fileInfo: header, versions:fileVersions});
     });
 
@@ -67,11 +65,11 @@ function convertFileGranulesIntoDiffObjects(granules) {
 }
 
 function convertToDiffObject(granule) {
-    if(granule.fileInfo.changeType == 'new') {
+    if(granule.fileInfo.changeType == 'added') {
         //new file, whether it is completely new, or just a
         //large edit, doesn't really matter, either way,
         //just trim the info accordingly
-        return {changeType: 'new', objectID: granule.fileInfo.newID,
+        return {changeType: 'added', objectID: granule.fileInfo.newID,
                 parent: granule.fileInfo.newParent, content: granule.versions.new};
     } else if(granule.fileInfo.changeType == 'deleted') {
         //file was deleted, again, just trim info to be clean
@@ -84,16 +82,22 @@ function convertToDiffObject(granule) {
         //to both the old and new versions
         var oldID = null;
         var newID = null;
-        granule.versions.old.attributes.forEach(function(attribute){
-           if(attribute.name == 'por-id') {
-               oldID = attribute.value;
-           }
-        });
-        granule.versions.new.attributes.forEach(function(attribute){
-            if(attribute.name == 'por-id') {
-                newID = attribute.value;
-            }
-        });
+
+        if('attributes' in granule.versions.old) {
+            granule.versions.old.attributes.forEach(function (attribute) {
+                if (attribute.name == 'por-id') {
+                    oldID = attribute.value;
+                }
+            });
+        }
+
+        if('attributes' in granule.versions.new) {
+            granule.versions.new.attributes.forEach(function (attribute) {
+                if (attribute.name == 'por-id') {
+                    newID = attribute.value;
+                }
+            });
+        }
         return {changeType: 'edit',
                 old:{ID: oldID,
                      parent: granule.versions.old.parentID,
@@ -172,7 +176,6 @@ function headerInterpretation(header){
     var newFilePath = diffHeaderList[0].split(" ")[3].substring(2,itemizedHeader[3].length);
 
     var changeData = interpretChangeType(diffHeaderList);
-
     changeData = resolveIdsAndParent(changeData, oldFilePath, newFilePath);
 
     return changeData;
@@ -183,21 +186,34 @@ function resolveIdsAndParent(changeData, oldPath, newPath) {
     var splitNew = newPath.split('/');
 
     var oldPathId = splitOld[splitOld.length-1];
+    var oldPathParent = null;
+    if(splitOld.length != 0) {
+        oldPathParent = splitOld[splitOld.length-2];
+    }
+
     var newPathId = splitNew[splitNew.length-1];
-    var oldPathParent = splitOld[splitOld.length-2];
-    var newPathParent = splitNew[splitNew.length-2];
+    var newPathParent = null;
+    if(splitNew.length != 0) {
+        newPathParent = splitNew[splitNew.length-2];
+    }
 
     var oldParent = resolveID(oldPathParent, changeData.oldParent);
     var newParent = resolveID(newPathParent, changeData.newParent);
     var oldID = resolveID(oldPathId, changeData.oldID);
     var newID = resolveID(newPathId, changeData.newID);
+
     return {changeType: changeData.changeType, oldParent:oldParent, newParent:newParent, oldID:oldID, newID:newID};
 }
 
 function resolveID(first, mightBeNull) {
     if (mightBeNull == null) {
+        if(first == null) {
+            //This almost certainly means that the topmost level metadata file
+            //was edited, so we should just return null, since there IS no parent
+            return null;
+        }
         return first.split('.')[0];
-    } else if (first == mightBeNull) {
+    } else if (first == mightBeNull && mightBeNull != null) {
         if (first == 'metadata.json') {
             //We're dealing with a metadata file that describes a tag node, as such, let's just
             //note that it's a metadata file
@@ -232,7 +248,7 @@ function interpretChangeType(headerLines) {
      */
     var changeTypeList = [
         {type: "deleted", pattern: /(deleted file mode)/g},
-        {type: "new", pattern: /(new file mode)/g},
+        {type: "added", pattern: /(new file mode)/g},
         {type: "rename", pattern: /(rename from)/g},
         {type: "rename", pattern: /(rename to)/g}
     ];
@@ -314,7 +330,7 @@ function splitGranuleIntoHeaderAndBodyObject(granule) {
 }
 
 module.exports = {
-    getDiff: getDiff,
+    getGitDiffOutput: getGitDiffOutput,
     processDiffIntoFileGranules: processDiffIntoFileGranules,
     convertFileGranulesIntoDiffObjects: convertFileGranulesIntoDiffObjects
 };

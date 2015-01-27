@@ -47,7 +47,7 @@ program
     .command('diff <directory>')
     .description('\n\tShow the difference between the last 2 revisions of the repository')
     .action(function(directory) {
-        init.getDiff(directory);
+        init.getGitDiffOutput(directory);
     });
 
 if (process.argv.length == 2){

@@ -12,30 +12,90 @@ var fs = require("fs");
 
 describe('Performs a git diff correctly:', function () {
 
-    var htmlFile = 'completeIDs.html';
-    var repoName = 'diffRepo';
-    var testObject = setupTest(htmlFile, repoName);
-
     it('Simple Text node edit', function () {
+        var htmlFile = 'completeIDs.html';
+        var repoName = 'diffRepo';
+        var testObject = setupTest(htmlFile, repoName);
         var pathToFile = path.join(testObject.pathToDiffTest, 'completeIDs-edited.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
         var oldHeader = {
             changeType: 'deleted',
             parent: 'derp',
             content: 'Header '
         };
         var newHeader = {
-            changeType: 'new',
+            changeType: 'added',
             parent: 'derp',
             content: 'Header is different '
         };
         assert.ok(deepContainsIgnoreID(diffObjects, oldHeader));
         assert.ok(deepContainsIgnoreID(diffObjects, newHeader));
+        shellTools.shellOut("cd " + testObject.currentPlace);
     });
 
-    shellTools.shellOut("cd " + testObject.currentPlace);
+    it('Simple Text node deletion', function() {
+        var htmlFile = 'deletionBefore.html';
+        var repoName = 'deletionRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'deletionAfter.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
+        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var oldHeader = {
+            changeType: 'deleted',
+            parent: 'span',
+            content: 'after div'
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, oldHeader));
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
+
+    it('Simple Text node insertion', function() {
+        var htmlFile = 'insertionBefore.html';
+        var repoName = 'insertionRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'insertionAfter.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
+        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var oldHeader = {
+            changeType: 'added',
+            parent: 'span',
+            content: 'new added text'
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, oldHeader));
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
+
+    it('Simple Text node move', function() {
+        var htmlFile = 'moveBefore.html';
+        var repoName = 'moveRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'moveAfter.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
+        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var newTextDiff = {
+            changeType: 'added',
+            parent: 'span',
+            content: 'extra text'
+        };
+        var oldTextDiff = {
+            changeType: 'deleted',
+            parent: 'div2',
+            content: 'extra text'
+        };
+        //For now, since we don't have rename id-ing and stuff, this should NOT
+        //report that there was an addition and deletion. , we will want to
+        //alter this test in the future, but this is mostly just a sanity check
+        //for now
+        //TODO: Alter this test once we have rename logic working
+        assert.ok(!deepContainsIgnoreID(diffObjects, newTextDiff));
+        assert.ok(!deepContainsIgnoreID(diffObjects, oldTextDiff));
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
 
 });
 
