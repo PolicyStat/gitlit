@@ -78,7 +78,7 @@ function getDiff(repoLocation) {
         if(!fs.existsSync(repoLocation)) {
             throw new URIError("Directory does not exist at location: " + repoLocation);
         }
-        var diffOutput = diffParser.getDiff(repoLocation);
+        var diffOutput = diffParser.getGitDiffOutput(repoLocation);
         var granules = diffParser.processDiffIntoFileGranules(diffOutput);
         return diffParser.convertFileGranulesIntoDiffObjects(granules);
     } catch (err) {
@@ -114,5 +114,5 @@ module.exports = {
     getExtension : getExtension,
     deleteDirectoryIfExists: deleteDirectoryIfExists,
     deleteFileIfExists: deleteFileIfExists,
-    getDiff: getDiff
+    getGitDiffOutput: getDiff
 };
