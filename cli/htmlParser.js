@@ -166,6 +166,16 @@ function processTaglessChild(dom, inPre) {
         if (/>/.test(contents)) {
             contents = contents.replace(/>/g, '&gt;')
         };
+        if (/\./.test(contents)){
+            contents = contents.replace(/\./g, '.newline\n')
+        }
+        if (/\!/.test(contents)){
+            contents = contents.replace(/\!/g, '!newline\n')
+        }
+        if (/\?/.test(contents)){
+            contents = contents.replace(/\?/g, '?newline\n')
+        }
+
 
 
     } else if (dom.nodeName == '#documentType') {

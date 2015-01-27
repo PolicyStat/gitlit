@@ -92,6 +92,13 @@ describe('Get text conversion of POR objects', function () {
         assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'This is a test');
     });
 
+    it('Properly removes added diff newlines', function () {
+        var textObject = {
+            value: "This is a test.newline\n",
+        };
+        assert.equal(htmlWriter.convertTextNodeToHTMLString(textObject), 'This is a test.');
+    });
+
     it('Text conversion with no POR ID', function () {
         var textObject = {
             value: "Psychic Octo Robot."
