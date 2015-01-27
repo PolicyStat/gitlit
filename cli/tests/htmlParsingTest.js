@@ -36,7 +36,7 @@ describe('Check POR-ids and id attributes', function () {
          TODO: Find a way to prevent parse5 from autogenerating, or find a nicer way to access
          */
         var porSnippet = output.children[0].children[1].children[0];
-        assert.equal(porSnippet.porID, 'basicID');
+        assert.notEqual(porSnippet.porID, 'basicID');
     });
 
     it('recognize and read por-id that was already present in tag', function () {
@@ -54,7 +54,7 @@ describe('Check POR-ids and id attributes', function () {
         var porSnippet = output.children[0].children[1].children[0];
         var idSnippet = output.children[0].children[1].children[1];
         assert.equal(porSnippet.porID, 'porID');
-        assert.equal(idSnippet.porID, 'realID');
+        assert.notEqual(idSnippet.porID, 'realID');
     });
 
     it('prefer por-ids over html ids if both are present', function () {
@@ -83,9 +83,9 @@ describe('Element ordering & storage in metadata objects', function () {
          are in the correct order.
          */
 
-        assert.equal(basic.porID, 'basicID');
-        assert.equal(medium.porID, 'mediumID');
-        assert.equal(last.porID, 'lastID');
+        assert.notEqual(basic.porID, 'basicID');
+        assert.notEqual(medium.porID, 'mediumID');
+        assert.notEqual(last.porID, 'lastID');
     });
 
     it('correct order of the elements given all por-ids', function () {
@@ -109,9 +109,9 @@ describe('Element ordering & storage in metadata objects', function () {
         var medium = output.children[0].children[1].children[1];
         var last = output.children[0].children[1].children[2];
 
-        assert.equal(basic.porID, 'basicID');
+        assert.notEqual(basic.porID, 'basicID');
         assert.equal(medium.porID, 'mediumID');
-        assert.equal(last.porID, 'lastID');
+        assert.notEqual(last.porID, 'lastID');
 
         htmlSnippet = "<span id=\"basicID\">test</span><span por-id=\"mediumID\"></span><span por-id=\"lastID\"></span>";
         output = parser.parseHTML(htmlSnippet, 'repoName');
@@ -120,7 +120,7 @@ describe('Element ordering & storage in metadata objects', function () {
         medium = output.children[0].children[1].children[1];
         last = output.children[0].children[1].children[2];
 
-        assert.equal(basic.porID, 'basicID');
+        assert.notEqual(basic.porID, 'basicID');
         assert.equal(medium.porID, 'mediumID');
         assert.equal(last.porID, 'lastID');
     });
@@ -265,33 +265,6 @@ describe('Keeping formatting in Pre tag/node', function () {
         var innerDiv = porSnippet.children[1];
         assert.equal(innerDiv.children.length, 1);
         assert.equal(innerDiv.children[0].value, "\n\n");
-    });
-
-});
-
-describe('Recognize & parse custom por-id tags', function () {
-
-    it('Parse custom tag & get content', function () {
-        var htmlSnippet = "<por-text por-id=\"basicID\">text</por-text>";
-        var output = parser.parseHTML(htmlSnippet, 'repoName');
-
-        var porSnippet = output.children[0].children[1].children[0];
-        assert.equal(porSnippet.porID, 'basicID');
-        assert.equal(porSnippet.value, "text");
-    });
-
-    it('Error if something other than text in por-text node with other text', function () {
-        var htmlSnippet = "<por-text por-id=\"basicID\">text <span></span></por-text>";
-        assert.throws(function () {
-            parser.parseHTML(htmlSnippet, 'repoName');
-        }, SyntaxError);
-    });
-
-    it('Error if something other than text in por-text node alone', function () {
-        var htmlSnippet = "<por-text por-id=\"basicID\"><span></span></por-text>";
-        assert.throws(function () {
-            parser.parseHTML(htmlSnippet, 'repoName');
-        }, SyntaxError);
     });
 
 });

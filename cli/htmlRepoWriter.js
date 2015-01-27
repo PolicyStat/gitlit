@@ -43,7 +43,6 @@ function prepareRepo(outputPath, repoName){
     var tempDirectoryName = htmlParser.generateNewPORID([]);
     var relPath = path.join(outputPath, '..', tempDirectoryName);
     var absPath = path.resolve(relPath);
-    console.log('absolute path for temporary folder: ' + absPath);
 
     //If we SOMEHOW generate a name that already exists, generate another id and try again
     //Technically, this could run forever, but it won't because the chances of there being
@@ -66,7 +65,6 @@ function prepareRepo(outputPath, repoName){
 }
 
 function recursivelyBuildRepoDirectory(porObject, outputPath) {
-    var changes;
     if (porObject.children) {
         var id = "";
         if (porObject.porID) {
@@ -91,7 +89,8 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
             metaFileJson = {
                 tag: porObject.metadata.tag,
                 attributes: porObject.metadata.attributes,
-                constructionOrder: childrenOrder
+                constructionOrder: childrenOrder,
+                parentID: porObject.parentID
             }
         } else {
             metaFileJson = {

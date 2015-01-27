@@ -51,7 +51,7 @@ function parseHTMLToWritableRepo(dom, repoName) {
          We are at the top-most layer, so we need to make the top-most directory
          and then go through and add the files to it.
          */
-        var children = parseChildrenNodes(dom, false);
+        var children = parseChildrenNodes(dom, false, null);
         return {
             repoName: repoName,
             children: children
@@ -73,7 +73,7 @@ function generateNewPORID(porKeys){
 }
 
 
-function parseChildrenNodes(dom, inPre) {
+function parseChildrenNodes(dom, inPre, parentID) {
     var children = [];
     var contents = null;
     for (var childIndex = 0; childIndex < dom.childNodes.length; ++childIndex) {
@@ -84,20 +84,15 @@ function parseChildrenNodes(dom, inPre) {
                                 porID: contents[1]
                               });
             }
-        } else if (dom.childNodes[childIndex].tagName == 'por-text') {
-            contents = processCustomTaggedChild(dom.childNodes[childIndex], inPre);
-            if (context != null) {
-                children.push(contents);
-            }
         }
         else {
-            children.push(processTaggedChild(dom.childNodes[childIndex], inPre));
+            children.push(processTaggedChild(dom.childNodes[childIndex], inPre, parentID));
         }
     }
     return children
 }
 
-function processTaggedChild(dom, inPre) {
+function processTaggedChild(dom, inPre, parentID) {
     var id = null;
     var tag = dom.tagName;
     var attributes = null;
@@ -112,9 +107,6 @@ function processTaggedChild(dom, inPre) {
             idIndex = attributeIndex;
             break;
         }
-        if (attributes[attributeIndex].name == 'id'){
-            idIndex = attributeIndex;
-        }
     }
 
     if (idIndex != null) {
@@ -126,7 +118,7 @@ function processTaggedChild(dom, inPre) {
         attributes.push({name: 'por-id', value: id});
     }
 
-    var children = parseChildrenNodes(dom, tag == 'pre' || inPre);
+    var children = parseChildrenNodes(dom, tag == 'pre' || inPre, id);
 
     var metaFileJson = {
         tag: tag,
@@ -136,7 +128,8 @@ function processTaggedChild(dom, inPre) {
     return  {
         porID: id,
         metadata: metaFileJson,
-        children: children
+        children: children,
+        parentID: parentID
     };
 }
 

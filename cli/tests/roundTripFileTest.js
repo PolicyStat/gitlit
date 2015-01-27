@@ -217,7 +217,7 @@ describe("Test parsing of file into JSON object", function() {
         assert.ok(porObject.children[1]);
         assert.ok(porObject.children[1].metadata);
         assert.equal(porObject.children[1].metadata.tag, 'html');
-        assert.equal(porObject.children[1].metadata.attributes[0].name, "id");
+        assert.equal(porObject.children[1].metadata.attributes[0].name, "por-id");
         assert.equal(porObject.children[1].metadata.attributes[0].value, "html");
     });
 
@@ -226,7 +226,7 @@ describe("Test parsing of file into JSON object", function() {
         assert.ok(porObject.children[1].children[0]);
         assert.ok(porObject.children[1].children[0].metadata);
         assert.equal(porObject.children[1].children[0].metadata.tag, 'head');
-        assert.equal(porObject.children[1].children[0].metadata.attributes[0].name, "id");
+        assert.equal(porObject.children[1].children[0].metadata.attributes[0].name, "por-id");
         assert.equal(porObject.children[1].children[0].metadata.attributes[0].value, "head");
         assert.equal(porObject.children[1].children[0].metadata.attributes[1].name, "lang");
         assert.equal(porObject.children[1].children[0].metadata.attributes[1].value, "en");
@@ -289,7 +289,7 @@ describe("Test writing repo directory back into HTML file", function() {
         var fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFileString = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
-        testFileString += '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body"></body></html>';
+        testFileString += '<html por-id="html"><head por-id="head" lang="en"><meta por-id="meta" charset="UTF-8"><title por-id="title">Title Here</title></head><body por-id="body"></body></html>';
 
         assert.equal(fileString, testFileString);
     });
@@ -335,8 +335,8 @@ describe("Testing second file sent through repo/html writers", function() {
         var fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFile2String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' +
-            '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body">' +
-            '<hr id="hr"><h1 id="h1" class="header" style="color:green">Header</h1></body></html>';
+            '<html por-id="html"><head por-id="head" lang="en"><meta por-id="meta" charset="UTF-8"><title por-id="title">Title Here</title></head><body por-id="body">' +
+            '<hr por-id="hr"><h1 por-id="h1" class="header" style="color:green">Header</h1></body></html>';
 
         assert.equal(fileString, testFile2String);
     });
@@ -362,8 +362,8 @@ describe("Testing third file sent through repo/html writers", function() {
         var fileString = fileContents.replace(/\n| {2,}/g,'');
 
         var testFile3String = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' +
-            '<html id="html"><head id="head" lang="en"><meta id="meta" charset="UTF-8"><title id="title">Title Here</title></head><body id="body">' +
-            '<div id="div"><span id="span">Span Text</span><br id="br"><h3 id="headerThree" class="test">Underline</h3></div></body></html>';
+            '<html por-id="html"><head por-id="head" lang="en"><meta por-id="meta" charset="UTF-8"><title por-id="title">Title Here</title></head><body por-id="body">' +
+            '<div por-id="div"><span por-id="span">Span Text</span><br por-id="br"><h3 por-id="headerThree" class="test">Underline</h3></div></body></html>';
 
         assert.equal(fileString, testFile3String);
     });
