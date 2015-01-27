@@ -48,7 +48,6 @@ function convertFileGranulesIntoDiffObjects(granules) {
         var splitGranuleObject = splitGranuleIntoHeaderAndBodyObject(granule);
         var header = headerInterpretation(splitGranuleObject.header);
         var fileVersions = getFileVersionsFromBody(splitGranuleObject.body);
-
         interprettedGranules.push({fileInfo: header, versions:fileVersions});
     });
 
@@ -72,11 +71,11 @@ function convertToDiffObject(granule) {
         //large edit, doesn't really matter, either way,
         //just trim the info accordingly
         return {changeType: 'new', objectID: granule.fileInfo.newID,
-                parent: granule.fileInfo.newParent, content: granule.versions.new};
+                parent: granule.fileInfo.newParent, content: "<ins>" + granule.versions.new + "</ins>"};
     } else if(granule.fileInfo.changeType == 'deleted') {
         //file was deleted, again, just trim info to be clean
         return {changeType: 'deleted', objectID: granule.fileInfo.oldID,
-            parent: granule.fileInfo.oldParent, content: granule.versions.old};
+            parent: granule.fileInfo.oldParent, content: "<del>" + granule.versions.old + "</del>"};
     } else if(granule.fileInfo.changeType == 'edit') {
         //The file was edited but didn't change otherwise
         //This can only really happen with metadata files

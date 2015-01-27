@@ -12,11 +12,10 @@ var fs = require("fs");
 
 describe('Performs a git diff correctly:', function () {
 
-    var htmlFile = 'completeIDs.html';
-    var repoName = 'diffRepo';
-    var testObject = setupTest(htmlFile, repoName);
-
     it('Simple Text node edit', function () {
+        var htmlFile = 'completeIDs.html';
+        var repoName = 'diffRepo';
+        var testObject = setupTest(htmlFile, repoName);
         var pathToFile = path.join(testObject.pathToDiffTest, 'completeIDs-edited.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
@@ -24,18 +23,17 @@ describe('Performs a git diff correctly:', function () {
         var oldHeader = {
             changeType: 'deleted',
             parent: 'derp',
-            content: 'Header '
+            content: '<del>Header </del>'
         };
         var newHeader = {
             changeType: 'new',
             parent: 'derp',
-            content: 'Header is different '
+            content: '<ins>Header is different </ins>'
         };
         assert.ok(deepContainsIgnoreID(diffObjects, oldHeader));
         assert.ok(deepContainsIgnoreID(diffObjects, newHeader));
+        shellTools.shellOut("cd " + testObject.currentPlace);
     });
-
-    shellTools.shellOut("cd " + testObject.currentPlace);
 
 });
 
