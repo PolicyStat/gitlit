@@ -6,6 +6,8 @@
 
 var Parser = require('parse5').Parser;
 var parser = new Parser();
+var Serializer = require('parse5').Serializer;
+var serializer = new Serializer();
 var porKeys = [];
 
 function parseHTML(fileContents, repoName) {
@@ -51,7 +53,9 @@ function parseHTMLToWritableRepo(dom, repoName) {
          We are at the top-most layer, so we need to make the top-most directory
          and then go through and add the files to it.
          */
+
         var children = parseChildrenNodes(dom, false, null);
+
         return {
             repoName: repoName,
             children: children
@@ -140,6 +144,7 @@ function processTaglessChild(dom, inPre) {
      the parent node), or something else. Otherwise, since we have the
      tag, we can just process the children and move on.
      */
+
     var contents = null;
     var id = null;
     if (dom.nodeName == "#text") {
@@ -148,23 +153,20 @@ function processTaglessChild(dom, inPre) {
          of raw text that was in the parent node, so we just need to make
          a file for this and put the contents in it.
          */
-        contents = dom.value;
+
+
+        var dummyNode = parser.parse(' ');
+        dummyNode.childNodes = [dom];
+        var contents = serializer.serialize(dummyNode);
+
+        // contents = dom.value;
         id = generateNewPORID(porKeys);
 
-        if (/&/.test(contents)){
-            contents = contents.replace(/&/g, '&amp;');
-        }
         if (/'/.test(contents)) {
             contents = contents.replace(/'/g, '&#39;');
         };
         if (/"/.test(contents)) {
             contents = contents.replace(/"/g, '&quot;')
-        };
-        if (/</.test(contents)) {
-            contents = contents.replace(/</g, '&lt;')
-        };
-        if (/>/.test(contents)) {
-            contents = contents.replace(/>/g, '&gt;')
         };
 
 
