@@ -26,3 +26,13 @@ textarea, input, select{
 .clear{
 	float: clear;
 }
+
+ins {
+	background-color: lightgreen;
+	text-decoration: none;
+}
+
+del {
+	background-color: red;
+	text-decoration: none;
+}
