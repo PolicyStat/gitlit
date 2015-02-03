@@ -47,7 +47,8 @@ program
     .command('diff <directory>')
     .description('\n\tShow the difference between the last 2 revisions of the repository')
     .action(function(directory) {
-        init.getDiff(directory);
+        var pairs = init.getLeftAndRightDiffSides(directory)
+        var diffDisplayObject = init.setUpPairsForDiffDisplay(pairs);
     });
 
 if (process.argv.length == 2){

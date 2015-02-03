@@ -5,8 +5,9 @@ var fs = require("fs");
 var path = require("path");
 var deasync = require("deasync");
 var shellTools = require('./shellTools');
+var htmlWriter = require('./htmlWriter');
 
-function getDiff(repoLocation) {
+function getGitDiffOutput(repoLocation) {
     var startingLocation = process.cwd();
     var resolvedRepoLocation = path.resolve(repoLocation);
     process.chdir(resolvedRepoLocation);
@@ -43,12 +44,10 @@ function processDiffIntoFileGranules(diff) {
 
 function convertFileGranulesIntoDiffObjects(granules) {
     var interprettedGranules = [];
-
     granules.forEach(function(granule) {
         var splitGranuleObject = splitGranuleIntoHeaderAndBodyObject(granule);
         var header = headerInterpretation(splitGranuleObject.header);
         var fileVersions = getFileVersionsFromBody(splitGranuleObject.body);
-
         interprettedGranules.push({fileInfo: header, versions:fileVersions});
     });
 
@@ -67,11 +66,11 @@ function convertFileGranulesIntoDiffObjects(granules) {
 }
 
 function convertToDiffObject(granule) {
-    if(granule.fileInfo.changeType == 'new') {
+    if(granule.fileInfo.changeType == 'added') {
         //new file, whether it is completely new, or just a
         //large edit, doesn't really matter, either way,
         //just trim the info accordingly
-        return {changeType: 'new', objectID: granule.fileInfo.newID,
+        return {changeType: 'added', objectID: granule.fileInfo.newID,
                 parent: granule.fileInfo.newParent, content: granule.versions.new};
     } else if(granule.fileInfo.changeType == 'deleted') {
         //file was deleted, again, just trim info to be clean
@@ -84,16 +83,22 @@ function convertToDiffObject(granule) {
         //to both the old and new versions
         var oldID = null;
         var newID = null;
-        granule.versions.old.attributes.forEach(function(attribute){
-           if(attribute.name == 'por-id') {
-               oldID = attribute.value;
-           }
-        });
-        granule.versions.new.attributes.forEach(function(attribute){
-            if(attribute.name == 'por-id') {
-                newID = attribute.value;
-            }
-        });
+
+        if('attributes' in granule.versions.old) {
+            granule.versions.old.attributes.forEach(function (attribute) {
+                if (attribute.name == 'por-id') {
+                    oldID = attribute.value;
+                }
+            });
+        }
+
+        if('attributes' in granule.versions.new) {
+            granule.versions.new.attributes.forEach(function (attribute) {
+                if (attribute.name == 'por-id') {
+                    newID = attribute.value;
+                }
+            });
+        }
         return {changeType: 'edit',
                 old:{ID: oldID,
                      parent: granule.versions.old.parentID,
@@ -172,7 +177,6 @@ function headerInterpretation(header){
     var newFilePath = diffHeaderList[0].split(" ")[3].substring(2,itemizedHeader[3].length);
 
     var changeData = interpretChangeType(diffHeaderList);
-
     changeData = resolveIdsAndParent(changeData, oldFilePath, newFilePath);
 
     return changeData;
@@ -183,21 +187,34 @@ function resolveIdsAndParent(changeData, oldPath, newPath) {
     var splitNew = newPath.split('/');
 
     var oldPathId = splitOld[splitOld.length-1];
+    var oldPathParent = null;
+    if(splitOld.length != 0) {
+        oldPathParent = splitOld[splitOld.length-2];
+    }
+
     var newPathId = splitNew[splitNew.length-1];
-    var oldPathParent = splitOld[splitOld.length-2];
-    var newPathParent = splitNew[splitNew.length-2];
+    var newPathParent = null;
+    if(splitNew.length != 0) {
+        newPathParent = splitNew[splitNew.length-2];
+    }
 
     var oldParent = resolveID(oldPathParent, changeData.oldParent);
     var newParent = resolveID(newPathParent, changeData.newParent);
     var oldID = resolveID(oldPathId, changeData.oldID);
     var newID = resolveID(newPathId, changeData.newID);
+
     return {changeType: changeData.changeType, oldParent:oldParent, newParent:newParent, oldID:oldID, newID:newID};
 }
 
 function resolveID(first, mightBeNull) {
     if (mightBeNull == null) {
+        if(first == null) {
+            //This almost certainly means that the topmost level metadata file
+            //was edited, so we should just return null, since there IS no parent
+            return null;
+        }
         return first.split('.')[0];
-    } else if (first == mightBeNull) {
+    } else if (first == mightBeNull && mightBeNull != null) {
         if (first == 'metadata.json') {
             //We're dealing with a metadata file that describes a tag node, as such, let's just
             //note that it's a metadata file
@@ -232,7 +249,7 @@ function interpretChangeType(headerLines) {
      */
     var changeTypeList = [
         {type: "deleted", pattern: /(deleted file mode)/g},
-        {type: "new", pattern: /(new file mode)/g},
+        {type: "added", pattern: /(new file mode)/g},
         {type: "rename", pattern: /(rename from)/g},
         {type: "rename", pattern: /(rename to)/g}
     ];
@@ -313,8 +330,272 @@ function splitGranuleIntoHeaderAndBodyObject(granule) {
     return {header: granule.substring(0, secondIndex), body: granule.substring(secondIndex, granule.length)};
 }
 
+function extractBodyObject(gitlitObject) {
+    if (gitlitObject.metadata != undefined){
+        var metadata = gitlitObject.metadata;
+        var tag = metadata.tag;
+        if(tag == 'body') {
+            return gitlitObject;
+        } else {
+            var toReturn = null;
+            for(var index = 0; index < gitlitObject.children.length; index++) {
+                var child = gitlitObject.children[index];
+                toReturn = extractBodyObject(child);
+                if(toReturn != null) {
+                    return toReturn;
+                }
+            }
+        }
+    } else {
+        return null;
+    }
+
+}
+
+function filterNonContentChanges(diffObjects) {
+    var toReturn = [];
+    diffObjects.forEach(function(diffObject){
+        if(diffObject.objectID != 'metadata' && diffObject.objectID != undefined){
+            toReturn.push(diffObject);
+        }
+    });
+    return toReturn;
+}
+
+function cleanGitlitObjectForDiff(gitlitObject) {
+    if(gitlitObject.metadata != undefined) {
+        var toReturn = gitlitObject;
+        toReturn.metadata.attributes = [];
+        var newChildren = [];
+        toReturn.children.forEach(function(child){
+           newChildren.push(cleanGitlitObjectForDiff(child));
+        });
+        toReturn.children = newChildren;
+        return toReturn;
+    } else {
+        return gitlitObject;
+    }
+}
+
+function markBodyForDiff(gitlitObject, diffObjects) {
+    var toReturn = gitlitObject;
+    diffObjects.forEach(function(diff){
+        toReturn = markDiff(toReturn, diff);
+    });
+    return toReturn;
+}
+
+function markDiff(gitlitObject, diff) {
+    if(diff.objectID == gitlitObject.porID) {
+        gitlitObject.diffMetadata = diff;
+        return gitlitObject;
+    } else {
+        if(gitlitObject.children == undefined) {
+            return gitlitObject;
+        }
+        var toReturn = gitlitObject;
+        var newChildren = [];
+        toReturn.children.forEach(function(child){
+            newChildren.push(markDiff(child, diff));
+        });
+        toReturn.children = newChildren;
+        return toReturn;
+    }
+}
+
+function linearizeGitlitObject(gitlitObject) {
+    var toReturn = [];
+    if(gitlitObject.children == undefined) {
+        return [gitlitObject];
+    } else {
+        var linearizedChildren = [];
+        gitlitObject.children.forEach(function(child) {
+            linearizedChildren = linearizedChildren.concat(linearizeGitlitObject(child))
+        });
+        var numberOfChildren = gitlitObject.children.length;
+        var newObject = gitlitObject;
+        newObject.children = numberOfChildren;
+
+        return [newObject].concat(linearizedChildren);
+    }
+}
+
+function pairUpRows(oldNodes, newNodes) {
+    var pairedUpRows = [];
+    var oldIndex = 0;
+    var newIndex = 0;
+    while(oldIndex < oldNodes.length && newIndex < newNodes.length) {
+        var leftNode = oldNodes[oldIndex];
+        var rightNode = newNodes[newIndex];
+        var pairUpResult = pairUp(leftNode, rightNode, oldIndex, newIndex);
+        oldIndex = pairUpResult.oldIndex;
+        newIndex = pairUpResult.newIndex;
+        pairedUpRows.push(pairUpResult.pair);
+    }
+
+    for(oldIndex; oldIndex < oldNodes.length; oldIndex++) {
+        pairedUpRows.push(pairUp(oldNodes[oldIndex], {}, 0,0).pair);
+    }
+
+    for(newIndex; newIndex < newNodes.length; newIndex++) {
+        pairedUpRows.push(pairUp({}, newNodes[newIndex], 0,0).pair);
+    }
+
+    return pairedUpRows
+}
+
+function pairUp(left, right, oldIndex, newIndex) {
+    var toReturn = {pair: {left: null,
+                           right:null},
+                    oldIndex: oldIndex,
+                    newIndex: newIndex
+                    };
+
+    if(left==null && right != null) {
+        toReturn.newIndex += 1;
+        toReturn.pair = {left: null, right: right};
+        return toReturn;
+    } else if (right==null && left != null){
+        toReturn.oldIndex += 1;
+        toReturn.pair = {left: left, right: null};
+        return toReturn;
+    }
+
+    if(left.diffMetadata == undefined && right.diffMetadata == undefined) {
+        toReturn.oldIndex += 1;
+        toReturn.newIndex += 1;
+        toReturn.pair = {left: left, right: right};
+        return toReturn;
+    } else if (left.diffMetadata != undefined) {
+        /*
+        for right now, we aren't tracking metadata/tag/attribute changes, so
+        this can ONLY be a delete, so we can just pair it up with nothing and move on
+         */
+        toReturn.oldIndex += 1;
+        toReturn.pair = {left: left, right: null};
+        return toReturn;
+    } else {
+        /*
+        This can only be new sections for now, since we don't do text-level edits, or
+        tag-level edits.
+         */
+        toReturn.newIndex += 1;
+        toReturn.pair = {left: null, right: right};
+        return toReturn;
+    }
+}
+
+function markRowNumbersOnPairs(pairs) {
+    var row = 0;
+    pairs.forEach(function(pair) {
+        assignRow(pair, row);
+        row++;
+    });
+    return pairs;
+}
+
+function assignRow(pair, row) {
+    if(pair.left != null) {
+        if(pair.left.metadata != undefined) {
+            pair.left.metadata.attributes = [
+                {name: 'class', value: row.toString()}
+            ]
+        }
+    }
+    if(pair.right != null) {
+        if(pair.right.metadata != undefined) {
+            pair.right.metadata.attributes = [
+                {name: 'class', value: row.toString()}
+            ]
+        }
+    }
+}
+
+function splitPairsIntoBodies(pairs) {
+    var oldBody = [];
+    var newBody = [];
+    pairs.forEach(function(pair){
+        pair.left != null ? oldBody.push(pair.left) : null;
+        pair.right !=null ? newBody.push(pair.right) : null;
+    });
+    return {oldBody: oldBody, newBody: newBody};
+}
+
+function convertToDocObject(nodeList){
+    var firstNode = nodeList[0];
+    if(firstNode.children != undefined) {
+        var childrenList = [];
+        var restOfList = nodeList.slice(1, nodeList.length);
+        for(var childrenFound = 0; childrenFound < firstNode.children; childrenFound++){
+            var resultObject = convertToDocObject(restOfList);
+            restOfList = resultObject.restOfList;
+            childrenList.push(resultObject.docObject);
+        }
+        firstNode.children = childrenList;
+        return {docObject: firstNode, restOfList: restOfList}
+    } else {
+        //This means it's a text node, so just return
+        return {docObject: firstNode, restOfList: nodeList.slice(1, nodeList.length)};
+    }
+}
+
+function convertToDiffSafeHTMLString(docObject) {
+    if(docObject.metadata != undefined) {
+        //We have a tag node
+        return convertTagNodeToHTMLString(docObject);
+
+    } else {
+        //non-tag node, just need to hand back the content
+        //with ins/del tags as necessary
+        var htmlContent = '';
+        var possibleEndTag = '';
+        if(docObject.diffMetadata != undefined) {
+            switch(docObject.diffMetadata.changeType){
+                case 'added':
+                    htmlContent += '<ins>';
+                    possibleEndTag  = '</ins>'
+                    break;
+                case 'deleted':
+                    htmlContent += '<del>';
+                    possibleEndTag  = '</del>'
+                    break;
+            }
+        }
+        return htmlContent + docObject.value + possibleEndTag;
+    }
+}
+
+function convertTagNodeToHTMLString(docObject) {
+    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
+    var objectString = "";
+    objectString += htmlWriter.extractOpeningTag(docObject);
+
+    // Recursively add children to this string
+    docObject.children.forEach(function(child){
+        objectString += convertToDiffSafeHTMLString(child);
+    });
+
+
+    // End tag
+    if (emptyTags.indexOf(docObject.metadata.tag) == -1) {
+        objectString += "</" + docObject.metadata.tag + ">";
+    }
+    return objectString;
+}
+
+
 module.exports = {
-    getDiff: getDiff,
+    getGitDiffOutput: getGitDiffOutput,
     processDiffIntoFileGranules: processDiffIntoFileGranules,
-    convertFileGranulesIntoDiffObjects: convertFileGranulesIntoDiffObjects
+    convertFileGranulesIntoDiffObjects: convertFileGranulesIntoDiffObjects,
+    extractBodyObject: extractBodyObject,
+    filterNonContentChanges: filterNonContentChanges,
+    cleanGitlitObjectForDiff: cleanGitlitObjectForDiff,
+    markBodyForDiff: markBodyForDiff,
+    linearizeGitlitObject: linearizeGitlitObject,
+    pairUpRows: pairUpRows,
+    markRowNumbersOnPairs: markRowNumbersOnPairs,
+    splitPairsIntoBodies: splitPairsIntoBodies,
+    convertToDocObject: convertToDocObject,
+    convertToDiffSafeHTMLString: convertToDiffSafeHTMLString
 };
