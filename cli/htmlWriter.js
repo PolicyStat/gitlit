@@ -3,6 +3,7 @@
  */
 var fs = require("fs");
 var html = require('html');
+var shellTools = require('./shellTools');
 
 function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
@@ -126,6 +127,16 @@ function extractOpeningTag(porObject) {
     return objectString;
 }
 
+function getPreviousFileVersions(repoLocation) {
+    shellTools.checkoutToCommit(repoLocation, 'HEAD^');
+    var oldObject = getPORObjectFromRepo(repoLocation);
+
+    shellTools.checkoutToCommit(repoLocation, 'master');
+    var newObject = getPORObjectFromRepo(repoLocation);
+
+    return [oldObject, newObject];
+}
+
 
 
 module.exports = {
@@ -135,5 +146,6 @@ module.exports = {
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
     convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
     getPORObjectFromRepo : getPORObjectFromRepo,
-    extractOpeningTag: extractOpeningTag
+    extractOpeningTag: extractOpeningTag,
+    getPreviousFileVersions: getPreviousFileVersions
 };
