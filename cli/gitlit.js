@@ -44,11 +44,14 @@ program
     });
 
 program
-    .command('diff <directory>')
-    .description('\n\tShow the difference between the last 2 revisions of the repository')
-    .action(function(directory) {
-        var pairs = init.getLeftAndRightDiffSides(directory)
+    .command('diff <repoLocation> <outputLocation>')
+    .description('\n\tShow the difference between the last 2 revisions of the repository'
+                + '\n\tDestination should be the directory the output should end up')
+    .action(function(repoLocation, outputLocation) {
+        var pairs = init.getLeftAndRightDiffSides(repoLocation);
         var diffDisplayObject = init.setUpPairsForDiffDisplay(pairs);
+        init.createCopyOfDiffResources(outputLocation);
+        init.createJSONForDisplay(outputLocation, diffDisplayObject);
     });
 
 if (process.argv.length == 2){

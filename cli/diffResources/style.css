@@ -1,0 +1,38 @@
+
+body {
+	font-family: "Lucida Console", "Courier New", monospace;
+    /*background-color: #79E024;*/
+}
+p, h1{
+	margin-left: 100px;
+}
+textarea, input, select{
+	margin-left: 100px;
+	margin-bottom: 10px;
+}
+
+.left{
+	float: left;
+}
+
+.right{
+	float: right;
+}
+
+.doc{
+	width: 50%;
+}
+
+.clear{
+	float: clear;
+}
+
+ins {
+	background-color: lightgreen;
+	text-decoration: none;
+}
+
+del {
+	background-color: red;
+	text-decoration: none;
+}

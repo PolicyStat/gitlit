@@ -9,6 +9,7 @@ var repoWriter = require('./htmlRepoWriter');
 var diffParser = require('./diffParser');
 var shellTools = require('./shellTools');
 var html = require('html');
+var wrench = require('wrench');
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -135,6 +136,15 @@ function setUpPairsForDiffDisplay(pairs) {
     return {left: oldHTMLString, right:newHTMLString};
 }
 
+function createCopyOfDiffResources(outputLocation) {
+    wrench.copyDirSyncRecursive(path.join(path.resolve(__dirname), 'diffResources'), path.resolve(outputLocation));
+}
+
+function createJSONForDisplay(outputLocation, diffObject) {
+    var fileContents = 'var diffDisplayInfo = ' + JSON.stringify(diffObject);
+    fs.writeFileSync(path.join(outputLocation, "diffDisplayObject.js"), fileContents, "utf8");
+}
+
 function deleteDirectoryIfExists(pathToDirectory) {
     if(fs.existsSync(pathToDirectory)) {
         //Need to change the permissions to write so that we can actually delete stuff in general
@@ -163,5 +173,7 @@ module.exports = {
     deleteFileIfExists: deleteFileIfExists,
     getGitDiffOutput: getDiff,
     getLeftAndRightDiffSides: getLeftAndRightDiffSides,
-    setUpPairsForDiffDisplay: setUpPairsForDiffDisplay
+    setUpPairsForDiffDisplay: setUpPairsForDiffDisplay,
+    createCopyOfDiffResources: createCopyOfDiffResources,
+    createJSONForDisplay: createJSONForDisplay
 };
