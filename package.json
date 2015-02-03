@@ -22,6 +22,7 @@
         "html": "0.0.7",
         "deasync": "0.0.7",
         "parse5": "1.1.4",
-        "commander": "2.3.0"
+        "commander": "2.3.0",
+        "wrench": "1.5.8"
     }
 }
