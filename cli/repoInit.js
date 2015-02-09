@@ -4,9 +4,12 @@
 var fs = require('fs');
 var path = require('path');
 var parser = require('./htmlParser');
-var fileWriter = require('./htmlRepoWriter');
+var fileWriter = require('./htmlWriter');
+var repoWriter = require('./htmlRepoWriter');
 var diffParser = require('./diffParser');
 var shellTools = require('./shellTools');
+var html = require('html');
+var wrench = require('wrench');
 
 function getExtension(filename) {
     var ext = path.extname(filename||'').split('.');
@@ -41,7 +44,7 @@ function initializeRepository(file, outputPath, repoName) {
         }
         var fileContents = getFileContents(file);
         var porObject = parser.parseHTML(fileContents, repoName);
-        fileWriter.writeRepoToDirectory(porObject, outputPath);
+        repoWriter.writeRepoToDirectory(porObject, outputPath);
     } catch (err) {
         if (err instanceof TypeError) {
             console.error(err.message);
@@ -62,7 +65,7 @@ function commitDocument(file, outputPath, repoName, commitMessage) {
         }
         var fileContents = getFileContents(file);
         var porObject = parser.parseHTML(fileContents, repoName);
-        fileWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
+        repoWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
     } catch (err) {
         if (err instanceof TypeError) {
             console.error(err.message);
@@ -86,6 +89,60 @@ function getDiff(repoLocation) {
             console.error(err.message);
         }
     }
+}
+
+function getLeftAndRightDiffSides(repoLocation) {
+    try {
+        if(!fs.existsSync(repoLocation)) {
+            throw new URIError("Directory does not exist at location: " + repoLocation);
+        }
+        var diffObjects = getDiff(repoLocation);
+        var contentChanges = diffParser.filterNonContentChanges(diffObjects);
+
+        var fileVersions = fileWriter.getPreviousFileVersions(repoLocation);
+        var oldVersion = fileVersions[0];
+        var newVersion = fileVersions[1];
+
+        var oldBody = diffParser.extractBodyObject(oldVersion);
+        var newBody = diffParser.extractBodyObject(newVersion);
+
+        var diffCleanOldBody = diffParser.cleanGitlitObjectForDiff(oldBody);
+        var diffCleanNewBody = diffParser.cleanGitlitObjectForDiff(newBody);
+
+        var markedOld = diffParser.markBodyForDiff(diffCleanOldBody, contentChanges);
+        var markedNew = diffParser.markBodyForDiff(diffCleanNewBody, contentChanges);
+
+        var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
+        var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
+
+        return diffParser.pairUpRows(linearizedOld, linearizedNew);
+
+    } catch (err) {
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+    }
+}
+
+function setUpPairsForDiffDisplay(pairs) {
+    var numberedPairs = diffParser.markRowNumbersOnPairs(pairs);
+    var splitBodies = diffParser.splitPairsIntoBodies(numberedPairs);
+    var oldDocObject = diffParser.convertToDocObject(splitBodies.oldBody).docObject;
+    var newDocObject = diffParser.convertToDocObject(splitBodies.newBody).docObject;
+    var oldHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(oldDocObject), {indent_size: 2});
+    var newHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(newDocObject), {indent_size: 2});
+//    console.log(oldHTMLString);
+//    console.log(newHTMLString);
+    return {left: oldHTMLString, right:newHTMLString};
+}
+
+function createCopyOfDiffResources(outputLocation) {
+    wrench.copyDirSyncRecursive(path.join(path.resolve(__dirname), 'diffResources'), path.resolve(outputLocation));
+}
+
+function createJSONForDisplay(outputLocation, diffObject) {
+    var fileContents = 'var diffDisplayInfo = ' + JSON.stringify(diffObject);
+    fs.writeFileSync(path.join(outputLocation, "diffDisplayObject.js"), fileContents, "utf8");
 }
 
 function deleteDirectoryIfExists(pathToDirectory) {
@@ -114,5 +171,9 @@ module.exports = {
     getExtension : getExtension,
     deleteDirectoryIfExists: deleteDirectoryIfExists,
     deleteFileIfExists: deleteFileIfExists,
-    getGitDiffOutput: getDiff
+    getGitDiffOutput: getDiff,
+    getLeftAndRightDiffSides: getLeftAndRightDiffSides,
+    setUpPairsForDiffDisplay: setUpPairsForDiffDisplay,
+    createCopyOfDiffResources: createCopyOfDiffResources,
+    createJSONForDisplay: createJSONForDisplay
 };

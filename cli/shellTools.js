@@ -43,8 +43,17 @@ function shellOut(command){
 
 }
 
+function checkoutToCommit(repoLocation, commit) {
+    var command = '';
+    command += 'cd ' + repoLocation + '&& ';
+    command += 'git checkout ' + commit;
+    shellOut(command);
+}
+
+
 module.exports = {
     gitCommit: gitCommit,
     gitRepoCreation: gitRepoCreation,
-    shellOut: shellOut
+    shellOut: shellOut,
+    checkoutToCommit: checkoutToCommit
 };
