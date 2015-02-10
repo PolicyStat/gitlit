@@ -47,9 +47,9 @@ var setHeights = function(){
 				elements[0].style.top = setHeight;
 				elements[1].style.position = "fixed";
 				elements[1].style.top = setHeight;
-			}else{
-				var height = parseInt(elements[0].getBoundingClientRect().top);
-				makeRadio(height, counter);
+				if(elements[0].classList.includes("del") || elements[1].classList.includes("revert")){
+					makeRadio(setHeight, counter);
+				}
 			}
 		} else{
 			keepGoing = false;
@@ -66,7 +66,7 @@ var makeRadio = function(height, number){
 	form.classList.add(number);
 	form.classList.add("decision");
 	form.style.position = "fixed";
-	form.style.top = height+"px";
+	form.style.top = height;
 	form.style.left = "45%";
 	doc.appendChild(form);
 
@@ -107,13 +107,7 @@ var makeRadio = function(height, number){
 var uncheck = function(number, value){
 	var node = document.getElementsByClassName(number + ' ' + value)[0];
 	var classes = node.classList;
-	var isKeep = false;
-	for(var i=0; i<classes.length; i++){
-		if(classes[i] == "keep"){
-			isKeep = true;
-			break;
-		}
-	}
+	var isKeep = classes.includes("keep");
 	if(isKeep){
 		var revert = document.getElementsByClassName(number + ' revert')[0];
 		revert.checked = false;
