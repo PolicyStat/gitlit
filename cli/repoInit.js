@@ -131,8 +131,6 @@ function setUpPairsForDiffDisplay(pairs) {
     var newDocObject = diffParser.convertToDocObject(splitBodies.newBody).docObject;
     var oldHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(oldDocObject), {indent_size: 2});
     var newHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(newDocObject), {indent_size: 2});
-//    console.log(oldHTMLString);
-//    console.log(newHTMLString);
     return {left: oldHTMLString, right:newHTMLString};
 }
 

@@ -336,7 +336,7 @@ describe('Test converting POR object into a string', function () {
     it('Convert por object of a complex tree', function () {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'testRepo', 'test');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
+        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false);
         var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\n' +
             '<html por-id="3e61894fe84fd31246460272">\n  \n  <head lang="en" por-id="18eda53718376a1c58837e6e">\n    <meta charset="UTF-8"' +
             ' por-id="9e2928948e789fe743dd9761">\n    <title por-id="5376f5329b6e80a8d7934c62">titletext</title>\n  </head>' +
@@ -383,7 +383,7 @@ describe('Test converting POR object into a string', function () {
                                                                     metadata: { 'tag': 'span', 'attributes': [], 'constructionOrder': [] },
                                                                     children: [] },
                                                                   { value: ' afterSpan', porID: '1877349f0396f7c7e3ac3ba2' } ] } ] } ] } ] };
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     });
 
     it("Create por object from small tree", function() {
@@ -400,7 +400,7 @@ describe('Test converting POR object into a string', function () {
                                     'constructionOrder': [ 'two' ] }, 
                         children:[ { value:'Text here\n', porID: "two"} ] } ] };
 
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     });
 });
 
@@ -458,7 +458,7 @@ describe('Test creation of por object from repo', function () {
         var currentPath = __dirname;
 
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLBasicFormat');
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     });
 
     it('Create por object from a document with inline format', function () {
@@ -496,13 +496,13 @@ describe('Test creation of por object from repo', function () {
 
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'resources', 'sampleRepos', 'testHTMLInlineFormat');
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     });
 
     it('Convert simple POR object into a string', function() {
         var currentPath = __dirname;
         var pathToGenerationTest = path.join(currentPath, 'generationTest', 'smallRepo');
-        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest);
+        var porObj = htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false);
         var porObjHTML = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html>Text here</html>';
 
         assert.ok(porObj.children);
@@ -529,7 +529,7 @@ describe('Test creation of por object from repo', function () {
                 ], "constructionOrder": []}, children: []}
             ]}
         ]};
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     });
 
     it('Create por object from a complex tree', function () {
@@ -598,7 +598,7 @@ describe('Test creation of por object from repo', function () {
                             ] }
                     ] }
             ] };
-        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest)), JSON.stringify(porObject));
+        assert.equal(JSON.stringify(htmlWriter.getPORObjectFromRepo(pathToGenerationTest, false)), JSON.stringify(porObject));
     })
 });
 
