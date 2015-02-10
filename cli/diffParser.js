@@ -500,6 +500,8 @@ function assignRow(pair, row) {
             pair.left.metadata.attributes = [
                 {name: 'class', value: row.toString()}
             ]
+        } else {
+            pair.left.row = row.toString();
         }
     }
     if(pair.right != null) {
@@ -507,6 +509,8 @@ function assignRow(pair, row) {
             pair.right.metadata.attributes = [
                 {name: 'class', value: row.toString()}
             ]
+        } else {
+            pair.right.row = row.toString();
         }
     }
 }
@@ -515,10 +519,17 @@ function splitPairsIntoBodies(pairs) {
     var oldBody = [];
     var newBody = [];
     pairs.forEach(function(pair){
-        pair.left != null ? oldBody.push(pair.left) : null;
-        pair.right !=null ? newBody.push(pair.right) : null;
+        pair.left  != null ? oldBody.push(pair.left)  : oldBody.push(emptyNode(pair.right.row, pair.right.porID, pair.right.parent));
+        pair.right != null ? newBody.push(pair.right) : newBody.push(emptyNode(pair.left.row, pair.left.porID, pair.left.parent));
     });
     return {oldBody: oldBody, newBody: newBody};
+}
+
+function emptyNode(row, id, parent) {
+    return {value: '',
+            podID: id,
+            row: row,
+            parent: parent}
 }
 
 function convertToDocObject(nodeList){
@@ -531,12 +542,35 @@ function convertToDocObject(nodeList){
             restOfList = resultObject.restOfList;
             childrenList.push(resultObject.docObject);
         }
+        while(restOfList.length > 0 && restOfList[0].parent == firstNode.porID) {
+            resultObject = convertToDocObject(restOfList);
+            restOfList = resultObject.restOfList;
+            childrenList.push(resultObject.docObject);
+        }
         firstNode.children = childrenList;
         return {docObject: firstNode, restOfList: restOfList}
     } else {
-        //This means it's a text node, so just return
-        return {docObject: firstNode, restOfList: nodeList.slice(1, nodeList.length)};
+        //This means it's a text node, so we need to wrap it in a
+        //span for proper displaying and then return it
+//        console.log(firstNode);
+        return {docObject: wrapForDisplay(firstNode), restOfList: nodeList.slice(1, nodeList.length)};
     }
+}
+
+function wrapForDisplay(textNode) {
+    var attributes = [{name: "class", value:textNode.row}];
+    if(textNode.diffMetadata != undefined) {
+        attributes.push({name: "class",
+                         value: textNode.diffMetadata.changeType == 'added' ? "ins" : "del"});
+    }
+
+    return {porID: textNode.porID,
+            metadata: {tag: 'span',
+                       attributes: attributes,
+                       constructionOrder: [textNode.porID]},
+            children: [{value: textNode.value,
+                       podID: textNode.porID}]
+            };
 }
 
 function convertToDiffSafeHTMLString(docObject) {
@@ -553,11 +587,11 @@ function convertToDiffSafeHTMLString(docObject) {
             switch(docObject.diffMetadata.changeType){
                 case 'added':
                     htmlContent += '<ins>';
-                    possibleEndTag  = '</ins>'
+                    possibleEndTag  = '</ins>';
                     break;
                 case 'deleted':
                     htmlContent += '<del>';
-                    possibleEndTag  = '</del>'
+                    possibleEndTag  = '</del>';
                     break;
             }
         }
@@ -566,7 +600,8 @@ function convertToDiffSafeHTMLString(docObject) {
 }
 
 function convertTagNodeToHTMLString(docObject) {
-    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
+    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img",
+                    "input", "keygen", "link", "meta", "param", "source", "track", "wbr"];
     var objectString = "";
     objectString += htmlWriter.extractOpeningTag(docObject);
 
