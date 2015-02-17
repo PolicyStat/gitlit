@@ -1,44 +1,64 @@
 
 body {
-	font-family: "Lucida Console", "Courier New", monospace;
+    font-family: "Lucida Console", "Courier New", monospace;
     /*background-color: #79E024;*/
 }
 p, h1 {
-	margin-left: 100px;
+    margin-left: 100px;
 }
 textarea, input, select {
-	margin-left: 100px;
-	margin-bottom: 10px;
+    margin-left: 100px;
+    margin-bottom: 10px;
 }
 
 .left {
-	float: left;
+    float: left;
 }
 
 .right {
-	float: right;
+    float: right;
 }
 
 .doc {
-	width: 45%;
+    width: 45%;
 }
 
 .clear {
-	float: clear;
+    float: clear;
+}
+
+#SaveButton {
+    margin-top: 10px;
+    margin-left: 45%;
+    display:block;
+}
+
+output {
+    margin-top: 10px;
+    margin-left: 45%;
+    display:block;
+}
+
+a {
+    color: #555;
+}
+a[data-disabled] {
+    color: #ccc;
+    text-decoration: line-through;
 }
 
 ins, .ins {
-	background-color: lightgreen;
-	text-decoration: none;
+    background-color: lightgreen;
+    text-decoration: none;
 }
 
 del, .del {
-	background-color: red;
-	text-decoration: none;
+    background-color: red;
+    text-decoration: none;
 }
 
 .decision {
-	position: absolute;
-	left: 50%;
-	margin-left: -100px;
+    position: absolute;
+    left: 50%;
+    margin-left: -100px;
 }

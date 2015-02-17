@@ -560,8 +560,8 @@ function convertToDocObject(nodeList){
 function wrapForDisplay(textNode) {
     var attributes = [{name: "class", value:textNode.row}];
     if(textNode.diffMetadata != undefined) {
-        attributes.push({name: "class",
-                         value: textNode.diffMetadata.changeType == 'added' ? "ins" : "del"});
+        attributes = [{name: "class",
+                         value: textNode.row.toString() + ' ' + (textNode.diffMetadata.changeType == 'added' ? "ins" : "del")}];
     }
 
     return {porID: textNode.porID,
