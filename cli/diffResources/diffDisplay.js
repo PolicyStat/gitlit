@@ -1,11 +1,17 @@
 window.onload = function()
 {
     document.getElementById("SaveButton").onclick = saveSelections;
-    main();
 };
+
+$(window).load(function(){
+    // jQuery methods go here...
+    main();
+});
+
 
 var main = function(){
     passMain(diffDisplayInfo);
+
 };
 
 var passMain = function(htmlPair){
@@ -15,9 +21,10 @@ var passMain = function(htmlPair){
     var nodeLeft = docLeft.childNodes[0].childNodes[1];
     var nodeRight = docRight.childNodes[0].childNodes[1];
     placeFloatsFromHTML(nodeLeft, nodeRight);
-    var rowTopMap = setDevonHeights();
+    var rowTopMap = setHeights();
     var diffRows = getDiffRows();
     makeRadioButtons(rowTopMap, diffRows);
+
 };
 
 function saveSelections() {
@@ -30,12 +37,11 @@ function saveSelections() {
     console.log(selections);
 
     makeDownloadLink(selections);
-
 }
 
 function makeDownloadLink(selections){
     window.URL = window.webkitURL || window.URL;
-    output = document.querySelector('output');
+    var output = document.querySelector('output');
     var prevLink = output.querySelector('a');
     if (prevLink) {
         window.URL.revokeObjectURL(prevLink.href);
@@ -97,28 +103,24 @@ var getDiffRows = function() {
 };
 
 
-var setDevonHeights = function() {
+var setHeights = function() {
     var counter = 0;
     var keepGoing = true;
-    var currentPlacementLocation = document.getElementById('after').getBoundingClientRect().bottom;
+    var currentPlacementLocation = document.getElementById('before').getBoundingClientRect().top;
     var heightMap = {};
+    var stringClass = '';
+    var row_elements=[];
     while(keepGoing) {
-        var row_elements = document.getElementsByClassName(counter.toString());
+        stringClass = "."+counter.toString();
+        row_elements = $(stringClass);
         if(row_elements == null) {
             keepGoing = false;
         } else if (row_elements[0] != null && row_elements[0] != undefined &&
             row_elements[1] != null && row_elements[1] != undefined){
-            var leftElement = row_elements[0];
-            var rightElement = row_elements[1];
-            var heightLeft =  parseInt(leftElement.getBoundingClientRect().height);
-            var heightRight = parseInt(rightElement.getBoundingClientRect().height);
+            var result = setLeftAndRightHeight(row_elements, currentPlacementLocation, heightMap,counter);
+            currentPlacementLocation = result[1];
+            heightMap = result[0];
 
-            leftElement.style.position = 'fixed';
-            rightElement.style.position = 'fixed';
-            leftElement.style.top = currentPlacementLocation + 'px';
-            rightElement.style.top = currentPlacementLocation + 'px';
-            heightMap[counter.toString()] = currentPlacementLocation + 'px';
-            currentPlacementLocation = Math.max(currentPlacementLocation+heightLeft, currentPlacementLocation+heightRight);
         } else {
             keepGoing = false;
         }
@@ -126,6 +128,29 @@ var setDevonHeights = function() {
     }
     return heightMap;
 };
+
+function setLeftAndRightHeight(row_elements, currentPlacementLocation, heightMap,counter){
+    var leftElement = row_elements[0];
+    var rightElement = row_elements[1];
+    var leftClass = "."+leftElement.className;
+    var rightClass = "."+rightElement.className;
+    leftClass = leftClass.replace(" ", ".");
+    rightClass = rightClass.replace(" ", ".");
+    var heightLeft = $(leftClass).outerHeight(true);
+    var heightRight = $(rightClass).outerHeight(true);
+    var leftParentTop = parseInt(leftElement.parentNode.getBoundingClientRect().top);
+    var rightParentTop = parseInt(rightElement.parentNode.getBoundingClientRect().top);
+    var leftAbsolute = currentPlacementLocation - leftParentTop;
+    var rightAbsolute = currentPlacementLocation - rightParentTop;
+
+    leftElement.style.position = 'absolute';
+    rightElement.style.position = 'absolute';
+    leftElement.style.top = leftAbsolute + 'px';
+    rightElement.style.top = rightAbsolute + 'px';
+    heightMap[counter.toString()] = currentPlacementLocation + 'px';
+    currentPlacementLocation = Math.max(currentPlacementLocation+heightLeft, currentPlacementLocation+heightRight);
+    return [heightMap, currentPlacementLocation];
+}
 
 var placeFloatsFromHTML = function(domOld, domNew){
     var before = document.getElementById('before');
@@ -144,7 +169,7 @@ var makeRadio = function(height, number){
     form.setAttribute("action", "");
     form.classList.add(number);
     form.classList.add("decision");
-    form.style.position = "fixed";
+    form.style.position = "absolute";
     form.style.top = height;
     form.style.left = "50%";
     doc.appendChild(form);

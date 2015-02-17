@@ -22,6 +22,10 @@ textarea, input, select {
 .doc {
     width: 45%;
 }
+.doc * {
+    width: 70%;
+    word-wrap: break-word;
+}
 
 .clear {
     float: clear;
