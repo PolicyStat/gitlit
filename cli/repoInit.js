@@ -91,31 +91,16 @@ function getDiff(repoLocation) {
     }
 }
 
-function getLeftAndRightDiffSides(repoLocation) {
+function getOldAndNewFileVersions(repoLocation) {
     try {
         if(!fs.existsSync(repoLocation)) {
             throw new URIError("Directory does not exist at location: " + repoLocation);
         }
-        var diffObjects = getDiff(repoLocation);
-        var contentChanges = diffParser.filterNonContentChanges(diffObjects);
-
         var fileVersions = fileWriter.getPreviousFileVersions(repoLocation);
         var oldVersion = fileVersions[0];
         var newVersion = fileVersions[1];
 
-        var oldBody = diffParser.extractBodyObject(oldVersion);
-        var newBody = diffParser.extractBodyObject(newVersion);
-
-        var diffCleanOldBody = diffParser.cleanGitlitObjectForDiff(oldBody);
-        var diffCleanNewBody = diffParser.cleanGitlitObjectForDiff(newBody);
-
-        var markedOld = diffParser.markBodyForDiff(diffCleanOldBody, contentChanges);
-        var markedNew = diffParser.markBodyForDiff(diffCleanNewBody, contentChanges);
-
-        var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
-        var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
-
-        return diffParser.pairUpRows(linearizedOld, linearizedNew);
+        return [oldVersion, newVersion];
 
     } catch (err) {
         if (err instanceof URIError) {
@@ -124,11 +109,42 @@ function getLeftAndRightDiffSides(repoLocation) {
     }
 }
 
+function getInterprettedDiff(repoLocation) {
+    var diffObjects = getDiff(repoLocation);
+    return diffParser.filterNonContentChanges(diffObjects);
+}
+
+function createDiffPairs(oldVersion, newVersion, contentChanges) {
+    var oldBody = diffParser.extractBodyObject(oldVersion);
+    var newBody = diffParser.extractBodyObject(newVersion);
+
+    var diffCleanOldBody = diffParser.cleanGitlitObjectForDiff(oldBody);
+    var diffCleanNewBody = diffParser.cleanGitlitObjectForDiff(newBody);
+
+    var markedOld = diffParser.markBodyForDiff(diffCleanOldBody, contentChanges);
+    var markedNew = diffParser.markBodyForDiff(diffCleanNewBody, contentChanges);
+
+    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
+    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
+
+    return diffParser.pairUpRows(linearizedOld, linearizedNew);
+}
+
+function createMergePairs(oldVersion, newVersion, contentChanges) {
+    var oldBody = diffParser.extractBodyObject(oldVersion);
+    var newBody = diffParser.extractBodyObject(newVersion);
+    var markedOld = diffParser.markBodyForDiff(oldBody, contentChanges);
+    var markedNew = diffParser.markBodyForDiff(newBody, contentChanges);
+    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
+    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
+    return diffParser.pairUpRows(linearizedOld, linearizedNew);
+}
+
 function setUpPairsForDiffDisplay(pairs) {
     var numberedPairs = diffParser.markRowNumbersOnPairs(pairs);
     var splitBodies = diffParser.splitPairsIntoBodies(numberedPairs);
-    var oldDocObject = diffParser.convertToDocObject(splitBodies.oldBody).docObject;
-    var newDocObject = diffParser.convertToDocObject(splitBodies.newBody).docObject;
+    var oldDocObject = diffParser.convertToDiffDisplayDocObject(splitBodies.oldBody).docObject;
+    var newDocObject = diffParser.convertToDiffDisplayDocObject(splitBodies.newBody).docObject;
     var oldHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(oldDocObject), {indent_size: 2});
     var newHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(newDocObject), {indent_size: 2});
     return {left: oldHTMLString, right:newHTMLString};
@@ -138,9 +154,35 @@ function createCopyOfDiffResources(outputLocation) {
     wrench.copyDirSyncRecursive(path.join(path.resolve(__dirname), 'diffResources'), path.resolve(outputLocation));
 }
 
-function createJSONForDisplay(outputLocation, diffObject) {
+function createJSONForDisplay(outputLocation, diffObject, mergePairs, mergeFileVersion) {
     var fileContents = 'var diffDisplayInfo = ' + JSON.stringify(diffObject);
+    fileContents += ";\n";
+    fileContents += "var mergePairs = " + JSON.stringify(mergePairs);
+    fileContents += ";\n";
+    fileContents += "var mergeFile = " + JSON.stringify(mergeFileVersion) + ";";
     fs.writeFileSync(path.join(outputLocation, "diffDisplayObject.js"), fileContents, "utf8");
+}
+
+function getMergedPairs(mergefile, outputLocation){
+    try {
+        if(!fs.existsSync(mergefile)) {
+            throw new URIError("merge-file does not exist at location: " + mergefile);
+        }
+        var jsonString = fs.readFileSync(mergefile, 'utf8');
+        var mergeJson = JSON.parse(jsonString);
+        var decisions = mergeJson.selections;
+        var mergePairs = mergeJson.mergePairs;
+        var mergeFile = mergeJson.mergeFile;
+
+        var mergedPairs = diffParser.applyDecisionsToMergePairs(decisions, mergePairs);
+        var mergedDocObject = diffParser.convertToMergedDocObject(mergedPairs).docObject;
+        var writeReadyDocObject = diffParser.insertBodyIntoDocObject(mergedDocObject, mergeFile);
+        fileWriter.writePORObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
+    } catch (err) {
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+    }
 }
 
 function deleteDirectoryIfExists(pathToDirectory) {
@@ -169,9 +211,13 @@ module.exports = {
     getExtension : getExtension,
     deleteDirectoryIfExists: deleteDirectoryIfExists,
     deleteFileIfExists: deleteFileIfExists,
-    getGitDiffOutput: getDiff,
-    getLeftAndRightDiffSides: getLeftAndRightDiffSides,
+    getGitDiffOutput: getInterprettedDiff,
+    getInterprettedDiff: getInterprettedDiff,
+    getOldAndNewFileVersions: getOldAndNewFileVersions,
+    createDiffPairs: createDiffPairs,
+    createMergePairs: createMergePairs,
     setUpPairsForDiffDisplay: setUpPairsForDiffDisplay,
     createCopyOfDiffResources: createCopyOfDiffResources,
-    createJSONForDisplay: createJSONForDisplay
+    createJSONForDisplay: createJSONForDisplay,
+    getMergedPairs: getMergedPairs
 };

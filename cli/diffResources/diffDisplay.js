@@ -34,7 +34,6 @@ function saveSelections() {
         var row = form.className.split(' ')[0];
         selections[row] = form.elements['radio'].value;
     });
-    console.log(selections);
 
     makeDownloadLink(selections);
 }
@@ -47,7 +46,12 @@ function makeDownloadLink(selections){
         window.URL.revokeObjectURL(prevLink.href);
         output.innerHTML = '';
     }
-    var bb = new Blob([JSON.stringify(selections)], {type: "text/json"});
+    var jsonFile = {
+        selections: selections,
+        mergePairs: mergePairs,
+        mergeFile: mergeFile
+    };
+    var bb = new Blob([JSON.stringify(jsonFile)], {type: "text/json"});
     var a = document.createElement('a');
     a.download = 'decisions.json';
     a.href = window.URL.createObjectURL(bb);
@@ -113,14 +117,20 @@ var setHeights = function() {
     while(keepGoing) {
         stringClass = "."+counter.toString();
         row_elements = $(stringClass);
+        var result = null;
         if(row_elements == null) {
             keepGoing = false;
         } else if (row_elements[0] != null && row_elements[0] != undefined &&
             row_elements[1] != null && row_elements[1] != undefined){
-            var result = setLeftAndRightHeight(row_elements, currentPlacementLocation, heightMap,counter);
+            result = setLeftAndRightHeight(row_elements, currentPlacementLocation, heightMap,counter);
             currentPlacementLocation = result[1];
             heightMap = result[0];
 
+        } else if ((row_elements[0] != null && row_elements[0] != undefined) ||
+            (row_elements[1] != null && row_elements[1] != undefined)){
+            result = setOneSideHeight(row_elements, currentPlacementLocation, heightMap,counter);
+            currentPlacementLocation = result[1];
+            heightMap = result[0];
         } else {
             keepGoing = false;
         }
@@ -128,6 +138,38 @@ var setHeights = function() {
     }
     return heightMap;
 };
+
+function setOneSideHeight(row_elements, currentPlacementLocation, heightMap, counter) {
+    if((row_elements[0] != null && row_elements[0] != undefined)) {
+        //No right side to match up to
+        var leftElement = row_elements[0];
+        var leftClass = "."+leftElement.className;
+        leftClass = leftClass.replace(" ", ".");
+        var heightLeft = $(leftClass).outerHeight(true);
+        var leftParentTop = parseInt(leftElement.parentNode.getBoundingClientRect().top);
+        var leftAbsolute = currentPlacementLocation - leftParentTop;
+
+        leftElement.style.position = 'absolute';
+        leftElement.style.top = leftAbsolute + 'px';
+        heightMap[counter.toString()] = currentPlacementLocation + 'px';
+        currentPlacementLocation = Math.max(currentPlacementLocation+heightLeft, currentPlacementLocation);
+        return [heightMap, currentPlacementLocation];
+    } else {
+        //No left side to match up to
+        var rightElement = row_elements[1];
+        var rightClass = "."+rightElement.className;
+        rightClass = rightClass.replace(" ", ".");
+        var heightRight = $(rightClass).outerHeight(true);
+        var rightParentTop = parseInt(rightElement.parentNode.getBoundingClientRect().top);
+        var rightAbsolute = currentPlacementLocation - rightParentTop;
+
+        rightElement.style.position = 'absolute';
+        rightElement.style.top = rightAbsolute + 'px';
+        heightMap[counter.toString()] = currentPlacementLocation + 'px';
+        currentPlacementLocation = Math.max(currentPlacementLocation, currentPlacementLocation+heightRight);
+        return [heightMap, currentPlacementLocation];
+    }
+}
 
 function setLeftAndRightHeight(row_elements, currentPlacementLocation, heightMap,counter){
     var leftElement = row_elements[0];

@@ -48,10 +48,23 @@ program
     .description('\n\tShow the difference between the last 2 revisions of the repository'
                 + '\n\tDestination should be the directory the output should end up')
     .action(function(repoLocation, outputLocation) {
-        var pairs = init.getLeftAndRightDiffSides(repoLocation);
-        var diffDisplayObject = init.setUpPairsForDiffDisplay(pairs);
+        var fileVersions = init.getOldAndNewFileVersions(repoLocation);
+        var mergeFileVersions = init.getOldAndNewFileVersions(repoLocation);
+        var changes = init.getInterprettedDiff(repoLocation);
+        var diffDisplayPairs = init.createDiffPairs(fileVersions[0], fileVersions[1], changes);
+//        console.log(diffDisplayPairs);
+        var diffDisplayObject = init.setUpPairsForDiffDisplay(diffDisplayPairs);
+        var mergePairs = init.createMergePairs(mergeFileVersions[0], mergeFileVersions[1], changes);
         init.createCopyOfDiffResources(outputLocation);
-        init.createJSONForDisplay(outputLocation, diffDisplayObject);
+        init.createJSONForDisplay(outputLocation, diffDisplayObject, mergePairs, mergeFileVersions[1]);
+    });
+
+program
+    .command('merge <merge-file> <outputLocation')
+    .description('\n\tCreate a new version of an HTML file based on the descisions made'
+                 + '\n\tvia the Diff interface, and output to the given location')
+    .action(function(mergefile, outputLocation){
+        init.getMergedPairs(mergefile, outputLocation);
     });
 
 if (process.argv.length == 2){
