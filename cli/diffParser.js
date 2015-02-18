@@ -500,6 +500,8 @@ function assignRow(pair, row) {
             pair.left.metadata.attributes = [
                 {name: 'class', value: row.toString()}
             ]
+        } else {
+            pair.left.row = row.toString();
         }
     }
     if(pair.right != null) {
@@ -507,6 +509,8 @@ function assignRow(pair, row) {
             pair.right.metadata.attributes = [
                 {name: 'class', value: row.toString()}
             ]
+        } else {
+            pair.right.row = row.toString();
         }
     }
 }
@@ -515,28 +519,97 @@ function splitPairsIntoBodies(pairs) {
     var oldBody = [];
     var newBody = [];
     pairs.forEach(function(pair){
-        pair.left != null ? oldBody.push(pair.left) : null;
-        pair.right !=null ? newBody.push(pair.right) : null;
+        pair.left  != null ? oldBody.push(pair.left)  : oldBody.push(emptyNode(pair.right.row, pair.right.porID, pair.right.parent));
+        pair.right != null ? newBody.push(pair.right) : newBody.push(emptyNode(pair.left.row, pair.left.porID, pair.left.parent));
     });
     return {oldBody: oldBody, newBody: newBody};
 }
 
-function convertToDocObject(nodeList){
+function emptyNode(row, id, parent) {
+    return {value: '',
+            porID: id,
+            row: row,
+            parent: parent}
+}
+
+function convertToDiffDisplayDocObject(nodeList){
     var firstNode = nodeList[0];
     if(firstNode.children != undefined) {
         var childrenList = [];
         var restOfList = nodeList.slice(1, nodeList.length);
         for(var childrenFound = 0; childrenFound < firstNode.children; childrenFound++){
-            var resultObject = convertToDocObject(restOfList);
+            var resultObject = convertToDiffDisplayDocObject(restOfList);
+            restOfList = resultObject.restOfList;
+            childrenList.push(resultObject.docObject);
+        }
+        while(restOfList.length > 0 && restOfList[0].parent == firstNode.porID) {
+            resultObject = convertToDiffDisplayDocObject(restOfList);
             restOfList = resultObject.restOfList;
             childrenList.push(resultObject.docObject);
         }
         firstNode.children = childrenList;
         return {docObject: firstNode, restOfList: restOfList}
     } else {
-        //This means it's a text node, so just return
-        return {docObject: firstNode, restOfList: nodeList.slice(1, nodeList.length)};
+        //This means it's a text node, so we need to wrap it in a
+        //span for proper displaying and then return it
+        return {docObject: wrapForDisplay(firstNode), restOfList: nodeList.slice(1, nodeList.length)};
     }
+}
+
+function convertToMergedDocObject(nodeList){
+    var firstNode = nodeList[0];
+    var restOfList = nodeList.slice(1, nodeList.length);
+    if(firstNode.ignoreInChildCounting != undefined) {
+        //This means there was a row that we made a decision about, and
+        //The parent isn't expecting it, so we need to somehow tell the parent
+        //not to count this
+        return {docObject: firstNode.ignoreInChildCounting, restOfList: restOfList, ignoreInChildCounting:true};
+    }
+    if(firstNode.children != undefined) {
+        var childrenList = [];
+        for(var childrenFound = 0; childrenFound < firstNode.children; childrenFound++){
+            var resultObject = convertToMergedDocObject(restOfList);
+            if(resultObject.ignoreInChildCounting != undefined) {
+                //This means we should not count this child while
+                //adding them, so just decrement childrenFound to make this true
+                childrenFound--;
+            }
+            restOfList = resultObject.restOfList;
+            childrenList.push(resultObject.docObject);
+        }
+        while(restOfList.length > 0 && restOfList[0].parent == firstNode.porID) {
+            resultObject = convertToMergedDocObject(restOfList);
+            restOfList = resultObject.restOfList;
+            childrenList.push(resultObject.docObject);
+        }
+        var constructionOrder = [];
+        childrenList.forEach(function(child) {
+            constructionOrder.push(child.porID);
+        });
+        firstNode.children = childrenList;
+        firstNode.metadata.constructionOrder = constructionOrder;
+        return {docObject: firstNode, restOfList: restOfList}
+    } else {
+        //This means it's a text node, so we need to wrap it in a
+        //span for proper displaying and then return it
+        return {docObject: firstNode, restOfList: restOfList};
+    }
+}
+
+function wrapForDisplay(textNode) {
+    var attributes = [{name: "class", value:textNode.row}];
+    if(textNode.diffMetadata != undefined) {
+        attributes = [{name: "class",
+                         value: textNode.row.toString() + ' ' + (textNode.diffMetadata.changeType == 'added' ? "ins" : "del")}];
+    }
+
+    return {porID: textNode.porID,
+            metadata: {tag: 'span',
+                       attributes: attributes,
+                       constructionOrder: [textNode.porID]},
+            children: [{value: textNode.value,
+                       podID: textNode.porID}]
+            };
 }
 
 function convertToDiffSafeHTMLString(docObject) {
@@ -553,11 +626,11 @@ function convertToDiffSafeHTMLString(docObject) {
             switch(docObject.diffMetadata.changeType){
                 case 'added':
                     htmlContent += '<ins>';
-                    possibleEndTag  = '</ins>'
+                    possibleEndTag  = '</ins>';
                     break;
                 case 'deleted':
                     htmlContent += '<del>';
-                    possibleEndTag  = '</del>'
+                    possibleEndTag  = '</del>';
                     break;
             }
         }
@@ -566,7 +639,8 @@ function convertToDiffSafeHTMLString(docObject) {
 }
 
 function convertTagNodeToHTMLString(docObject) {
-    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param", "source", "track", "wbr"]
+    var emptyTags = ["area", "base", "br", "col", "command", "embed", "hr", "img",
+                    "input", "keygen", "link", "meta", "param", "source", "track", "wbr"];
     var objectString = "";
     objectString += htmlWriter.extractOpeningTag(docObject);
 
@@ -583,6 +657,64 @@ function convertTagNodeToHTMLString(docObject) {
     return objectString;
 }
 
+function applyDecisionsToMergePairs(decisions, pairs) {
+    var mergedPairs = [];
+    for(var row = 0; row < pairs.length; row++){
+        var left = pairs[row].left;
+        var right = pairs[row].right;
+        var parent = null;
+        if(left == null && right != null) {
+            parent = right.parent != undefined ? right.parent : right.metadata.parentID;
+            left = emptyNode(0,"",parent)
+        } else if (right == null && left != null) {
+            parent = left.parent != undefined ? left.parent : left.metadata.parentID;
+            right = emptyNode(0,"",parent)
+        }
+        if(decisions[row] != undefined) {
+            switch(decisions[row]){
+                case 'keep':
+                    mergedPairs.push(right);
+                    break;
+                case 'revert':
+                    if(right == null) {
+                        mergedPairs.push({ignoreInChildCounting: left});
+                    } else {
+                        mergedPairs.push(left);
+                    }
+                    break;
+            }
+        } else {
+            mergedPairs.push(right);
+        }
+    }
+
+    return mergedPairs;
+}
+
+function insertBodyIntoDocObject(mergedBody, fullDocObject){
+    if (fullDocObject.metadata != undefined){
+        var metadata = fullDocObject.metadata;
+        var tag = metadata.tag;
+        if(tag == 'body') {
+            return mergedBody;
+        } else {
+            var newChild = null;
+            var children = [];
+            for(var index = 0; index < fullDocObject.children.length; index++) {
+                var child = fullDocObject.children[index];
+                newChild = insertBodyIntoDocObject(mergedBody, child);
+                children.push(newChild);
+            }
+            fullDocObject.children = children;
+            return fullDocObject;
+        }
+    } else {
+        return fullDocObject;
+    }
+}
+
+
+
 
 module.exports = {
     getGitDiffOutput: getGitDiffOutput,
@@ -596,6 +728,9 @@ module.exports = {
     pairUpRows: pairUpRows,
     markRowNumbersOnPairs: markRowNumbersOnPairs,
     splitPairsIntoBodies: splitPairsIntoBodies,
-    convertToDocObject: convertToDocObject,
-    convertToDiffSafeHTMLString: convertToDiffSafeHTMLString
+    convertToDiffDisplayDocObject: convertToDiffDisplayDocObject,
+    convertToDiffSafeHTMLString: convertToDiffSafeHTMLString,
+    applyDecisionsToMergePairs: applyDecisionsToMergePairs,
+    convertToMergedDocObject: convertToMergedDocObject,
+    insertBodyIntoDocObject: insertBodyIntoDocObject
 };
