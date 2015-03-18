@@ -7,7 +7,7 @@ Initialize/Create a repository with a structured document
 Description
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Users should be able to create a Git repository
-with Psychic-Octo-Robot by giving it an HTML document,
+with gitlit by giving it an HTML document,
 and telling it to create the repository.
 The user should also be able to configure which remote
 (i.e. GitHub, vs. private Git repo) to create,
@@ -36,7 +36,7 @@ Description
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A user should be able to submit a new version of the document 
 (with changes made as they desire) as a commit, 
-and Psychic-Octo-Robot will convert that into the appropriate commit changes in Git.
+and gitlit will convert that into the appropriate commit changes in Git.
 
 Risks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,7 +131,7 @@ Risks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Finding a solid way to turn a GitHub pull request
 into a form that is easily view-able via 
-Psychic-Octo-Robot's diff viewer could be an interesting challenge. 
+gitlit's diff viewer could be an interesting challenge. 
 That being said, there are plenty of options, so not much risk overall.
 
 Priority
@@ -163,5 +163,5 @@ we don't have access to when user-testing.
 Priority
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 4th
-Branching is super critical to git and Psychic-Octo-Robot; 
+Branching is super critical to git and gitlit; 
 we have to have it right after basic committing and repository setup.

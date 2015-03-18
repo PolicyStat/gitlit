@@ -593,11 +593,11 @@ Conflicts: No
 Design Decision
 ***************
 
-Psychic-Octo-Robot keeps track of the
+Gitlit keeps track of the
 order that the nodes should be constructed
 via the table-method. This has the simplest
 base case, and stays simple even when
 complexity is added through commits.
 
 For any in-depth discussion of why, see
-`this git issue <https://github.com/PolicyStat/psychic-octo-robot/issues/18>`_
+`this git issue <https://github.com/PolicyStat/gitlit/issues/18>`_

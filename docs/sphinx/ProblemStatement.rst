@@ -54,7 +54,7 @@ and people virtually nonexistent, as they would need to learn a tool that has a 
 burden of knowledge, and get used to using command-line tools, which is foreign to 
 the average user.
 
-Place your trust in the mighty gitlit
+Place your trust in the mighty Gitlit
 -------------------------------------
 Our tool is meant to solve some of the problems that crop up with casual users trying 
 to use Git on non-source-code documents. 

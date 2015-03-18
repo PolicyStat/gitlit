@@ -2,7 +2,7 @@
 Text Node Name-Tracking
 #######################
 
-When psychic-octo-robot is tracking
+When gitlit is tracking
 a document, there will be files that 
 are generated that are purely made of
 text, and contain the actual written
