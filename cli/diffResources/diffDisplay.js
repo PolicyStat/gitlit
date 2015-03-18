@@ -84,19 +84,18 @@ function makeRadioButtons(rowTopMap, diffRows) {
 var getDiffRows = function() {
     var insElements = Array.prototype.slice.call(document.getElementsByClassName('ins'));
     var delElements = Array.prototype.slice.call(document.getElementsByClassName('del'));
+    var movElements = Array.prototype.slice.call(document.getElementsByClassName('mov'));
     var diffElements = [];
-    if(insElements != undefined && delElements != undefined) {
+    if(insElements != undefined) {
         diffElements = diffElements.concat(insElements);
-        diffElements = diffElements.concat(delElements);
-    } else if (insElements != undefined) {
-        diffElements = insElements;
-    } else if (delElements != undefined) {
-        diffElements = delElements;
-    } else {
-        //This should never happen, since that would mean that there were no
-        //insertions or deletions, although, to be fair, this could mean
-        //we are working on moves and such, so maybe in the future.
     }
+    if (delElements != undefined) {
+        diffElements = diffElements.concat(delElements);
+    }
+    if (movElements != undefined) {
+        diffElements = diffElements.concat(movElements);
+    }
+
     var diffRows = [];
     diffElements.forEach(function(element) {
         var classNames = element.className.split(' ');

@@ -34,6 +34,9 @@ npm install -g deasync
 #install parse5
 npm install -g parse5
 
+#install wrench
+npm install -g wrench
+
 #install unit.js & mocha to run tests
 npm install -g unit.js
 npm install -g mocha

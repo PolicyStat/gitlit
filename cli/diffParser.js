@@ -55,13 +55,13 @@ function convertFileGranulesIntoDiffObjects(granules) {
     interprettedGranules.forEach(function(granule) {
         convertedFileVersions.push(convertVersionsToObjects(granule));
     });
-
     var diffObjects = [];
     for(var index = 0; index < convertedFileVersions.length; index++) {
         var granule = convertedFileVersions[index];
         var diffObject = convertToDiffObject(granule);
         if (diffObject !== null) diffObjects.push(diffObject);
     }
+    //TODO: Compare metadata changes and interpret what they mean.
     return diffObjects;
 }
 
@@ -107,10 +107,18 @@ function convertToDiffObject(granule) {
                     parent: granule.versions.new.parentID,
                     content: granule.versions.new}
         };
+    } else if (granule.fileInfo.changeType == 'move') {
+        //The file was moved, with no content changing
+        //There is another move case that can come up, which is the result of moving within
+        //a certain parent, but this requires some comparison against the metadata changes, which
+        //are not in place yet.
+        return {changeType: 'move',
+                old:{ID: granule.fileInfo.oldID,
+                     parent: granule.fileInfo.oldParent},
+                new:{ID: granule.fileInfo.newID,
+                     parent: granule.fileInfo.newParent}
+        }
     } else {
-        //There are other cases for renames, but for now, we are fine with
-        //just the above cases
-        //TODO: Add rename logic at some point.
         return null;
     }
 }
@@ -178,8 +186,18 @@ function headerInterpretation(header){
 
     var changeData = interpretChangeType(diffHeaderList);
     changeData = resolveIdsAndParent(changeData, oldFilePath, newFilePath);
-
+    changeData = convertRenamesToMoves(changeData);
     return changeData;
+}
+
+function convertRenamesToMoves(data) {
+    var toReturn = {changeType: data.changeType, oldParent:data.oldParent, newParent:data.newParent, oldID:data.oldID, newID:data.newID};
+    if(toReturn.oldParent != toReturn.newParent) {
+        //since renames must be either a file that was renamed for some reason, or a move, then if the parents are different,
+        //by definition, it is a move
+        toReturn.changeType = 'move';
+    }
+    return toReturn;
 }
 
 function resolveIdsAndParent(changeData, oldPath, newPath) {
@@ -355,7 +373,7 @@ function extractBodyObject(gitlitObject) {
 function filterNonContentChanges(diffObjects) {
     var toReturn = [];
     diffObjects.forEach(function(diffObject){
-        if(diffObject.objectID != 'metadata' && diffObject.objectID != undefined){
+        if((diffObject.objectID != 'metadata' && diffObject.objectID != undefined) || diffObject.changeType == 'move'){
             toReturn.push(diffObject);
         }
     });
@@ -386,20 +404,36 @@ function markBodyForDiff(gitlitObject, diffObjects) {
 }
 
 function markDiff(gitlitObject, diff) {
-    if(diff.objectID == gitlitObject.porID) {
-        gitlitObject.diffMetadata = diff;
-        return gitlitObject;
-    } else {
-        if(gitlitObject.children == undefined) {
+    var toReturn = gitlitObject;
+    var newChildren = [];
+    if(diff.changeType == 'added' || diff.changeType == 'deleted') {
+        if (diff.objectID == gitlitObject.porID) {
+            gitlitObject.diffMetadata = diff;
             return gitlitObject;
+        } else {
+            if (gitlitObject.children == undefined) {
+                return gitlitObject;
+            }
+            toReturn.children.forEach(function (child) {
+                newChildren.push(markDiff(child, diff));
+            });
+            toReturn.children = newChildren;
+            return toReturn;
         }
-        var toReturn = gitlitObject;
-        var newChildren = [];
-        toReturn.children.forEach(function(child){
-            newChildren.push(markDiff(child, diff));
-        });
-        toReturn.children = newChildren;
-        return toReturn;
+    } else if (diff.changeType == 'move') {
+        if (diff.old.ID == gitlitObject.porID || diff.new.ID == gitlitObject.porID) {
+            gitlitObject.diffMetadata = diff;
+            return gitlitObject;
+        } else {
+            if (gitlitObject.children == undefined) {
+                return gitlitObject;
+            }
+            toReturn.children.forEach(function (child) {
+                newChildren.push(markDiff(child, diff));
+            });
+            toReturn.children = newChildren;
+            return toReturn;
+        }
     }
 }
 
@@ -600,7 +634,7 @@ function wrapForDisplay(textNode) {
     var attributes = [{name: "class", value:textNode.row}];
     if(textNode.diffMetadata != undefined) {
         attributes = [{name: "class",
-                         value: textNode.row.toString() + ' ' + (textNode.diffMetadata.changeType == 'added' ? "ins" : "del")}];
+                         value: textNode.row.toString() + ' ' + getChangeClassName(textNode)}];
     }
 
     return {porID: textNode.porID,
@@ -612,29 +646,24 @@ function wrapForDisplay(textNode) {
             };
 }
 
+function getChangeClassName(textNode){
+    switch(textNode.diffMetadata.changeType) {
+        case 'added':
+            return 'ins';
+        case 'deleted':
+            return 'del';
+        case 'move':
+            return 'mov';
+    }
+}
+
 function convertToDiffSafeHTMLString(docObject) {
     if(docObject.metadata != undefined) {
         //We have a tag node
         return convertTagNodeToHTMLString(docObject);
 
     } else {
-        //non-tag node, just need to hand back the content
-        //with ins/del tags as necessary
-        var htmlContent = '';
-        var possibleEndTag = '';
-        if(docObject.diffMetadata != undefined) {
-            switch(docObject.diffMetadata.changeType){
-                case 'added':
-                    htmlContent += '<ins>';
-                    possibleEndTag  = '</ins>';
-                    break;
-                case 'deleted':
-                    htmlContent += '<del>';
-                    possibleEndTag  = '</del>';
-                    break;
-            }
-        }
-        return htmlContent + docObject.value + possibleEndTag;
+        return docObject.value;
     }
 }
 
