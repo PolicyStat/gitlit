@@ -14,34 +14,126 @@ of PolicyStat.
 Currently HTML is the target language for development, with the posibility
 of later including XML, DOCX, and other structure document formats.
 
+# Getting Started
+
+``` js
+
+npm install gitlit
+
+```
+
 ## Usage: gitlit [options] [command] [arguments]
 
-### First, create a gitlit local repo
-    node ./cli/gitlit.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
-   
-In this case, the output path is the directory that you want the repository to
-be made in. This means that for future commands that need the repository location
-the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
-
-### And change it back into html
-    node ./cli/gitlit.js write <directory> <outputFile>       Convert a Repository into an HTML file
-Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
-be outputted as HTML, but won't be that filetype.
-    
-### Make a new revision of the local repo given a new document
-    node ./cli/gitlit.js commit <file to make the new revision> <path to repo> <commit message>
-
-## Options
+### Options
 
 * -h, (--help)         output usage information
 * -V, (--version)      output the version number
 * -v, (--versionFull)  Print out all the version info for the CLI
 * -l, (--libraries)    Print out the versions of the libraries used
 
-## Upcoming Features
-- more complete NPM package
-- diffs
-	
+### First, create a gitlit local repo
+
+gitlit init <file> <outputPath> <repoName>
+
+``` js
+
+    gitlit init homepage.html /gitlitRepos homepage
+
+```
+   
+In this case, the output path is the directory that you want the repository to
+be made in. This means that for future commands that need the repository location
+the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
+
+### And change it back into html
+
+gitlit write <directory> <outputFile>
+
+``` js
+
+gitlit write /gitlitRepos/homepage homepage.html
+
+```
+
+Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
+be output as HTML, but won't be that filetype.
+    
+### Make a new revision of the local repo given a new document
+
+gitlit commit <file to make the new revision> <path to repo> <commit message>
+
+``` js
+
+gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
+
+```
+
+### Perform a diff for the last two revisions of a repo
+
+gitlit diff <repoLocation> <outputLocation>
+
+``` js
+
+gitlit commit homepagev3.html /gitlitRepos/homepage "My second commit"
+
+gitlit diff /gitlitRepos/homepage /diffResources
+
+```
+In diffResources will appear an object with diff data, and css and js for an html file to be opened in a browser for a visual diff display.
+
+# Upcoming Features
+- merge
+    
+## por-ids : What are they?
+
+They way that gitlit keeps track of the structure of documents for intelligent handling of
+sections is via a file structure. In the Git repository that is the version control underlying the 
+project, the basic file structure looks like this:
+
+[Basic file structure](docs/images/filestructure.png)
+       
+The idea, is that at each level, the directories and text files are given ID's that identify *what* they are.
+This is useful for tracking the movement of sections even if there are small changes in their children (e.g.
+text nodes). As such, the names of these directories need to be tracked, and each different element needs to
+have some sort of name to be able to tell them apart.
+
+These names are the por-ids, which are 12 byte, hex-encoded strings. The information about the order each node
+is constructed is kept track of in the metadata.json files. In addition to this, the metadata.json files also
+track information like the tag of the current directory, and any information like attributes. This encodes
+all of the information in a simple yet robust manner.
+
+This setup does come with a few caveats however.
+
+## Disclaimers:
+### Modifying por-ids can result in unexpected behavior
+If por-ids are edited between revisions of a document, diff output can be strange, and difficult to read.
+To avoid this, try not to wholesale change or delete por-ids.
+
+### Some formatting may not be preserved
+The goal of this project is to keep as much information and formatting of the file as possible.
+However, unless we want to keep track of numerous files that are only whitespace, and increase 
+the possibility of changes being reported by `diff`, we need to ignore some whitespace.
+
+Currently, we are using [html](https://www.npmjs.org/package/html) for our pretty printing of output
+html. Another thing to note, is that there may be closing tags on the same line as the opening tag,
+this is because it is difficult know when it is alright to arbitrarily add an extra newline. So html
+doesn't, it only adds the newlines when it knows for certain it is safe to.
+
+### Missing tags (opening or closing) results in undefined behavior
+If the html is missing starting or ending tags when used in any operations, then there are no 
+guarantee that the interpretation of the HTML will be what the author intended. This is because
+missing tags can be interpreted in many ways, so the one selected may not be what the author intended. 
+
+To minimize this effect, be sure to include closing tags for each open tag, and vice versa.
+
+## Libraries Used
+* parse5
+* html
+* commander.js
+* mocha
+* unit.js
+* deasync
+
 ## Version History
 * 0.0.1
     * Basic command line tool to accept inputs
@@ -85,61 +177,6 @@ be outputted as HTML, but won't be that filetype.
 * 0.4.0
     * Renamed project: psychic-octo-robot -> gitlit
     * Dropped Windows support in order to keep the project working easily in Linux
-    
-## por-ids : What are they?
-
-They way that gitlit keeps track of the structure of documents for intelligent handling of
-sections is via a file structure. In the Git repository that is the version control underlying the 
-project, the basic file structure looks like this:
-
-- Root folder
-   * metadata.json
-   * child-text-node.txt
-   * tagged-child-node
-       * grandchild-text.txt
-       * metadata.json
-       
-The idea, is that at each level, the directories and text files are given ID's that identify *what* they are.
-This is useful for tracking the movement of sections even if there are small changes in their children (e.g.
-text nodes). As such, the names of these directories need to be tracked, and each different element needs to
-have some sort of name to be able to tell them apart.
-
-These names are the por-ids, which are 12 byte, hex-encoded strings. The information about the order each node
-is constructed is kept track of in the metadata.json files. In addition to this, the metadata.json files also
-track information like the tag of the current directory, and any information like attributes. This encodes
-all of the information in a simple yet robust manner.
-
-This setup does come with a few caveats however.
-
-## Disclaimers:
-### Modifying por-ids can result in unexpected behavior
-If por-ids are edited between revisions of a document, diff output can be strange, and difficult to read.
-To avoid this, try not to wholesale change or delete por-ids.
-
-### Some formatting may not be preserved
-The goal of this project is to keep as much information and formatting of the file as possible.
-However, unless we want to keep track of numerous files that are only whitespace, and increase 
-the possibility of changes being reported by `diff`, we need to ignore some whitespace.
-
-Currently, we are using [html](https://www.npmjs.org/package/html) for our pretty printing of output
-html. Another thing to note, is that there may be closing tags on the same line as the opening tag,
-this is because it is difficult know when it is alright to arbitrarily add an extra newline. So html
-doesn't, it only adds the newlines when it knows for certain it is safe to.
-
-### Missing tags (opening or closing) results in undefined behavior
-If the html is missing starting or ending tags when used in any operations, then there are no 
-guarantee that the interpretation of the HTML will be what the author intended. This is because
-missing tags can be interpreted in many ways, so the one selected may not be what the author intended. 
-
-To minimize this effect, be sure to include closing tags for each open tag, and vice versa.
-
-## Libraries Used
-* parse5
-* html
-* commander.js
-* mocha
-* unit.js
-* deasync
 
 ## Development environment
 ### Docker & Vagrant
