@@ -33,7 +33,7 @@ $ npm install gitlit
 
 ### First, create a gitlit local repo
 
-gitlit init <file> <outputPath> <repoName>
+gitlit init &lt;file&gt; &lt;outputPath&gt; &lt;repoName&gt;
 
 ```
 
@@ -47,7 +47,7 @@ the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
 
 ### And change it back into html
 
-gitlit write <directory> <outputFile>
+gitlit write &lt;directory&gt; &lt;outputFile&gt;
 
 ```
 
@@ -60,7 +60,7 @@ be output as HTML, but won't be that filetype.
     
 ### Make a new revision of the local repo given a new document
 
-gitlit commit <file to make the new revision> <path to repo> <commit message>
+gitlit commit &lt;file to make the new revision&gt; &lt;path to repo&gt; &lt;commit message&gt;
 
 ```
 
@@ -70,7 +70,7 @@ $ gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
 
 ### Perform a diff for the last two revisions of a repo
 
-gitlit diff <repoLocation> <outputLocation>
+gitlit diff &lt;repoLocation&gt; &lt;outputLocation&gt;
 
 ```
 
@@ -175,7 +175,7 @@ To minimize this effect, be sure to include closing tags for each open tag, and 
     * Added Vagrantfile for Vagrant development support
     * Began work on diff functionality for telling the difference between 2 revisions
 * 0.4.0
-    * Renamed project: psychic-octo-robot -> gitlit
+    * Renamed project: psychic-octo-robot -&gt; gitlit
     * Dropped Windows support in order to keep the project working easily in Linux
 
 ## Development environment
