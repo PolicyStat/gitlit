@@ -16,9 +16,9 @@ of later including XML, DOCX, and other structure document formats.
 
 # Getting Started
 
-``` js
+```
 
-npm install gitlit
+$ npm install gitlit
 
 ```
 
@@ -35,9 +35,9 @@ npm install gitlit
 
 gitlit init <file> <outputPath> <repoName>
 
-``` js
+```
 
-    gitlit init homepage.html /gitlitRepos homepage
+$ gitlit init homepage.html /gitlitRepos homepage
 
 ```
    
@@ -49,9 +49,9 @@ the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
 
 gitlit write <directory> <outputFile>
 
-``` js
+```
 
-gitlit write /gitlitRepos/homepage homepage.html
+$ gitlit write /gitlitRepos/homepage homepage.html
 
 ```
 
@@ -62,9 +62,9 @@ be output as HTML, but won't be that filetype.
 
 gitlit commit <file to make the new revision> <path to repo> <commit message>
 
-``` js
+```
 
-gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
+$ gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
 
 ```
 
@@ -72,11 +72,11 @@ gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
 
 gitlit diff <repoLocation> <outputLocation>
 
-``` js
+```
 
-gitlit commit homepagev3.html /gitlitRepos/homepage "My second commit"
+$ gitlit commit homepagev3.html /gitlitRepos/homepage "My second commit"
 
-gitlit diff /gitlitRepos/homepage /diffResources
+$ gitlit diff /gitlitRepos/homepage /diffResources
 
 ```
 In diffResources will appear an object with diff data, and css and js for an html file to be opened in a browser for a visual diff display.
@@ -90,7 +90,7 @@ They way that gitlit keeps track of the structure of documents for intelligent h
 sections is via a file structure. In the Git repository that is the version control underlying the 
 project, the basic file structure looks like this:
 
-[Basic file structure](docs/images/filestructure.png)
+![Basic file structure](docs/images/filestructure.png)
        
 The idea, is that at each level, the directories and text files are given ID's that identify *what* they are.
 This is useful for tracking the movement of sections even if there are small changes in their children (e.g.
