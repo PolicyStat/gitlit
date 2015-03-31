@@ -4,6 +4,18 @@
 
 var deasync = require("deasync");
 
+function shellOut(command){
+    var exec = require('child_process').exec;
+    try {
+        var execSync = deasync(exec);
+        var output = execSync(command);
+    } catch (err) {
+        console.log(err);
+    }
+    return output;
+
+}
+
 function gitRepoCreation(repoPath){
     var command = '';
 
@@ -12,8 +24,6 @@ function gitRepoCreation(repoPath){
     command += 'git add -A .' + ' && ';
     command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' ' +
         'commit -m \" repo initialized \" --allow-empty';
-//    console.log(command);
-
     shellOut(command);
 }
 
@@ -26,34 +36,21 @@ function gitCommit(repoPath, commitMessage){
     command += 'git add -A .' + ' && ';
     command += 'git -c user.name=\'psychic-octo-robot\' -c user.email=\'psychic-octo-robot@example.com\' commit -m \"'
         + message + '\" --allow-empty';
-
     shellOut(command);
 }
 
-function shellOut(command){
-    var exec = require('child_process').exec;
-    try {
-        var execSync = deasync(exec);
-        var output = execSync(command);
-    } catch (err) {
-        console.log(err);
-    }
-//    console.log("ran the command: " + command);
-    return output;
-
-}
-
-function checkoutToCommit(repoLocation, commit) {
+// checking out to a commit
+function checkoutToCommit(repoPath, commit) {
     var command = '';
-    command += 'cd ' + repoLocation + '&& ';
+    command += 'cd ' + repoPath + '&& ';
     command += 'git checkout ' + commit;
     shellOut(command);
 }
 
 
 module.exports = {
+    shellOut: shellOut,
     gitCommit: gitCommit,
     gitRepoCreation: gitRepoCreation,
-    shellOut: shellOut,
     checkoutToCommit: checkoutToCommit
 };
