@@ -14,77 +14,75 @@ of PolicyStat.
 Currently HTML is the target language for development, with the posibility
 of later including XML, DOCX, and other structure document formats.
 
+# Getting Started
+
+```
+
+$ npm install gitlit
+
+```
+
 ## Usage: gitlit [options] [command] [arguments]
 
-### First, create a gitlit local repo
-    node ./cli/gitlit.js init <file> <outputPath> <repoName>  Initialize a Repository for the given file
-   
-In this case, the output path is the directory that you want the repository to
-be made in. This means that for future commands that need the repository location
-the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
-
-### And change it back into html
-    node ./cli/gitlit.js write <directory> <outputFile>       Convert a Repository into an HTML file
-Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
-be outputted as HTML, but won't be that filetype.
-    
-### Make a new revision of the local repo given a new document
-    node ./cli/gitlit.js commit <file to make the new revision> <path to repo> <commit message>
-
-## Options
+### Options
 
 * -h, (--help)         output usage information
 * -V, (--version)      output the version number
 * -v, (--versionFull)  Print out all the version info for the CLI
 * -l, (--libraries)    Print out the versions of the libraries used
 
-## Upcoming Features
-- more complete NPM package
-- diffs
-	
-## Version History
-* 0.0.1
-    * Basic command line tool to accept inputs
-    * Help info for usage
-    * Added libraries
-* 0.0.2
-    * Parsing of HTML files into DOM-like structure
-    * Filtering of information needed for creating directory structure
-    * Adding custom IDs to keep track of tags for tracking changes in sections
-* 0.1.0
-    * `init` feature: Creation of file directory structure mean to represent a structured document
-    * Naming for each file/directory from random byte array for uniqueness
-* 0.1.1
-    * Parsing of File structure back into Javascript object format
-    * Unit tests for `init` feature
-* 0.1.2
-    * Generation of HTML through reconstruction using Javascript object
-    * Command-line command for this feature
-* 0.2.0
-    * `write` feature: Create an HTML file from the directory structure with IDs inserted into HTML
-    * Unit tests for `write` feature
-* 0.2.1
-    * Pre tag whitespace preservation
-    * Transition away from js-git to Git shell
-    * Setup & teardown for directory during `commit`
-* 0.2.2
-    * Make Git repository commit during `commit`
-    * Edge cases for `write` & `init` feature
-* 0.3.0
-    * `commit` feature: Given new file and a path to a repository directory, 
-    create a new version of the document with a commit message
-* 0.3.1
-    * Updated project to be packaged on npm. Can be found [here](https://www.npmjs.org/package/gitlit)
-    * Set up project to work with Travis-CI
-    * Added support for comments in HTML files
-    * Added support for self-closing tags
-* 0.3.2
-    * Added executable version for global install via npm
-    * Added Vagrantfile for Vagrant development support
-    * Began work on diff functionality for telling the difference between 2 revisions
-* 0.4.0
-    * Renamed project: psychic-octo-robot -> gitlit
-    * Dropped Windows support in order to keep the project working easily in Linux
+### First, create a gitlit local repo
+
+gitlit init &lt;file&gt; &lt;outputPath&gt; &lt;repoName&gt;
+
+```
+
+$ gitlit init homepage.html /gitlitRepos homepage
+
+```
+   
+In this case, the output path is the directory that you want the repository to
+be made in. This means that for future commands that need the repository location
+the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
+
+### And change it back into html
+
+gitlit write &lt;directory&gt; &lt;outputFile&gt;
+
+```
+
+$ gitlit write /gitlitRepos/homepage homepage.html
+
+```
+
+Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
+be output as HTML, but won't be that filetype.
+    
+### Make a new revision of the local repo given a new document
+
+gitlit commit &lt;file to make the new revision&gt; &lt;path to repo&gt; &lt;commit message&gt;
+
+```
+
+$ gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
+
+```
+
+### Perform a diff for the last two revisions of a repo
+
+gitlit diff &lt;repoLocation&gt; &lt;outputLocation&gt;
+
+```
+
+$ gitlit commit homepagev3.html /gitlitRepos/homepage "My second commit"
+
+$ gitlit diff /gitlitRepos/homepage /diffResources
+
+```
+In diffResources will appear an object with diff data, and css and js for an html file to be opened in a browser for a visual diff display.
+
+# Upcoming Features
+- merge
     
 ## por-ids : What are they?
 
@@ -92,12 +90,7 @@ They way that gitlit keeps track of the structure of documents for intelligent h
 sections is via a file structure. In the Git repository that is the version control underlying the 
 project, the basic file structure looks like this:
 
-- Root folder
-   * metadata.json
-   * child-text-node.txt
-   * tagged-child-node
-       * grandchild-text.txt
-       * metadata.json
+![Basic file structure](docs/images/filestructure.png)
        
 The idea, is that at each level, the directories and text files are given ID's that identify *what* they are.
 This is useful for tracking the movement of sections even if there are small changes in their children (e.g.
@@ -140,6 +133,50 @@ To minimize this effect, be sure to include closing tags for each open tag, and 
 * mocha
 * unit.js
 * deasync
+
+## Version History
+* 0.0.1
+    * Basic command line tool to accept inputs
+    * Help info for usage
+    * Added libraries
+* 0.0.2
+    * Parsing of HTML files into DOM-like structure
+    * Filtering of information needed for creating directory structure
+    * Adding custom IDs to keep track of tags for tracking changes in sections
+* 0.1.0
+    * `init` feature: Creation of file directory structure mean to represent a structured document
+    * Naming for each file/directory from random byte array for uniqueness
+* 0.1.1
+    * Parsing of File structure back into Javascript object format
+    * Unit tests for `init` feature
+* 0.1.2
+    * Generation of HTML through reconstruction using Javascript object
+    * Command-line command for this feature
+* 0.2.0
+    * `write` feature: Create an HTML file from the directory structure with IDs inserted into HTML
+    * Unit tests for `write` feature
+* 0.2.1
+    * Pre tag whitespace preservation
+    * Transition away from js-git to Git shell
+    * Setup & teardown for directory during `commit`
+* 0.2.2
+    * Make Git repository commit during `commit`
+    * Edge cases for `write` & `init` feature
+* 0.3.0
+    * `commit` feature: Given new file and a path to a repository directory, 
+    create a new version of the document with a commit message
+* 0.3.1
+    * Updated project to be packaged on npm. Can be found [here](https://www.npmjs.org/package/gitlit)
+    * Set up project to work with Travis-CI
+    * Added support for comments in HTML files
+    * Added support for self-closing tags
+* 0.3.2
+    * Added executable version for global install via npm
+    * Added Vagrantfile for Vagrant development support
+    * Began work on diff functionality for telling the difference between 2 revisions
+* 0.4.0
+    * Renamed project: psychic-octo-robot -&gt; gitlit
+    * Dropped Windows support in order to keep the project working easily in Linux
 
 ## Development environment
 ### Docker & Vagrant
