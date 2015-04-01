@@ -3,10 +3,8 @@
  */
 var fs = require("fs");
 var html = require('html');
-var shellTools = require('./shellTools');
 var genericWriter = require('./genericWriter');
 
-//might be extractable
 function generateFile(directory, outputFile) {
     return genericWriter.generateFile(directory, outputFile, this.writePORObjectToHTMLFile)
 }
