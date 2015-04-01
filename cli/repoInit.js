@@ -1,145 +1,63 @@
 /**
  * Created by Devon Timaeus on 9/30/2014.
  */
+
 var fs = require('fs');
-var path = require('path');
-var parser = require('./htmlParser');
+var diffParser = require('./diffParser');
 var fileWriter = require('./htmlWriter');
 var repoWriter = require('./htmlRepoWriter');
-var diffParser = require('./diffParser');
-var shellTools = require('./shellTools');
-var html = require('html');
-var wrench = require('wrench');
+var parser = require('./htmlParser');
+var init = require('./genericRepoInit');
 
 function getExtension(filename) {
-    var ext = path.extname(filename||'').split('.');
-    return ext[ext.length - 1];
+    return init.getExtension(filename);
 }
 
 function getFileContents(file) {
-    if (!fs.existsSync(file)) {
-        throw new URIError('No file found at: ' + file);
-    }
-
-    // We will want to do mimetype detection at some point, but for now, this is fine
-    var extension = getExtension(file);
-    if (extension.toLowerCase() != 'html') {
-        throw new TypeError('Filetype not HTML');
-    }
-
-    try {
-        return fs.readFileSync(file, 'utf8');
-    } catch (err) {
-        throw new URIError('No file found at: ' + file);
-    }
+    return init.getFileContents(file, 'html');
 }
 
 function initializeRepository(file, outputPath, repoName) {
-    try {
-        if (!fs.existsSync(outputPath)) {
-            throw new URIError("Output Path does not exist");
-        }
-        if (fs.existsSync(outputPath + repoName) || fs.existsSync(outputPath + "/" + repoName)) {
-            throw new URIError("Error: A directory already exists at this location with the name " + repoName);
-        }
-        var fileContents = getFileContents(file);
-        var porObject = parser.parseHTML(fileContents, repoName);
-        repoWriter.writeRepoToDirectory(porObject, outputPath);
-    } catch (err) {
-        if (err instanceof TypeError) {
-            console.error(err.message);
-        }
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-        if (err instanceof ReferenceError) {
-            console.log(err.message);
-        }
-    }
+    init.initializeRepositoryErrorHandling(file, outputPath, repoName, initializeRepositoryContentHandling);
+}
+
+function initializeRepositoryContentHandling(file, outputPath, repoName){
+    var fileContents = getFileContents(file);
+    var porObject = parser.parseHTML(fileContents, repoName);
+    repoWriter.writeRepoToDirectory(porObject, outputPath);
 }
 
 function commitDocument(file, outputPath, repoName, commitMessage) {
-    try {
-        if (!fs.existsSync(outputPath)) {
-            throw new URIError("Output Path does not exist");
-        }
-        var fileContents = getFileContents(file);
-        var porObject = parser.parseHTML(fileContents, repoName);
-        repoWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
-    } catch (err) {
-        if (err instanceof TypeError) {
-            console.error(err.message);
-        }
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-    }
+    init.commitDocumentErrorHandling(file, outputPath, repoName, commitMessage, commitDocumentContentHandling);
+}
+
+function commitDocumentContentHandling(file, outputPath, repoName, commitMessage){
+    var fileContents = getFileContents(file);
+    var porObject = parser.parseHTML(fileContents, repoName);
+    repoWriter.writeCommitToDirectory(porObject, outputPath, commitMessage);
 }
 
 function getDiff(repoLocation) {
-    try {
-        if(!fs.existsSync(repoLocation)) {
-            throw new URIError("Directory does not exist at location: " + repoLocation);
-        }
-        var diffOutput = diffParser.getGitDiffOutput(repoLocation);
-        var granules = diffParser.processDiffIntoFileGranules(diffOutput);
-        return diffParser.convertFileGranulesIntoDiffObjects(granules);
-    } catch (err) {
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-    }
+    return init.getDiff(repoLocation);
 }
 
 function getOldAndNewFileVersions(repoLocation) {
-    try {
-        if(!fs.existsSync(repoLocation)) {
-            throw new URIError("Directory does not exist at location: " + repoLocation);
-        }
-        var fileVersions = fileWriter.getPreviousFileVersions(repoLocation);
-        var oldVersion = fileVersions[0];
-        var newVersion = fileVersions[1];
-
-        return [oldVersion, newVersion];
-
-    } catch (err) {
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-    }
+    return init.getOldAndNewFileVersions(repoLocation);
 }
 
 function getInterprettedDiff(repoLocation) {
-    var diffObjects = getDiff(repoLocation);
-    return diffParser.filterNonContentChanges(diffObjects);
+    return init.getInterprettedDiff(repoLocation);
 }
 
 function createDiffPairs(oldVersion, newVersion, contentChanges) {
-    var oldBody = diffParser.extractBodyObject(oldVersion);
-    var newBody = diffParser.extractBodyObject(newVersion);
-
-    var diffCleanOldBody = diffParser.cleanGitlitObjectForDiff(oldBody);
-    var diffCleanNewBody = diffParser.cleanGitlitObjectForDiff(newBody);
-
-    var markedOld = diffParser.markBodyForDiff(diffCleanOldBody, contentChanges);
-    var markedNew = diffParser.markBodyForDiff(diffCleanNewBody, contentChanges);
-
-    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
-    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
-
-    return diffParser.pairUpRows(linearizedOld, linearizedNew);
+    return createDiffPairs(oldVersion, newVersion, contentChanges);
 }
 
 function createMergePairs(oldVersion, newVersion, contentChanges) {
-    var oldBody = diffParser.extractBodyObject(oldVersion);
-    var newBody = diffParser.extractBodyObject(newVersion);
-    var markedOld = diffParser.markBodyForDiff(oldBody, contentChanges);
-    var markedNew = diffParser.markBodyForDiff(newBody, contentChanges);
-    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
-    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
-    return diffParser.pairUpRows(linearizedOld, linearizedNew);
+    return createMergePairs(oldVersion, newVersion, contentChanges);
 }
 
+// I don't feel okay with trying to extract the html from this, pretty solid as it stands.
 function setUpPairsForDiffDisplay(pairs) {
     var numberedPairs = diffParser.markRowNumbersOnPairs(pairs);
     var splitBodies = diffParser.splitPairsIntoBodies(numberedPairs);
@@ -155,47 +73,27 @@ function createCopyOfDiffResources(outputLocation) {
 }
 
 function createJSONForDisplay(outputLocation, diffObject, mergePairs, mergeFileVersion) {
-    var fileContents = 'var diffDisplayInfo = ' + JSON.stringify(diffObject);
-    fileContents += ";\n";
-    fileContents += "var mergePairs = " + JSON.stringify(mergePairs);
-    fileContents += ";\n";
-    fileContents += "var mergeFile = " + JSON.stringify(mergeFileVersion) + ";";
-    fs.writeFileSync(path.join(outputLocation, "diffDisplayObject.js"), fileContents, "utf8");
+    createJSONForDisplay(outputLocation, diffObject, mergePairs, mergeFileVersion);
 }
 
+//Has HTML sections in it, not confident enough with the diff parser to try to extract.
 function getMergedPairs(mergefile, outputLocation){
-    try {
-        if(!fs.existsSync(mergefile)) {
-            throw new URIError("merge-file does not exist at location: " + mergefile);
-        }
-        var jsonString = fs.readFileSync(mergefile, 'utf8');
-        var mergeJson = JSON.parse(jsonString);
-        var decisions = mergeJson.selections;
-        var mergePairs = mergeJson.mergePairs;
-        var mergeFile = mergeJson.mergeFile;
+    init.getMergedPairsGeneric(mergefile, outputLocation, mergeDocHTML);
+}
 
-        var mergedPairs = diffParser.applyDecisionsToMergePairs(decisions, mergePairs);
-        var mergedDocObject = diffParser.convertToMergedDocObject(mergedPairs).docObject;
-        var writeReadyDocObject = diffParser.insertBodyIntoDocObject(mergedDocObject, mergeFile);
-        fileWriter.writePORObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
-    } catch (err) {
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-    }
+function mergeDocHTML(decisions, mergePairs, mergeFile, outputLocation){
+    var mergedPairs = diffParser.applyDecisionsToMergePairs(decisions, mergePairs);
+    var mergedDocObject = diffParser.convertToMergedDocObject(mergedPairs).docObject;
+    var writeReadyDocObject = diffParser.insertBodyIntoDocObject(mergedDocObject, mergeFile);
+    fileWriter.writePORObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
 }
 
 function deleteDirectoryIfExists(pathToDirectory) {
-    if(fs.existsSync(pathToDirectory)) {
-        //Need to change the permissions to write so that we can actually delete stuff in general
-        shellTools.shellOut('sudo chmod -R u+w ' + pathToDirectory + ';rm -rf ' + pathToDirectory);
-    }
+    init.deleteDirectoryIfExists(pathToDirectory);
 }
 
 function deleteFileIfExists(pathToFile) {
-    if(fs.existsSync(pathToFile)) {
-        fs.unlinkSync(pathToFile);
-    }
+    init.deleteFileIfExists(pathToFile);
 }
 
 /*
