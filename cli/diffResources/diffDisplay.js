@@ -85,6 +85,7 @@ var getDiffRows = function() {
     var insElements = Array.prototype.slice.call(document.getElementsByClassName('ins'));
     var delElements = Array.prototype.slice.call(document.getElementsByClassName('del'));
     var movElements = Array.prototype.slice.call(document.getElementsByClassName('mov'));
+    var edtElements = Array.prototype.slice.call(document.getElementsByClassName('edt'));
     var diffElements = [];
     if(insElements != undefined) {
         diffElements = diffElements.concat(insElements);
@@ -94,6 +95,9 @@ var getDiffRows = function() {
     }
     if (movElements != undefined) {
         diffElements = diffElements.concat(movElements);
+    }
+    if (edtElements != undefined) {
+        diffElements = diffElements.concat(edtElements);
     }
 
     var diffRows = [];

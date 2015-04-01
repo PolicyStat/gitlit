@@ -66,6 +66,11 @@ del, .del {
     text-decoration: none;
 }
 
+.edt {
+    background-color: gold;
+    text-decoration: none;
+}
+
 .decision {
     position: absolute;
     left: 50%;

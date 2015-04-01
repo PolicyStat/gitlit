@@ -20,18 +20,13 @@ describe('Performs a git diff correctly:', function () {
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
         var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
-        var oldHeader = {
-            changeType: 'deleted',
+        var header = {
+            changeType: 'edit',
             parent: 'derp',
-            content: 'Header '
+            oldContent: 'Header ',
+            newContent: 'Header is different '
         };
-        var newHeader = {
-            changeType: 'added',
-            parent: 'derp',
-            content: 'Header is different '
-        };
-        assert.ok(deepContainsIgnoreID(diffObjects, oldHeader));
-        assert.ok(deepContainsIgnoreID(diffObjects, newHeader));
+        assert.ok(deepContainsIgnoreID(diffObjects, header));
         shellTools.shellOut("cd " + testObject.currentPlace);
     });
 
@@ -102,11 +97,21 @@ describe('Performs a git diff correctly:', function () {
 function deepContainsIgnoreID(array, element) {
     for(var index = 0; index < array.length; index++) {
         var arrayItem = array[index];
-        var compareObject = {
-            changeType: arrayItem.changeType,
-            parent: arrayItem.parent,
-            content: arrayItem.content
-        };
+        var compareObject = {};
+        if(arrayItem.oldContent != undefined){
+            compareObject = {
+                changeType: arrayItem.changeType,
+                parent: arrayItem.parent,
+                oldContent: arrayItem.oldContent,
+                newContent: arrayItem.newContent
+            };
+        } else {
+            compareObject = {
+                changeType: arrayItem.changeType,
+                parent: arrayItem.parent,
+                content: arrayItem.content
+            };
+        }
 
         if (JSON.stringify(compareObject) == JSON.stringify(element)) return true;
     }
