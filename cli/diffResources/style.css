@@ -61,6 +61,16 @@ del, .del {
     text-decoration: none;
 }
 
+.mov {
+    background-color: cornflowerblue;
+    text-decoration: none;
+}
+
+.edt {
+    background-color: gold;
+    text-decoration: none;
+}
+
 .decision {
     position: absolute;
     left: 50%;

@@ -43,19 +43,17 @@ function processDiffIntoFileGranules(diff) {
 }
 
 function convertFileGranulesIntoDiffObjects(granules) {
-    var interprettedGranules = [];
+    var interpretedGranules = [];
     granules.forEach(function(granule) {
         var splitGranuleObject = splitGranuleIntoHeaderAndBodyObject(granule);
         var header = headerInterpretation(splitGranuleObject.header);
         var fileVersions = getFileVersionsFromBody(splitGranuleObject.body);
-        interprettedGranules.push({fileInfo: header, versions:fileVersions});
+        interpretedGranules.push({fileInfo: header, versions:fileVersions});
     });
-
     var convertedFileVersions = [];
-    interprettedGranules.forEach(function(granule) {
+    interpretedGranules.forEach(function(granule) {
         convertedFileVersions.push(convertVersionsToObjects(granule));
     });
-
     var diffObjects = [];
     for(var index = 0; index < convertedFileVersions.length; index++) {
         var granule = convertedFileVersions[index];
@@ -107,11 +105,22 @@ function convertToDiffObject(granule) {
                     parent: granule.versions.new.parentID,
                     content: granule.versions.new}
         };
+    } else if (granule.fileInfo.changeType == 'move') {
+        //The file was moved, with no content changing
+        //There is another move case that can come up, which is the result of moving within
+        //a certain parent, but this requires some comparison against the metadata changes, which
+        //are not in place yet.
+        return {changeType: 'move',
+                old:{ID: granule.fileInfo.oldID,
+                     parent: granule.fileInfo.oldParent},
+                new:{ID: granule.fileInfo.newID,
+                     parent: granule.fileInfo.newParent}
+        }
     } else {
-        //There are other cases for renames, but for now, we are fine with
-        //just the above cases
-        //TODO: Add rename logic at some point.
-        return null;
+        //Otherwise, we are looking at a rename that is hard to place,
+        //it could be nothing or an internal node move, either way, we should
+        //hold on to it, to see if we can resolve it later.
+        return {changeType: '?', granule: granule};
     }
 }
 
@@ -178,8 +187,18 @@ function headerInterpretation(header){
 
     var changeData = interpretChangeType(diffHeaderList);
     changeData = resolveIdsAndParent(changeData, oldFilePath, newFilePath);
-
+    changeData = convertRenamesToMoves(changeData);
     return changeData;
+}
+
+function convertRenamesToMoves(data) {
+    var toReturn = {changeType: data.changeType, oldParent:data.oldParent, newParent:data.newParent, oldID:data.oldID, newID:data.newID};
+    if(toReturn.oldParent != toReturn.newParent) {
+        //since renames must be either a file that was renamed for some reason, or a move, then if the parents are different,
+        //by definition, it is a move
+        toReturn.changeType = 'move';
+    }
+    return toReturn;
 }
 
 function resolveIdsAndParent(changeData, oldPath, newPath) {
@@ -349,17 +368,177 @@ function extractBodyObject(gitlitObject) {
     } else {
         return null;
     }
-
 }
 
-function filterNonContentChanges(diffObjects) {
+function resolveComplexChanges(diffObjects) {
     var toReturn = [];
+    var editsToResolve = [];
+    var internalMoves = [];
+
+    var metadataObjectsThatChanged = [];
+    var unknownChangesToBeResolved = [];
+    var normalChanges = [];
+    diffObjects.forEach(function(diff){
+        if(diff.changeType == '?'){
+            unknownChangesToBeResolved.push(diff);
+        } else if (diff.changeType == 'edit') {
+            metadataObjectsThatChanged.push(diff);
+        } else {
+            normalChanges.push(diff);
+        }
+    });
+
     diffObjects.forEach(function(diffObject){
-        if(diffObject.objectID != 'metadata' && diffObject.objectID != undefined){
+        if(diffObject.changeType == 'edit'){
+            var results = metadataComparison(diffObject.old, diffObject.new, unknownChangesToBeResolved);
+            editsToResolve = editsToResolve.concat(results.editToResolve);
+            internalMoves = internalMoves.concat(results.internalMove);
+        } else if (diffObject.changeType != '?' && diffObject.changeType != undefined) {
             toReturn.push(diffObject);
         }
     });
+
+    var editsObject = resolveEdits(editsToResolve, normalChanges);
+    var resolvedEdits = editsObject.resolvedEdits;
+    normalChanges = editsObject.filteredDiffs;
+
+    toReturn = normalChanges.concat(resolvedEdits);
+    toReturn = toReturn.concat(internalMoves);
     return toReturn;
+}
+
+function metadataComparison(oldObject, newObject, unknownChanges) {
+    var diffsToResolve = [];
+    var differences = [];
+    var oldContent = oldObject.content;
+    var newContent = newObject.content;
+    /*
+     TODO: At some point, this would be nice, but for now, let's just worry about content changes
+     //Since we wouldn't get here if the ID or parent changed (it wouldn't be an edit)
+     //We can just look at the other metadata
+     //First, let's check the tag
+    if(oldContent.tag != newContent.tag) {
+        //tag is different, so we need to just note what they were and move on, they will displayed later
+        internalMove.push({
+            field: "tag",
+            old: oldContent.tag,
+            new: newContent.tag
+        })
+    }
+    //Now, we just need to see if the attributes have changed
+    var sortingFunc = function(a,b){
+        if(a.name < b.name) {
+            return -1;
+        } else if(b.name < a.name) {
+            return 1;
+        } else return 0;
+    };
+    var sortedOldAttributes = oldContent.attributes.sort(sortingFunc);
+    var sortedNewAttributes = newContent.attributes.sort(sortingFunc);
+    if(JSON.stringify(sortedNewAttributes) != JSON.stringify(sortedOldAttributes)) {
+        //The arrays are not equal, so we need to do some more in-depth checking
+        internalMove.push({
+            field: "attributes",
+            old: sortedOldAttributes,
+            new: sortedNewAttributes
+        })
+    }
+    */
+    //Lastly, we need to look at the children, and separate these changes out so they can be resolved against
+    //the other changes.
+    var oldChildren = oldContent.constructionOrder;
+    var newChildren = newContent.constructionOrder;
+    var toReturn = [];
+    for(var i = 0; i < Math.min(oldChildren.length, newChildren.length); i++){
+        var oldChild = oldChildren[i];
+        var newChild = newChildren[i];
+        if(oldChild.indexOf('.txt') > -1) {
+            //This is a text node, so we can do some more digging
+            var unknownMatch = null;
+            var oldChildID = oldChild.slice(0, oldChild.indexOf('.txt'));
+
+            unknownChanges.forEach(function(tbd) {
+                if(tbd.granule.fileInfo.oldID == oldChildID) {
+                    unknownMatch = tbd;
+                }
+            });
+            if(unknownMatch != null &&
+               newChild.indexOf('.txt') > -1 &&
+               unknownMatch.granule.fileInfo.newID == newChild.slice(0, newChild.indexOf('.txt'))) {
+                //This means that we've found a match for a rename, and it is a file that stayed in the same
+                //place, as such, there is nothing left to do here
+                //TODO: Nothing? maybe remove the unknown change and return the new smaller list
+            } else if(unknownMatch != null) {
+                //We found a match for a rename, but the corresponding new entry doesn't match up, so maybe it's
+                //somewhere else in new
+                var newChildToMatch = unknownMatch.granule.fileInfo.newID;
+                for(var j = 0; j < newChildren.length; j++) {
+                    if(newChildren[j].indexOf('.txt') > -1) {
+                        var moveNewChild = newChildren[j];
+                        if(moveNewChild.slice(0, moveNewChild.indexOf('.txt')) == newChildToMatch) {
+                            //We've found the move, so we can just say that this is a move and return
+                            var moveChange = {changeType: 'move',
+                                old: {
+                                    parent: unknownMatch.granule.fileInfo.oldParent,
+                                    ID: unknownMatch.granule.fileInfo.oldID
+                                },
+                                new: {
+                                    parent: unknownMatch.granule.fileInfo.newParent,
+                                    ID: unknownMatch.granule.fileInfo.newID
+                                }
+                            };
+                            differences.push(moveChange);
+                        }
+                    }
+                }
+            } else if(newChild.indexOf('.txt') > -1) {
+                //We've clearly found a pair of text nodes here, and since the only options for this pair
+                //are nothing or an edit, then these must be an edit
+                var editChange = {changeType: 'editToResolve',
+                                  oldFile: oldChild,
+                                  newFile: newChild};
+                diffsToResolve.push(editChange);
+            } else {
+                //There is no match for this, or rather, this is something else, so just leave it be
+            }
+        }
+    }
+    return {internalMove: differences, editToResolve: diffsToResolve};
+}
+
+function resolveEdits(edits, diffs) {
+    var filteredDiffs = [].concat(diffs);
+    var resolvedEdits = [];
+    edits.forEach(function(edit){
+        var oldID = edit.oldFile.slice(0,edit.oldFile.indexOf(".txt"));
+        var newID = edit.newFile.slice(0,edit.newFile.indexOf(".txt"));
+        var oldDiffEdit = null;
+        var newDiffEdit = null;
+        var tempDiffs = [];
+
+        filteredDiffs.forEach(function(diff){
+            if(diff.objectID == oldID) {
+                oldDiffEdit = diff;
+            } else if(diff.objectID == newID) {
+                newDiffEdit = diff;
+            } else {
+                tempDiffs.push(diff);
+            }
+        });
+        filteredDiffs = tempDiffs;
+
+        if(oldDiffEdit != null && newDiffEdit != null) {
+            resolvedEdits.push({
+                changeType: "edit",
+                oldID: oldID,
+                newID: newID,
+                parent: oldDiffEdit.parent,
+                oldContent: oldDiffEdit.content,
+                newContent: newDiffEdit.content
+            });
+        }
+    });
+    return {filteredDiffs: filteredDiffs, resolvedEdits:resolvedEdits};
 }
 
 function cleanGitlitObjectForDiff(gitlitObject) {
@@ -386,16 +565,19 @@ function markBodyForDiff(gitlitObject, diffObjects) {
 }
 
 function markDiff(gitlitObject, diff) {
-    if(diff.objectID == gitlitObject.porID) {
+    var toReturn = gitlitObject;
+    var newChildren = [];
+
+    if(((diff.changeType == 'added' || diff.changeType == 'deleted') && diff.objectID == gitlitObject.porID) ||
+        ((diff.changeType == 'move') && (diff.old.ID == gitlitObject.porID || diff.new.ID == gitlitObject.porID)) ||
+        ((diff.changeType == 'edit') && (diff.oldID == gitlitObject.porID || diff.newID == gitlitObject.porID))) {
         gitlitObject.diffMetadata = diff;
         return gitlitObject;
     } else {
-        if(gitlitObject.children == undefined) {
+        if (gitlitObject.children == undefined) {
             return gitlitObject;
         }
-        var toReturn = gitlitObject;
-        var newChildren = [];
-        toReturn.children.forEach(function(child){
+        toReturn.children.forEach(function (child) {
             newChildren.push(markDiff(child, diff));
         });
         toReturn.children = newChildren;
@@ -404,7 +586,6 @@ function markDiff(gitlitObject, diff) {
 }
 
 function linearizeGitlitObject(gitlitObject) {
-    var toReturn = [];
     if(gitlitObject.children == undefined) {
         return [gitlitObject];
     } else {
@@ -461,7 +642,13 @@ function pairUp(left, right, oldIndex, newIndex) {
         return toReturn;
     }
 
-    if(left.diffMetadata == undefined && right.diffMetadata == undefined) {
+    if((left.diffMetadata == undefined && right.diffMetadata == undefined)) {
+        toReturn.oldIndex += 1;
+        toReturn.newIndex += 1;
+        toReturn.pair = {left: left, right: right};
+        return toReturn;
+    } else if((left.diffMetadata != undefined && right.diffMetadata != undefined) &&
+        (left.diffMetadata.changeType == 'edit' && right.diffMetadata.changeType == 'edit')){
         toReturn.oldIndex += 1;
         toReturn.newIndex += 1;
         toReturn.pair = {left: left, right: right};
@@ -542,7 +729,9 @@ function convertToDiffDisplayDocObject(nodeList){
             restOfList = resultObject.restOfList;
             childrenList.push(resultObject.docObject);
         }
-        while(restOfList.length > 0 && restOfList[0].parent == firstNode.porID) {
+        while(restOfList.length > 0 &&
+            ((restOfList[0].parent == firstNode.porID) ||
+            (restOfList[0].metadata != undefined && (restOfList[0].metadata.parentID == firstNode.porID)))) {
             resultObject = convertToDiffDisplayDocObject(restOfList);
             restOfList = resultObject.restOfList;
             childrenList.push(resultObject.docObject);
@@ -600,7 +789,7 @@ function wrapForDisplay(textNode) {
     var attributes = [{name: "class", value:textNode.row}];
     if(textNode.diffMetadata != undefined) {
         attributes = [{name: "class",
-                         value: textNode.row.toString() + ' ' + (textNode.diffMetadata.changeType == 'added' ? "ins" : "del")}];
+                         value: textNode.row.toString() + ' ' + getChangeClassName(textNode)}];
     }
 
     return {porID: textNode.porID,
@@ -612,29 +801,26 @@ function wrapForDisplay(textNode) {
             };
 }
 
+function getChangeClassName(textNode){
+    switch(textNode.diffMetadata.changeType) {
+        case 'added':
+            return 'ins';
+        case 'deleted':
+            return 'del';
+        case 'move':
+            return 'mov';
+        case 'edit':
+            return 'edt';
+    }
+}
+
 function convertToDiffSafeHTMLString(docObject) {
     if(docObject.metadata != undefined) {
         //We have a tag node
         return convertTagNodeToHTMLString(docObject);
 
     } else {
-        //non-tag node, just need to hand back the content
-        //with ins/del tags as necessary
-        var htmlContent = '';
-        var possibleEndTag = '';
-        if(docObject.diffMetadata != undefined) {
-            switch(docObject.diffMetadata.changeType){
-                case 'added':
-                    htmlContent += '<ins>';
-                    possibleEndTag  = '</ins>';
-                    break;
-                case 'deleted':
-                    htmlContent += '<del>';
-                    possibleEndTag  = '</del>';
-                    break;
-            }
-        }
-        return htmlContent + docObject.value + possibleEndTag;
+        return docObject.value;
     }
 }
 
@@ -721,7 +907,7 @@ module.exports = {
     processDiffIntoFileGranules: processDiffIntoFileGranules,
     convertFileGranulesIntoDiffObjects: convertFileGranulesIntoDiffObjects,
     extractBodyObject: extractBodyObject,
-    filterNonContentChanges: filterNonContentChanges,
+    resolveComplexChanges: resolveComplexChanges,
     cleanGitlitObjectForDiff: cleanGitlitObjectForDiff,
     markBodyForDiff: markBodyForDiff,
     linearizeGitlitObject: linearizeGitlitObject,

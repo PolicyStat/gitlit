@@ -78,7 +78,7 @@ function recursivelyBuildRepoDirectory(porObject, outputPath) {
         var childrenOrder = [];
         for (var index = 0; index < porObject.children.length; index++) {
             // TODO: Filename to include extension here, or no?
-            var childPORID = porObject.children[index].porID ? porObject.children[index].porID : index + ".txt";
+            var childPORID = porObject.children[index].children ? porObject.children[index].porID : porObject.children[index].porID + ".txt";
             childrenOrder.push(childPORID);
             recursivelyBuildRepoDirectory(porObject.children[index], newDirectory, index);
         }

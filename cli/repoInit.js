@@ -111,7 +111,7 @@ function getOldAndNewFileVersions(repoLocation) {
 
 function getInterprettedDiff(repoLocation) {
     var diffObjects = getDiff(repoLocation);
-    return diffParser.filterNonContentChanges(diffObjects);
+    return diffParser.resolveComplexChanges(diffObjects);
 }
 
 function createDiffPairs(oldVersion, newVersion, contentChanges) {

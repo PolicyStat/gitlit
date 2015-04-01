@@ -38,6 +38,9 @@ function getPORObjectFromRepo(currentDir, textHaveParents){
     // Recursively builds the por object from the construction order.
     metadata.constructionOrder.forEach(function(id) {
         var path = currentDir + "/" + id;
+        if(id.indexOf('.txt') > -1) {
+            path = currentDir + "/" + id.slice(0,id.indexOf('.txt'));
+        }
         if (fs.existsSync(path)) {
             // For directories.
             if (fs.lstatSync(path).isDirectory()){

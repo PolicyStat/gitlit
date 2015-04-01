@@ -52,7 +52,6 @@ program
         var mergeFileVersions = init.getOldAndNewFileVersions(repoLocation);
         var changes = init.getInterprettedDiff(repoLocation);
         var diffDisplayPairs = init.createDiffPairs(fileVersions[0], fileVersions[1], changes);
-//        console.log(diffDisplayPairs);
         var diffDisplayObject = init.setUpPairsForDiffDisplay(diffDisplayPairs);
         var mergePairs = init.createMergePairs(mergeFileVersions[0], mergeFileVersions[1], changes);
         init.createCopyOfDiffResources(outputLocation);
