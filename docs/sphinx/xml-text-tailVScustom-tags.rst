@@ -1,6 +1,6 @@
-#######################
+=======================
 Text Node Name-Tracking
-#######################
+=======================
 
 When gitlit is tracking
 a document, there will be files that 
@@ -98,13 +98,13 @@ best coverage.
     Almost all of these
     would make great test cases.
 
-******************
+==================
 Method explanation
-******************
+==================
 
 
 Custom HTML Tags with id Info
-=============================
+-----------------------------
 The first method we thought of to solve
 the id issue was to create our own HTML
 tag and use that with our metadata file
@@ -141,7 +141,7 @@ any tags that it doesn't recognize, so,
 this should be fine to do.
 
 Pros
-----
+~~~~
 * Very Easy to do
 
     * Both HTML generation and Repo
@@ -160,7 +160,7 @@ Pros
 
 
 Cons
-----
+~~~~
 * Standards are weird
 
     * HTML might misbehave if we inject our own tags
@@ -176,7 +176,7 @@ Cons
     
     
 XML-style Text & Tail
-=====================
+---------------------
 The next method of storing the 
 ids for text nodes took some 
 inspiration from XML. In XML,
@@ -239,7 +239,7 @@ text nodes to ids while avoiding
 placing any extra tags around text.
 
 Pros
-----
+~~~~
 * Easy to do
 * High Consistency
 
@@ -253,15 +253,15 @@ Pros
 
 
 Cons
-----
+~~~~
 * Still fairly fragile
     * If the user moves the text and not the id in the text or tail attribute, then no point.
 
 
 
-*****************************************
+=========================================
 Do we even need tags to track text nodes?
-*****************************************
+=========================================
 The reason why we need tags to keep track
 of which text nodes are which is so that
 we can know which sections are which, and
@@ -288,9 +288,9 @@ then we don't need to keep track of moves
 moved *and* changed, we could just say it
 was an addition and be done with it.
 
-***************************
+===========================
 Case 1: Editing A Text Node
-***************************
+===========================
 Consider the case of editing a pre-existing
 text node. The document before the edit might
 look like this:
@@ -327,7 +327,7 @@ is just saying that the first section was changed,
 with no other perceived changes or moves.
 
 Custom Tags
-===========
+-----------
 Assuming the repository already existed, if we made
 the change with Custom tags, then there are 2 cases.
 
@@ -375,7 +375,7 @@ logic ourselves, it would be easy to see that the text was
 edited, so it is just a text change.
 
 XML text tail
-=============
+-------------
 Assuming the repository already existed, if we made
 the change with XML text-tail, then the relationships
 of text & tail would already be stored in the HTML's
@@ -414,9 +414,9 @@ to navigate around more tags. Granted, there are attributes
 to deal with, but this is likely to be seen as less of an
 issue for users.
 
-****************************
+============================
 Case 2: Deleting A Text Node
-****************************
+============================
 Consider the case of deleting a pre-existing
 text node. The document before the edit might
 look like this:
@@ -452,7 +452,7 @@ is just saying that the first section was deleted,
 with no other perceived changes or moves.
 
 Custom Tags
-===========
+-----------
 For this case, we really only care about if there
 already tags.
 
@@ -500,7 +500,7 @@ case means there is a bit more decision making to be made
 that for editing.
 
 XML text-tail
-=============
+-------------
 Document before change
 
 .. code-block:: html
@@ -564,9 +564,9 @@ which creates 4 cases really:
     would be recognized as an insertion.
 
 
-*****************************
+=============================
 Case 3: Inserting A Text Node
-*****************************
+=============================
 Consider the case of inserting a new text
 node. The document before the edit might
 look like this:
@@ -608,7 +608,7 @@ with no other perceived changes or moves.
 
 
 Custom Tags
-===========
+-----------
 Before the edit
 
 .. code-block:: html
@@ -650,7 +650,7 @@ insertions of new paragraphs might be nicely tracked
 by allowing something like this.
 
 XML text-tail
-=============
+-------------
 Document before change
 
 .. code-block:: html
@@ -700,9 +700,9 @@ The second case would just be viewed as an edit
 of that text node.
 
 
-**************************
+==========================
 Case 4: Moving A Text Node
-**************************
+==========================
 Consider the case of moving a pre-existing
 text node. The document before the edit might
 look like this:
@@ -750,7 +750,7 @@ to be after the first div.
     of the old node.
 
 Custom Tags
-===========
+-----------
 Before the edit
 
 .. code-block:: html
@@ -791,7 +791,7 @@ new, and the old tag would say it was edited in some manner, or perhaps
 deleted.
 
 XML text-tail
-=============
+-------------
 Document before change
 
 .. code-block:: html
@@ -834,9 +834,9 @@ are possibly more things to move, and the users would need to
 move them to the proper place, which is harder to make clear
 for the user.
 
-**********************************
+==================================
 Case 5: Moving an Edited Text Node
-**********************************
+==================================
 Consider the case of moving a text node that
 has also been edited. The document before 
 the edit might look like this:
@@ -896,7 +896,7 @@ the user just wouldn't need tracking to identify both
 the move and then change.
 
 Custom Tags
-===========
+-----------
 Before the edit
 
 .. code-block:: html
@@ -934,7 +934,7 @@ tracking moves & changes would be straightforward, as we can
 just look at the section itself and the order of the metadata.
 
 XML text-tail
-=============
+-------------
 Document before change
 
 .. code-block:: html
@@ -972,9 +972,9 @@ us to track this, as we dont' necessarily know what
 was in each text node without comparing all of the
 text nodes in the document against each other text node.
 
-********************************
+================================
 A Note about Diff implementation
-********************************
+================================
 The only reason why we care about tracking text nodes & what
 they are named is so that we can reasonably identify moved
 text nodes across the document whenever we look at doing a
@@ -999,9 +999,9 @@ changed, and only ~20% of the text is the same, couldn't
 it just possibly be coincidence?
 
 
-***************
+===============
 Design Decision
-***************
+===============
 
 As of right now, both Custom tags **and** XML-style text-tail
 would properly track all the changes, considering that they

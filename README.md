@@ -81,9 +81,15 @@ $ gitlit diff /gitlitRepos/homepage /diffResources
 ```
 In diffResources will appear an object with diff data, and css and js for an html file to be opened in a browser for a visual diff display.
 
-# Upcoming Features
-- merge
-    
+### Merge from a diff file.
+gitlit merge &lt;mergeFile&gt; &lt;outputLocation&gt;
+```
+
+$ gitlit merge /gitlitRepos/merge.json /diffResources/homepage.html
+
+```
+This will output an html file created from the diff decisions in the GUI.
+
 ## por-ids : What are they?
 
 They way that gitlit keeps track of the structure of documents for intelligent handling of

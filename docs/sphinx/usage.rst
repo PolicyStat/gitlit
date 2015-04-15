@@ -1,9 +1,9 @@
-************
+============
 Using Gitlit
-************
+============
 
 Getting started
-===============
+---------------
 
 There are two possible use cases for gitlit:
 
@@ -43,7 +43,7 @@ Alternatively:
     to run the tool based on why you are trying to run it.
 
 Creating a repository
-=====================
+---------------------
 The command for creating a repository given an HTML document
 is: ::
 
@@ -74,7 +74,7 @@ If it existed before, an error will be thrown stating as such.
     `The W3C Validator <http://validator.w3.org/#validate_by_input+with_options>`_.
 
 Generating HTML from a repository
-=================================
+---------------------------------
 To generate a file from a repository, simply run: ::
 
     write <path to repository directory> <path of output file>
@@ -114,7 +114,7 @@ so take caution.
 
 
 Making a commit
-===============
+---------------
 Once a repository is created, a new revision can be tracked in the
 repository through making a new commit. Just like git, and
 differences will be stored into a new commit and the repository
