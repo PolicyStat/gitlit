@@ -211,7 +211,7 @@ module.exports = {
     getExtension : getExtension,
     deleteDirectoryIfExists: deleteDirectoryIfExists,
     deleteFileIfExists: deleteFileIfExists,
-    getGitDiffOutput: getInterprettedDiff,
+    getGitDiffOutput: getDiff,
     getInterprettedDiff: getInterprettedDiff,
     getOldAndNewFileVersions: getOldAndNewFileVersions,
     createDiffPairs: createDiffPairs,
