@@ -183,6 +183,20 @@ To minimize this effect, be sure to include closing tags for each open tag, and 
 * 0.4.0
     * Renamed project: psychic-octo-robot -&gt; gitlit
     * Dropped Windows support in order to keep the project working easily in Linux
+* 0.4.1
+    * Very basic diff support
+        * Additions
+        * Deletions
+    * Basic UI to display diff
+* 0.4.2
+    * Diff selection tool
+        * UI for selecting which changes to keep
+    * Merge Support
+        * Can merge results from the selections
+* 0.5.0
+    * Complex diff support
+        * Edits
+        * Text node moves
 
 ## Development environment
 ### Docker & Vagrant
