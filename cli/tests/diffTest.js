@@ -12,19 +12,37 @@ var fs = require("fs");
 
 describe('Performs a git diff correctly:', function () {
 
-    it('Simple Text node edit', function () {
+    it('Large Text Node edit', function () {
         var htmlFile = 'completeIDs.html';
-        var repoName = 'diffRepo';
+        var repoName = 'LargeTextNodeEditRepo';
         var testObject = setupTest(htmlFile, repoName);
         var pathToFile = path.join(testObject.pathToDiffTest, 'completeIDs-edited.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
         var header = {
             changeType: 'edit',
             parent: 'derp',
             oldContent: 'Header ',
             newContent: 'Header is different '
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, header));
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
+
+    it('Small Text Node edit', function () {
+        var htmlFile = 'smallTextNodeEditBefore.html';
+        var repoName = 'smallTextNodeEditRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'smallTextNodeEditAfter.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var header = {
+            changeType: 'edit',
+            parent: 'derp',
+            oldContent: 'Header ',
+            newContent: 'Headers '
         };
         assert.ok(deepContainsIgnoreID(diffObjects, header));
         shellTools.shellOut("cd " + testObject.currentPlace);
@@ -37,7 +55,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'deletionAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
         var oldHeader = {
             changeType: 'deleted',
             parent: 'span',
@@ -54,7 +72,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'insertionAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
         var oldHeader = {
             changeType: 'added',
             parent: 'span',
@@ -64,31 +82,114 @@ describe('Performs a git diff correctly:', function () {
         shellTools.shellOut("cd " + testObject.currentPlace);
     });
 
-    it('Simple Text node move', function() {
+    it('Move type testing', function() {
         var htmlFile = 'moveBefore.html';
         var repoName = 'moveRepo';
         var testObject = setupTest(htmlFile, repoName);
         var pathToFile = path.join(testObject.pathToDiffTest, 'moveAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getGitDiffOutput(testObject.pathToGeneratedRepo);
-        var newTextDiff = {
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var externalMove = {
+            changeType: 'move',
+                old: { parent: "148eaa51fddefbb7dc5cf485" },
+            new: { parent: "b4ab0b72dab11be0b451f3bc" }
+        };
+        var internalMove =  {
+            changeType: 'move',
+            old: { parent: "b4ab0b72dab11be0b451f3bc" },
+            new: { parent: "b4ab0b72dab11be0b451f3bc" }
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, externalMove));
+        assert.ok(deepContainsIgnoreID(diffObjects, internalMove));
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
+
+    it('Complex diff test', function () {
+        var htmlFile = 'LargeNumberOfChanges.html';
+        var repoName = 'ComplexDiffRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'LargeNumberOfChanges-After.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var header = {
+            changeType: 'edit',
+            parent: 'derp',
+            oldContent: 'Header ',
+            newContent: 'Header is too different '
+        };
+        var newStuff = {
             changeType: 'added',
-            parent: 'span',
-            content: 'extra text'
+            parent: '4bbe6f9ca93df19c42fc731c',
+            content: 'new stuff here'
         };
-        var oldTextDiff = {
-            changeType: 'deleted',
-            parent: 'div2',
-            content: 'extra text'
+        var listLook = {
+            changeType: 'added',
+            parent: 'li1',
+            content: 'Let&#39;s look at lists'
         };
-        //For now, since we don't have rename id-ing and stuff, this should NOT
-        //report that there was an addition and deletion. , we will want to
-        //alter this test in the future, but this is mostly just a sanity check
-        //for now
-        //TODO: Alter this test once we have rename logic working
-        assert.ok(!deepContainsIgnoreID(diffObjects, newTextDiff));
-        assert.ok(!deepContainsIgnoreID(diffObjects, oldTextDiff));
+        var weird = {
+            changeType: 'added',
+            parent: 'li2',
+            content: 'this could get weird'
+        };
+        var unwanted = {
+            changeType: 'added',
+            parent: 'li3',
+            content: 'don&#39;t want to keep this'
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, header));
+        assert.ok(deepContainsIgnoreID(diffObjects, newStuff));
+        assert.ok(deepContainsIgnoreID(diffObjects, listLook));
+        assert.ok(deepContainsIgnoreID(diffObjects, weird));
+        assert.ok(deepContainsIgnoreID(diffObjects, unwanted));
+
+        shellTools.shellOut("cd " + testObject.currentPlace);
+    });
+
+    it('Very Complex diff test', function () {
+        this.timeout(3000);
+        var htmlFile = 'LargeNumberOfChanges-After.html';
+        var repoName = 'VeryComplexDiffRepo';
+        var testObject = setupTest(htmlFile, repoName);
+        var pathToFile = path.join(testObject.pathToDiffTest, 'LargeNumberOfChangesFinal.html');
+        shellTools.shellOut(testObject.locCommand);
+        repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
+        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var header = {
+            changeType: 'edit',
+            parent: 'derp',
+            oldContent: 'Header is too different ',
+            newContent: 'Header is two different '
+        };
+        var crossDocMove = {
+            changeType: 'move',
+            old: { parent: "li1" },
+            new: { parent: "derp" }
+        };
+        var added = {
+            changeType: 'added',
+            parent: 'li4',
+            content: 'this is a new addition'
+        };
+        var weird = {
+            changeType: 'edit',
+            parent: 'li2',
+            oldContent: 'this could get weird',
+            newContent: 'this is pretty darn weird'
+        };
+        var internalNodeMove = {
+            changeType: 'move',
+            old: { parent: "li3" },
+            new: { parent: "li3" }
+        };
+        assert.ok(deepContainsIgnoreID(diffObjects, header));
+        assert.ok(deepContainsIgnoreID(diffObjects, crossDocMove));
+        assert.ok(deepContainsIgnoreID(diffObjects, added));
+        assert.ok(deepContainsIgnoreID(diffObjects, weird));
+        assert.ok(deepContainsIgnoreID(diffObjects, internalNodeMove));
+
         shellTools.shellOut("cd " + testObject.currentPlace);
     });
 
@@ -105,7 +206,16 @@ function deepContainsIgnoreID(array, element) {
                 oldContent: arrayItem.oldContent,
                 newContent: arrayItem.newContent
             };
-        } else {
+        } else if(arrayItem.changeType == 'move' ){
+            //Since moves keep track of the ID's of the objects moved, and their parents,
+            //we need to do checking a little different. Since we have no idea what text
+            //node id's were! So just check that the parents moved as we expected
+            compareObject = { changeType: 'move',
+                              old: { parent: arrayItem.old.parent },
+                              new: { parent: arrayItem.new.parent }
+                            };
+        }
+        else {
             compareObject = {
                 changeType: arrayItem.changeType,
                 parent: arrayItem.parent,
