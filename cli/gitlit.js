@@ -59,7 +59,7 @@ program
     });
 
 program
-    .command('merge <merge-file> <outputLocation')
+    .command('merge <mergeFile> <outputLocation>')
     .description('\n\tCreate a new version of an HTML file based on the descisions made'
                  + '\n\tvia the Diff interface, and output to the given location')
     .action(function(mergefile, outputLocation){

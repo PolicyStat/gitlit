@@ -12,12 +12,14 @@ Contents:
    :maxdepth: 2
 
    intro
+   quickStart
    ProblemStatement
    FeatureList
+   usage
    developmentSetup
    html-to-file-serialization
    xml-text-tailVScustom-tags
-   usage
+   
 
 
 Indices and tables
