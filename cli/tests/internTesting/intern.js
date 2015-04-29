@@ -14,26 +14,28 @@ define({
 	// Note that the `build` capability will be filled in with the current commit ID from the Travis CI environment
 	// automatically
 	capabilities: {
-		'selenium-version': '2.41.0'
+		'selenium-version': '2.45.0'
 	},
 
 	// Browsers to run integration testing against. Note that version numbers must be strings if used with Sauce
 	// OnDemand. Options that will be permutated are browserName, version, platform, and platformVersion; any other
 	// capabilities options specified for an environment will be copied as-is
 	environments: [
-		{ browserName: 'firefox', version: '28', platform: [ 'OS X 10.9', 'Windows 7', 'Linux' ] }
+		{ browserName: 'firefox', version: '33.0', platform: [ 'Linux' ] }
 	],
 
 	// Maximum number of simultaneous integration tests that should be executed on the remote WebDriver service
 	maxConcurrency: 3,
 
+	tunnel: 'BrowserStackTunnel',
+
 	// Name of the tunnel class to use for WebDriver tests
-	tunnel: 'SauceLabsTunnel',
+	/*tunnel: 'SauceLabsTunnel',
 
 	tunnelOptions: {
         username: 'satchwsm',
         accessKey: 'd889193c-fe52-4c7c-85b4-ba8487e00f1f'
-    },
+    },*/
 
 	// The desired AMD loader to use when running unit tests (client.html/client.js). Omit to use the default Dojo
 	// loader
@@ -50,7 +52,7 @@ define({
 	},
 
 	// Non-functional test suite(s) to run in each browser
-	suites: [ 'tests/internTesting/unit' ],
+	suites: [ /*'tests/internTesting/unit'*/ ],
 
 	// Functional test suite(s) to run in each browser once non-functional tests are completed
 	functionalSuites: [ 'tests/internTesting/functional' ],
