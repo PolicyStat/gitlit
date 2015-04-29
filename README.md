@@ -14,6 +14,14 @@ of PolicyStat.
 Currently HTML is the target language for development, with the posibility
 of later including XML, DOCX, and other structure document formats.
 
+## Git and Structured Documents: A Cautionary Tale
+
+Git performs optimally on documents containing code traditionally delimited by line breaks. For structured documents such as HTML, with the ability to house many significant elements on a single line, an optimal solution exists somewhere outside of what Git has to offer. That solution is manifested in Gitlit, a package which makes use of Git's ability to understand file-level and directory-level changes in order to traverse and identify changes in the individual nodes of HTML code.
+
+## Gitlit: For the Discerning Web Dev
+
+The web developer who wants meaningful and precise version control can look to Gitlit. It offers revision support and scalability, two features lacking in tools like Google Drive. Those who prefer visual cues to cryptic command line output are able to make use of the visual diffing tool, opened in a browser and able to merge changes made to the repository with a single command.
+
 ## Usage: gitlit [options] [command] [arguments]
 
 ### First, create a gitlit local repo
