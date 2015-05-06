@@ -150,6 +150,54 @@ function setUpPairsForDiffDisplay(pairs) {
     return {left: oldHTMLString, right:newHTMLString};
 }
 
+function matchMovesEdits(pairs) {
+    var changeIDs = [];
+    var decisionNumber = 0;
+
+    pairs.forEach(function(pair){
+        var changeId = "";
+        if(pair.left != null) {
+            if(pair.left.diffMetadata != undefined || pair.left.diffMetadata != null) {
+                if(pair.left.diffMetadata.changeType == "edit") {
+                    changeId = pair.left.diffMetadata.oldID + pair.left.diffMetadata.newID;
+                    if(changeIDs.indexOf(changeId) == -1){
+                        changeIDs.push(changeId);
+                        pair.left.diffMetadata.decisionNumber = decisionNumber + "m";
+                        decisionNumber += 1;
+                    }
+                } else if (pair.left.diffMetadata.changeType == "move") {
+                    changeId = pair.left.diffMetadata.old.ID + pair.left.diffMetadata.new.ID;
+                    if(changeIDs.indexOf(changeId) == -1){
+                        changeIDs.push(changeId);
+                        pair.left.diffMetadata.decisionNumber = decisionNumber + "m";
+                        decisionNumber += 1;
+                    }
+                }
+            }
+        }
+        changeId = "";
+        if(pair.right != null) {
+            if(pair.right.diffMetadata != undefined || pair.right.diffMetadata != null) {
+                if(pair.right.diffMetadata.changeType == "edit") {
+                    changeId = pair.right.diffMetadata.oldID + pair.right.diffMetadata.newID;
+                    if(changeIDs.indexOf(changeId) == -1){
+                        changeIDs.push(changeId);
+                        pair.right.diffMetadata.decisionNumber = decisionNumber + "m";
+                        decisionNumber += 1;
+                    }
+                } else if (pair.right.diffMetadata.changeType == "move") {
+                    changeId = pair.right.diffMetadata.old.ID + pair.right.diffMetadata.new.ID;
+                    if(changeIDs.indexOf(changeId) == -1){
+                        changeIDs.push(changeId);
+                        pair.right.diffMetadata.decisionNumber = decisionNumber + "m";
+                        decisionNumber += 1;
+                    }
+                }
+            }
+        }
+    });
+}
+
 function createCopyOfDiffResources(outputLocation) {
     wrench.copyDirSyncRecursive(path.join(path.resolve(__dirname), 'diffResources'), path.resolve(outputLocation));
 }
@@ -173,7 +221,6 @@ function getMergedPairs(mergefile, outputLocation){
         var decisions = mergeJson.selections;
         var mergePairs = mergeJson.mergePairs;
         var mergeFile = mergeJson.mergeFile;
-
         var mergedPairs = diffParser.applyDecisionsToMergePairs(decisions, mergePairs);
         var mergedDocObject = diffParser.convertToMergedDocObject(mergedPairs).docObject;
         var writeReadyDocObject = diffParser.insertBodyIntoDocObject(mergedDocObject, mergeFile);
@@ -219,5 +266,6 @@ module.exports = {
     setUpPairsForDiffDisplay: setUpPairsForDiffDisplay,
     createCopyOfDiffResources: createCopyOfDiffResources,
     createJSONForDisplay: createJSONForDisplay,
-    getMergedPairs: getMergedPairs
+    getMergedPairs: getMergedPairs,
+    matchMovesEdits: matchMovesEdits
 };

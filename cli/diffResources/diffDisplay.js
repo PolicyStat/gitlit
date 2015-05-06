@@ -22,7 +22,8 @@ var passMain = function(htmlPair){
     var nodeRight = docRight.childNodes[0].childNodes[1];
     placeFloatsFromHTML(nodeLeft, nodeRight);
     var rowTopMap = setHeights();
-    var diffRows = getDiffRows();
+    var diffRows = getDiffRowsAndDecisionNumbers();
+    diffRows = diffRows.sort(sortDiffRowsFunction);
     makeRadioButtons(rowTopMap, diffRows);
 
 };
@@ -75,13 +76,42 @@ function cleanUpDownload(a) {
     }, 1500);
 }
 
+function sortDiffRowsFunction(rowA, rowB) {
+    var intA = Number(rowA);
+    var intB = Number(rowB);
+    return intA - intB;
+}
+
 function makeRadioButtons(rowTopMap, diffRows) {
+    var decisionNumbers = [];
+    console.log(diffRows);
     diffRows.forEach(function(row) {
-        makeRadio(rowTopMap[row], row);
+        var rowElements = Array.prototype.slice.call(document.getElementsByClassName(row));
+        var firstElement = rowElements[0].className;
+        var names = firstElement.split(' ');
+        var decision = null;
+        if(names.length > 2 && names[2] != "") {
+            //Then we have a decision number
+            decision = names[2];
+        }
+        if(rowElements.length > 1) {
+            var secondElement = rowElements[1].className;
+            names = secondElement.split(' ');
+            if(names.length > 2 && names[2] != "") {
+                //Then we have a decision number
+                decision = names[2];
+            }
+        }
+        if(decisionNumbers.indexOf(decision) == -1) {
+            makeRadio(rowTopMap[row], row);
+            if(decision!=null) {
+                decisionNumbers.push(decision);
+            }
+        }
     });
 }
 
-var getDiffRows = function() {
+var getDiffRowsAndDecisionNumbers = function() {
     var insElements = Array.prototype.slice.call(document.getElementsByClassName('ins'));
     var delElements = Array.prototype.slice.call(document.getElementsByClassName('del'));
     var movElements = Array.prototype.slice.call(document.getElementsByClassName('mov'));
@@ -106,7 +136,7 @@ var getDiffRows = function() {
         //The first thing should be the row, always, so this should work
         diffRows.push(classNames[0]);
     });
-    return diffRows
+    return diffRows;
 };
 
 
