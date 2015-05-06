@@ -1,9 +1,7 @@
 # gitlit
 
-[![Build Status](https://travis-ci.org/PolicyStat/gitlit.svg)]
-(https://travis-ci.org/PolicyStat/gitlit)
-[![Documentation Status](https://readthedocs.org/projects/gitlit/badge/?version=latest)]
-(http://gitlit.readthedocs.org/en/latest/)
+[![Build Status](https://travis-ci.org/PolicyStat/gitlit.svg)](https://travis-ci.org/PolicyStat/gitlit)
+[![Documentation Status](https://readthedocs.org/projects/gitlit/badge/?version=latest)](http://gitlit.readthedocs.org/en/latest/)
 
 This project is a collection of modules that brings the power of git to 
 structured documents by students Ian Hallam, Devon Timaeus, and Sydney 
@@ -14,11 +12,19 @@ of PolicyStat.
 Currently HTML is the target language for development, with the posibility
 of later including XML, DOCX, and other structure document formats.
 
+## Git and Structured Documents: A Cautionary Tale
+
+Git performs optimally on documents containing code traditionally delimited by line breaks. For structured documents such as HTML, with the ability to house many significant elements on a single line, an optimal solution exists somewhere outside of what Git has to offer. That solution is manifested in Gitlit, a package which makes use of Git's ability to understand file-level and directory-level changes in order to traverse and identify changes in the individual nodes of HTML code.
+
+## Gitlit: For the Discerning Web Dev
+
+The web developer who wants meaningful and precise version control can look to Gitlit. It offers revision support and scalability, two features lacking in tools like Google Drive. Those who prefer visual cues to cryptic command line output are able to make use of the visual diffing tool, opened in a browser and able to merge changes made to the repository with a single command.
+
 # Getting Started
 
 ```
 
-$ npm install gitlit
+$ npm install -g gitlit
 
 ```
 
@@ -31,32 +37,20 @@ $ npm install gitlit
 * -v, (--versionFull)  Print out all the version info for the CLI
 * -l, (--libraries)    Print out the versions of the libraries used
 
-### First, create a gitlit local repo
+### First, create a gitlit local repo with an existing HTML file
 
 gitlit init &lt;file&gt; &lt;outputPath&gt; &lt;repoName&gt;
 
 ```
 
-$ gitlit init homepage.html /gitlitRepos homepage
+$ gitlit init homepage.html gitlitRepos/ homepage
 
 ```
    
-In this case, the output path is the directory that you want the repository to
+In this case, the output path (gitlitRepos/) is the directory that you want the repository to
 be made in. This means that for future commands that need the repository location
-the repository folder, NOT THE OUTPUT DIRECTORY, needs to be given
+the directory created inside (gitlitRepos/homepage/) should be given.
 
-### And change it back into html
-
-gitlit write &lt;directory&gt; &lt;outputFile&gt;
-
-```
-
-$ gitlit write /gitlitRepos/homepage homepage.html
-
-```
-
-Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
-be output as HTML, but won't be that filetype.
     
 ### Make a new revision of the local repo given a new document
 
@@ -64,7 +58,7 @@ gitlit commit &lt;file to make the new revision&gt; &lt;path to repo&gt; &lt;com
 
 ```
 
-$ gitlit commit homepagev2.html /gitlitRepos/homepage "My first commit"
+$ gitlit commit homepagev2.html gitlitRepos/homepage/ "My first commit"
 
 ```
 
@@ -74,21 +68,34 @@ gitlit diff &lt;repoLocation&gt; &lt;outputLocation&gt;
 
 ```
 
-$ gitlit commit homepagev3.html /gitlitRepos/homepage "My second commit"
+$ gitlit commit homepagev3.html gitlitRepos/homepage/ "My second commit"
 
-$ gitlit diff /gitlitRepos/homepage /diffResources
+$ gitlit diff gitlitRepos/homepage/ diffResources/
 
 ```
-In diffResources will appear an object with diff data, and css and js for an html file to be opened in a browser for a visual diff display.
+In diffResources will appear an object with diff data, and CSS and Javascript for an HTML file to be opened in a browser for a visual diff display.
 
 ### Merge from a diff file.
 gitlit merge &lt;mergeFile&gt; &lt;outputLocation&gt;
 ```
 
-$ gitlit merge /gitlitRepos/merge.json /diffResources/homepage.html
+$ gitlit merge gitlitRepos/merge.json diffResources/homepage.html
 
 ```
-This will output an html file created from the diff decisions in the GUI.
+This will output an HTML file created from the diff decisions in the GUI.
+
+### And finally, change your repository back into HTML
+
+gitlit write &lt;directory&gt; &lt;outputFile&gt;
+
+```
+
+$ gitlit write gitlitRepos/homepage/ homepage.html
+
+```
+
+Note, that the output file is given as path; if the file is not given an extension (i.e. ".../example") it will
+be output as HTML, but won't be that filetype.
 
 ## por-ids : What are they?
 
