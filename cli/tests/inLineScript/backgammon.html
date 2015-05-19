@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>Backgammon</title>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+
+void
+main()
+{
+	gl_PointSize = 30.0;
+    gl_Position = vPosition;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+uniform vec4 color;
+
+void
+main()
+{
+    gl_FragColor = color;
+}
+</script>
+
+<script type="text/javascript" src="./Common/webgl-utils.js"></script>
+<script type="text/javascript" src="./Common/initShaders.js"></script>
+<script type="text/javascript" src="./Common/MV.js"></script>
+<script type="text/javascript" src="backgammon.js"></script>
+</head>
+
+<body style="background-image: url('tweed.png');">
+	<div style="width: 100%; overflow: hidden;">
+		<div style="float:left;">
+			<canvas id="gl-canvas" width="720" height="640" style="background-image: url('board.jpg');">
+			Oops ... your browser doesn't support the HTML5 canvas element
+		</canvas>
+		</div>
+		<div style="margin-left:740px; position: relative;">
+			<div style="z-index: 1;"><img src="title.png"></img></div>
+			<div style="z-index: 2; margin-left:100px; margin-top:30px;"><img src="player1.png"></img>
+				<div id="player1dice"></div>
+			</div>
+			<div style="z-index: 3; margin-left:100px; margin-top:30px;"><img src="player2.png"></img>
+				<div id="player2dice"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
