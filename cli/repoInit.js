@@ -7,6 +7,7 @@ var parser = require('./htmlParser');
 var fileWriter = require('./htmlWriter');
 var repoWriter = require('./htmlRepoWriter');
 var diffParser = require('./diffParser');
+var merger = require('./merge');
 var shellTools = require('./shellTools');
 var html = require('html');
 var wrench = require('wrench');
@@ -76,21 +77,9 @@ function commitDocument(file, outputPath, repoName, commitMessage) {
     }
 }
 
-function getDiff(repoLocation) {
-    try {
-        if(!fs.existsSync(repoLocation)) {
-            throw new URIError("Directory does not exist at location: " + repoLocation);
-        }
-        var diffOutput = diffParser.getGitDiffOutput(repoLocation);
-        var granules = diffParser.processDiffIntoFileGranules(diffOutput);
-        return diffParser.convertFileGranulesIntoDiffObjects(granules);
-    } catch (err) {
-        if (err instanceof URIError) {
-            console.error(err.message);
-        }
-    }
-}
-
+/*
+ * Get the file before and after the most recent commit
+ */
 function getOldAndNewFileVersions(repoLocation) {
     try {
         if(!fs.existsSync(repoLocation)) {
@@ -109,99 +98,112 @@ function getOldAndNewFileVersions(repoLocation) {
     }
 }
 
-function getInterprettedDiff(repoLocation) {
+/*
+ * Get the interpreted output of 'git diff' that tells in more detail just what happened
+ */
+function getInterpretedDiff(repoLocation) {
     var diffObjects = getDiff(repoLocation);
     return diffParser.resolveComplexChanges(diffObjects);
 }
 
+/*
+ * Get the output of 'git diff' as objects for each individual file that changed.
+ */
+function getDiff(repoLocation) {
+    try {
+        if(!fs.existsSync(repoLocation)) {
+            throw new URIError("Directory does not exist at location: " + repoLocation);
+        }
+        var diffOutput = diffParser.getGitDiffOutput(repoLocation);
+        var granules = diffParser.processDiffIntoFileGranules(diffOutput);
+        return diffParser.convertFileGranulesIntoDiffObjects(granules);
+    } catch (err) {
+        if (err instanceof URIError) {
+            console.error(err.message);
+        }
+    }
+}
+
+/*
+ * Create pairs for the file that have had the attributes cleared out for rendering in-browser
+ */
 function createDiffPairs(oldVersion, newVersion, contentChanges) {
+    // Get the body of the document before and after the changes
     var oldBody = diffParser.extractBodyObject(oldVersion);
     var newBody = diffParser.extractBodyObject(newVersion);
 
+    // Remove any attributes in the object, as that could cause rendering problems for the diff
     var diffCleanOldBody = diffParser.cleanGitlitObjectForDiff(oldBody);
     var diffCleanNewBody = diffParser.cleanGitlitObjectForDiff(newBody);
 
+    // Mark the objects in the bodies that are to be displayed with the diff objects that show they have changed
     var markedOld = diffParser.markBodyForDiff(diffCleanOldBody, contentChanges);
     var markedNew = diffParser.markBodyForDiff(diffCleanNewBody, contentChanges);
 
-    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
-    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
+    // Flatten the gitlit object into a list of the elements in the order they should be be displayed.
+    var linearizedOld = diffParser.flattenGitlitObject(markedOld);
+    var linearizedNew = diffParser.flattenGitlitObject(markedNew);
 
+    //Pair up the flatten objects so that there are 'rows' of what should be side-by-side
     return diffParser.pairUpRows(linearizedOld, linearizedNew);
 }
 
+/*
+ * Create pairs that retain their attributes for the final merge the creates a new document
+ */
 function createMergePairs(oldVersion, newVersion, contentChanges) {
+    // Get the body of the document before and after the changes
     var oldBody = diffParser.extractBodyObject(oldVersion);
     var newBody = diffParser.extractBodyObject(newVersion);
+
+    // Mark the objects in the bodies that are to be displayed with the diff objects that show they have changed
     var markedOld = diffParser.markBodyForDiff(oldBody, contentChanges);
     var markedNew = diffParser.markBodyForDiff(newBody, contentChanges);
-    var linearizedOld = diffParser.linearizeGitlitObject(markedOld);
-    var linearizedNew = diffParser.linearizeGitlitObject(markedNew);
+
+    // Flatten the gitlit object into a list of the elements in the order they should be be displayed so that they
+    // can be matched up to what should be in each row.
+    var linearizedOld = diffParser.flattenGitlitObject(markedOld);
+    var linearizedNew = diffParser.flattenGitlitObject(markedNew);
+
+    //Pair up the flatten objects so that there are 'rows' of what should be side-by-side
     return diffParser.pairUpRows(linearizedOld, linearizedNew);
 }
 
 function setUpPairsForDiffDisplay(pairs) {
+    //Mark the row numbers that the object should fall in when rendered
     var numberedPairs = diffParser.markRowNumbersOnPairs(pairs);
+
+    //Split the pairs back into separate, flattened bodies so they may be rendered
     var splitBodies = diffParser.splitPairsIntoBodies(numberedPairs);
+
+    //Given the flattened bodies, reconstruct the tree structure the documents originally had
     var oldDocObject = diffParser.convertToDiffDisplayDocObject(splitBodies.oldBody).docObject;
     var newDocObject = diffParser.convertToDiffDisplayDocObject(splitBodies.newBody).docObject;
+
+    //Convert the gitlit document objects into HTML that can be rendered for diffs
     var oldHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(oldDocObject), {indent_size: 2});
     var newHTMLString = html.prettyPrint(diffParser.convertToDiffSafeHTMLString(newDocObject), {indent_size: 2});
+
     return {left: oldHTMLString, right:newHTMLString};
 }
 
-function matchMovesEdits(pairs) {
-    var changeIDs = [];
-    var decisionNumber = 0;
-
-    pairs.forEach(function(pair){
-        var changeId = "";
-        if(pair.left != null) {
-            if(pair.left.diffMetadata != undefined || pair.left.diffMetadata != null) {
-                if(pair.left.diffMetadata.changeType == "edit") {
-                    changeId = pair.left.diffMetadata.oldID + pair.left.diffMetadata.newID;
-                    if(changeIDs.indexOf(changeId) == -1){
-                        changeIDs.push(changeId);
-                        pair.left.diffMetadata.decisionNumber = decisionNumber + "m";
-                        decisionNumber += 1;
-                    }
-                } else if (pair.left.diffMetadata.changeType == "move") {
-                    changeId = pair.left.diffMetadata.old.ID + pair.left.diffMetadata.new.ID;
-                    if(changeIDs.indexOf(changeId) == -1){
-                        changeIDs.push(changeId);
-                        pair.left.diffMetadata.decisionNumber = decisionNumber + "m";
-                        decisionNumber += 1;
-                    }
-                }
-            }
-        }
-        changeId = "";
-        if(pair.right != null) {
-            if(pair.right.diffMetadata != undefined || pair.right.diffMetadata != null) {
-                if(pair.right.diffMetadata.changeType == "edit") {
-                    changeId = pair.right.diffMetadata.oldID + pair.right.diffMetadata.newID;
-                    if(changeIDs.indexOf(changeId) == -1){
-                        changeIDs.push(changeId);
-                        pair.right.diffMetadata.decisionNumber = decisionNumber + "m";
-                        decisionNumber += 1;
-                    }
-                } else if (pair.right.diffMetadata.changeType == "move") {
-                    changeId = pair.right.diffMetadata.old.ID + pair.right.diffMetadata.new.ID;
-                    if(changeIDs.indexOf(changeId) == -1){
-                        changeIDs.push(changeId);
-                        pair.right.diffMetadata.decisionNumber = decisionNumber + "m";
-                        decisionNumber += 1;
-                    }
-                }
-            }
-        }
-    });
+/*
+ * Label the pairs so that each actual change only gets one button
+ */
+function labelUniqueMovesAndEdits(pairs) {
+    diffParser.labelUniqueMovesAndEdits(pairs);
 }
 
+/*
+ * Copy the resources that actually render the diff into a directory for the user
+ */
 function createCopyOfDiffResources(outputLocation) {
     wrench.copyDirSyncRecursive(path.join(path.resolve(__dirname), 'diffResources'), path.resolve(outputLocation));
 }
 
+/*
+ * Fill in the contents of the file that will be used for the client-side rendering of the diffs
+ */
 function createJSONForDisplay(outputLocation, diffObject, mergePairs, mergeFileVersion) {
     var fileContents = 'var diffDisplayInfo = ' + JSON.stringify(diffObject);
     fileContents += ";\n";
@@ -221,9 +223,9 @@ function getMergedPairs(mergefile, outputLocation){
         var decisions = mergeJson.selections;
         var mergePairs = mergeJson.mergePairs;
         var mergeFile = mergeJson.mergeFile;
-        var mergedPairs = diffParser.applyDecisionsToMergePairs(decisions, mergePairs);
-        var mergedDocObject = diffParser.convertToMergedDocObject(mergedPairs).docObject;
-        var writeReadyDocObject = diffParser.insertBodyIntoDocObject(mergedDocObject, mergeFile);
+        var mergedPairs = merger.applyDecisionsToMergePairs(decisions, mergePairs);
+        var mergedDocObject = merger.convertToMergedDocObject(mergedPairs).docObject;
+        var writeReadyDocObject = merger.insertBodyIntoDocObject(mergedDocObject, mergeFile);
         fileWriter.writePORObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
     } catch (err) {
         if (err instanceof URIError) {
@@ -259,7 +261,7 @@ module.exports = {
     deleteDirectoryIfExists: deleteDirectoryIfExists,
     deleteFileIfExists: deleteFileIfExists,
     getGitDiffOutput: getDiff,
-    getInterprettedDiff: getInterprettedDiff,
+    getInterpretedDiff: getInterpretedDiff,
     getOldAndNewFileVersions: getOldAndNewFileVersions,
     createDiffPairs: createDiffPairs,
     createMergePairs: createMergePairs,
@@ -267,5 +269,5 @@ module.exports = {
     createCopyOfDiffResources: createCopyOfDiffResources,
     createJSONForDisplay: createJSONForDisplay,
     getMergedPairs: getMergedPairs,
-    matchMovesEdits: matchMovesEdits
+    labelUniqueMovesAndEdits: labelUniqueMovesAndEdits
 };

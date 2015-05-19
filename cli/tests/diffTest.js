@@ -19,7 +19,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'completeIDs-edited.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var header = {
             changeType: 'edit',
             parent: 'derp',
@@ -37,7 +37,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'smallTextNodeEditAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var header = {
             changeType: 'edit',
             parent: 'derp',
@@ -55,7 +55,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'deletionAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var oldHeader = {
             changeType: 'deleted',
             parent: 'span',
@@ -72,7 +72,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'insertionAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var oldHeader = {
             changeType: 'added',
             parent: 'span',
@@ -89,7 +89,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'moveAfter.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, 'this is a test commit');
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var externalMove = {
             changeType: 'move',
                 old: { parent: "148eaa51fddefbb7dc5cf485" },
@@ -112,7 +112,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'LargeNumberOfChanges-After.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var header = {
             changeType: 'edit',
             parent: 'derp',
@@ -156,7 +156,7 @@ describe('Performs a git diff correctly:', function () {
         var pathToFile = path.join(testObject.pathToDiffTest, 'LargeNumberOfChangesFinal.html');
         shellTools.shellOut(testObject.locCommand);
         repoInit.commitDocument(pathToFile, testObject.pathToDiffTest, repoName, "this is a test commit");
-        var diffObjects = repoInit.getInterprettedDiff(testObject.pathToGeneratedRepo);
+        var diffObjects = repoInit.getInterpretedDiff(testObject.pathToGeneratedRepo);
         var header = {
             changeType: 'edit',
             parent: 'derp',
