@@ -213,20 +213,27 @@ function createJSONForDisplay(outputLocation, diffObject, mergePairs, mergeFileV
     fs.writeFileSync(path.join(outputLocation, "diffDisplayObject.js"), fileContents, "utf8");
 }
 
-function getMergedPairs(mergefile, outputLocation){
+function mergeDocument(mergefile, outputLocation){
     try {
         if(!fs.existsSync(mergefile)) {
             throw new URIError("merge-file does not exist at location: " + mergefile);
         }
+        //Read the decision file and get out the data we care about
         var jsonString = fs.readFileSync(mergefile, 'utf8');
         var mergeJson = JSON.parse(jsonString);
         var decisions = mergeJson.selections;
         var mergePairs = mergeJson.mergePairs;
         var mergeFile = mergeJson.mergeFile;
+
+        // Merge the pairs together into a single set of flattened nodes
         var mergedPairs = merger.applyDecisionsToMergePairs(decisions, mergePairs);
+        //Reconstruct the gitlit document object out of the flattened object
         var mergedDocObject = merger.convertToMergedDocObject(mergedPairs).docObject;
+        //Take the gitlit document object and put it into the rest of the HTML document object that
+        //contains the head and other info in the document that was not renderable.
         var writeReadyDocObject = merger.insertBodyIntoDocObject(mergedDocObject, mergeFile);
-        fileWriter.writePORObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
+        //Output the file
+        fileWriter.writeGitlitObjectToHTMLFile(writeReadyDocObject, path.resolve(outputLocation));
     } catch (err) {
         if (err instanceof URIError) {
             console.error(err.message);
@@ -268,6 +275,6 @@ module.exports = {
     setUpPairsForDiffDisplay: setUpPairsForDiffDisplay,
     createCopyOfDiffResources: createCopyOfDiffResources,
     createJSONForDisplay: createJSONForDisplay,
-    getMergedPairs: getMergedPairs,
+    mergeDocument: mergeDocument,
     labelUniqueMovesAndEdits: labelUniqueMovesAndEdits
 };

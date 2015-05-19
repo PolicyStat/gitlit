@@ -2,6 +2,100 @@
  * Created by Devon Timaeus on 5/19/2015.
  */
 
+/*
+ *
+ */
+function applyDecisionsToMergePairs(decisions, pairs) {
+    var mergedPairs = [];
+    var revertedMovesEdits = [];
+    for(var row = 0; row < pairs.length; row++){
+        //We want to go through each row, and see if there was a decision made here
+        var left = pairs[row].left;
+        var right = pairs[row].right;
+        var parent = null;
+
+        //Look to see what the parent should be based on whether the left or right side is null
+        //Then set left and\or right appropriately
+        if(left == null && right != null) {
+            parent = right.parent != undefined ? right.parent : right.metadata.parentID;
+            left = emptyNode(0,"",parent)
+        } else if (right == null && left != null) {
+            parent = left.parent != undefined ? left.parent : left.metadata.parentID;
+            right = emptyNode(0,"",parent)
+        }
+
+        if(decisions[row] != undefined) {
+            if(decisions[row] == 'keep') {
+                //If we are wanting to keep the change, just take the right side, as that is the most up-to-date
+                //possible node
+                mergedPairs.push(right);
+            } else {
+                //If we aren't keeping, we're reverting, so we need to look and see if the decision is a move
+                //or edit that we are reverting, because if so, we need to handle the fact that the other half
+                //of the change appears elsewhere.
+                if(left.diffMetadata != null && left.diffMetadata != undefined) {
+                    if(left.diffMetadata.decisionNumber != null && left.diffMetadata.decisionNumber != undefined) {
+                        //If the left side exists, we want to add it's decision number to the list
+                        revertedMovesEdits.push(left.diffMetadata.decisionNumber);
+                    }
+                } else if (right.diffMetadata != null && right.diffMetadata != undefined) {
+                    if (right.diffMetadata.decisionNumber != null && right.diffMetadata.decisionNumber != undefined) {
+                        //If the right side exists, and the left side didn't, we want to add the
+                        //right side's decision number to the list
+                        revertedMovesEdits.push(right.diffMetadata.decisionNumber);
+                    }
+                }
+                //No matter what, we want to actually take the appropriate change
+                if(right == null) {
+                    mergedPairs.push({ignoreInChildCounting: left});
+                } else {
+                    mergedPairs.push(left);
+                }
+            }
+        } else {
+            //There isn't a decision made for this row, but there may still need to be some
+            //change made at a different row enacted here. That is, a change regarding this
+            //pair might have been made earlier, so we need to look for that
+            if(left.diffMetadata != undefined && left.diffMetadata != null) {
+                if(left.diffMetadata.decisionNumber != undefined && left.diffMetadata.decisionNumber != null) {
+                    //If this diff has been reverted, then push the left side
+                    if(revertedMovesEdits.indexOf(left.diffMetadata.decisionNumber) != -1 ) {
+                        mergedPairs.push(left);
+                    }
+                }
+            }
+            else {
+                //If the object on the right has a diff, and it is either an edit or move, then we want to see if it's
+                //been reverted. If it has, then we want to push the left side, otherwise, the right.
+                if(right.diffMetadata != undefined && right.diffMetadata != null) {
+                    if(right.diffMetadata.decisionNumber != undefined && right.diffMetadata.decisionNumber != null) {
+                        if(revertedMovesEdits.indexOf(right.diffMetadata.decisionNumber) != -1) {
+                            mergedPairs.push(left);
+                            continue;
+                        }
+                    }
+                }
+                mergedPairs.push(right);
+            }
+        }
+    }
+
+    return mergedPairs;
+}
+
+/*
+ * Return an emptyNode with the given row number, id, and parent id
+ */
+function emptyNode(row, id, parent) {
+    return {value: '',
+        porID: id,
+        row: row,
+        parent: parent}
+}
+
+/*
+ * Convert a flattened list of nodes with diff data into a gitlit document object
+ */
 function convertToMergedDocObject(nodeList){
     var firstNode = nodeList[0];
     var restOfList = nodeList.slice(1, nodeList.length);
@@ -42,71 +136,11 @@ function convertToMergedDocObject(nodeList){
     }
 }
 
-function applyDecisionsToMergePairs(decisions, pairs) {
-    var mergedPairs = [];
-    var revertedMovesEdits = [];
-    for(var row = 0; row < pairs.length; row++){
-        var left = pairs[row].left;
-        var right = pairs[row].right;
-        var parent = null;
-        if(left == null && right != null) {
-            parent = right.parent != undefined ? right.parent : right.metadata.parentID;
-            left = emptyNode(0,"",parent)
-        } else if (right == null && left != null) {
-            parent = left.parent != undefined ? left.parent : left.metadata.parentID;
-            right = emptyNode(0,"",parent)
-        }
-        if(decisions[row] != undefined) {
-            switch(decisions[row]){
-                case 'keep':
-                    mergedPairs.push(right);
-                    break;
-                case 'revert':
-                    if(left.diffMetadata != null && left.diffMetadata != undefined) {
-                        if(left.diffMetadata.decisionNumber != null && left.diffMetadata.decisionNumber != undefined) {
-                            revertedMovesEdits.push(left.diffMetadata.decisionNumber);
-                        }
-                    } else if (right.diffMetadata != null && right.diffMetadata != undefined) {
-                        if (right.diffMetadata.decisionNumber != null && right.diffMetadata.decisionNumber != undefined) {
-                            revertedMovesEdits.push(right.diffMetadata.decisionNumber);
-                        }
-                    }
-                    if(right == null) {
-                        mergedPairs.push({ignoreInChildCounting: left});
-                    } else {
-                        mergedPairs.push(left);
-                    }
-                    break;
-            }
-        } else {
-            if(left.diffMetadata != undefined && left.diffMetadata != null) {
-                if(left.diffMetadata.decisionNumber != undefined && left.diffMetadata.decisionNumber != null) {
-                    if(revertedMovesEdits.indexOf(left.diffMetadata.decisionNumber) != -1 ) {
-                        mergedPairs.push(left);
-                    }
-                }
-            }
-            else {
-                if(right.diffMetadata != undefined && right.diffMetadata != null) {
-                    if(right.diffMetadata.decisionNumber != undefined && right.diffMetadata.decisionNumber != null) {
-                        if(revertedMovesEdits.indexOf(right.diffMetadata.decisionNumber) == -1) {
-                            mergedPairs.push(right);
-                        } else {
-                            mergedPairs.push(left);
-                        }
-                    } else {
-                        mergedPairs.push(right);
-                    }
-                } else {
-                    mergedPairs.push(right);
-                }
-            }
-        }
-    }
 
-    return mergedPairs;
-}
-
+/*
+ * Take the merged gitlit document body, and insert it into the document body's shell that
+ * has the header and the other information that was not renderable.
+ */
 function insertBodyIntoDocObject(mergedBody, fullDocObject){
     if (fullDocObject.metadata != undefined){
         var metadata = fullDocObject.metadata;

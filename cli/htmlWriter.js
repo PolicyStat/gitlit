@@ -9,12 +9,12 @@ function generateFile(directory, outputFile) {
 	if (!fs.existsSync(directory)) {
         throw new URIError(directory + ' is not a directory');
     }
-    var porRepo = getPORObjectFromRepo(directory, false);
-    return writePORObjectToHTMLFile(porRepo, outputFile);
+    var porRepo = getGitlitObjectFromRepo(directory, false);
+    return writeGitlitObjectToHTMLFile(porRepo, outputFile);
 }
 
-function writePORObjectToHTMLFile(porObject, outputFile) {
-    var fileString = convertPORRepoObjectToHTMLString(porObject);
+function writeGitlitObjectToHTMLFile(porObject, outputFile) {
+    var fileString = convertGitlitRepoObjectToHTMLString(porObject);
 
     fs.writeFileSync(outputFile, fileString);
     return fileString;
@@ -23,7 +23,7 @@ function writePORObjectToHTMLFile(porObject, outputFile) {
 /**
 * Returns a POR object of the repo.
 */
-function getPORObjectFromRepo(currentDir, textHaveParents){
+function getGitlitObjectFromRepo(currentDir, textHaveParents){
 
 	var metadataLocation = currentDir + "/metadata.json";
 	var metadata = JSON.parse(fs.readFileSync(metadataLocation));
@@ -44,7 +44,7 @@ function getPORObjectFromRepo(currentDir, textHaveParents){
         if (fs.existsSync(path)) {
             // For directories.
             if (fs.lstatSync(path).isDirectory()){
-                porObject.children.push(getPORObjectFromRepo(path, textHaveParents));
+                porObject.children.push(getGitlitObjectFromRepo(path, textHaveParents));
             }
         } else {
             // For files, currently only text are used.
@@ -65,7 +65,7 @@ function getPORObjectFromRepo(currentDir, textHaveParents){
     return porObject;
 }
 
-function convertPORRepoObjectToHTMLString(porObject) {
+function convertGitlitRepoObjectToHTMLString(porObject) {
     var htmlString =  recursivelyConvertPORObjectToHTML(porObject);
     return html.prettyPrint(htmlString, {indent_size: 2});
 }
@@ -136,10 +136,10 @@ function extractOpeningTag(porObject) {
 
 function getPreviousFileVersions(repoLocation) {
     shellTools.checkoutToCommit(repoLocation, 'HEAD^');
-    var oldObject = getPORObjectFromRepo(repoLocation, true);
+    var oldObject = getGitlitObjectFromRepo(repoLocation, true);
 
     shellTools.checkoutToCommit(repoLocation, 'master');
-    var newObject = getPORObjectFromRepo(repoLocation, true);
+    var newObject = getGitlitObjectFromRepo(repoLocation, true);
 
     return [oldObject, newObject];
 }
@@ -148,11 +148,11 @@ function getPreviousFileVersions(repoLocation) {
 
 module.exports = {
     generateFile: generateFile,
-    writePORObjectToHTMLFile : writePORObjectToHTMLFile,
+    writeGitlitObjectToHTMLFile : writeGitlitObjectToHTMLFile,
     convertTagNodeToHTMLString: convertTagNodeToHTMLString,
     convertTextNodeToHTMLString: convertTextNodeToHTMLString,
-    convertPORObjectToHTMLString : convertPORRepoObjectToHTMLString,
-    getPORObjectFromRepo : getPORObjectFromRepo,
+    convertGitlitObjectToHTMLString : convertGitlitRepoObjectToHTMLString,
+    getGitlitObjectFromRepo : getGitlitObjectFromRepo,
     extractOpeningTag: extractOpeningTag,
     getPreviousFileVersions: getPreviousFileVersions
 };

@@ -74,7 +74,7 @@ program
     .description('\n\tCreate a new version of an HTML file based on the descisions made'
                  + '\n\tvia the Diff interface, and output to the given location')
     .action(function(mergefile, outputLocation){
-        init.getMergedPairs(mergefile, outputLocation);
+        init.mergeDocument(mergefile, outputLocation);
     });
 
 if (process.argv.length == 2){
