@@ -106,13 +106,13 @@ if (program.versionFull) {
     console.log("psychic-octo-robot: "   + program._version);
     console.log("browserify: "          + "5.11.2");
     console.log("html: "                + "0.0.7");
-    console.log("deasync: "                + "0.0.7");
+    console.log("deasync: "                + "0.0.10");
     console.log("parse5: "                + "1.1.4");
     console.log("commander.js: "        + "2.3.0");
 } else if (program.libraries && !program.versionFull) {
     console.log("browserify: "          + "5.11.2");
     console.log("html: "                + "0.0.7");
-    console.log("deasync: "                + "0.0.7");
+    console.log("deasync: "                + "0.0.10");
     console.log("parse5: "                + "1.1.4");
     console.log("commander.js: "        + "2.3.0");
 }
