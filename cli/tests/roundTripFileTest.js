@@ -158,7 +158,7 @@ function testRoundTripOnObject(porObject, baseFileName, repoName, roundTrippedFi
     var pathToGeneratedFile = path.join(currentPath, 'resources', 'roundTripTesting', baseFileName);
 
     repoInit.deleteFileIfExists(pathToGeneratedFile);
-    htmlWriter.writePORObjectToHTMLFile(porObject, pathToGeneratedFile);
+    htmlWriter.writeGitlitObjectToHTMLFile(porObject, pathToGeneratedFile);
     assert.ok(fs.existsSync(pathToGeneratedFile));
 
     //Now that we have a file that was made from a POR object, if we run this through the whole
